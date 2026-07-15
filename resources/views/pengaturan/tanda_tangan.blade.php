@@ -32,9 +32,7 @@
                                     @csrf
                     
                                     <input type="hidden" name="field" id="field" value="tanda_tangan_pelaporan">
-                                    <textarea class="tiny-mce-editor" name="tanda_tangan" id="tanda_tangan">
-                                        {!! $ttd->tanda_tangan ?? '' !!}
-                                    </textarea>
+                                    <textarea class="tiny-mce-editor" name="tanda_tangan" id="tanda_tangan">{!! $ttd->tanda_tangan ?? '' !!}</textarea>
                                 </form>
                     
                                 {{-- @if (!$tanggal)
@@ -65,12 +63,18 @@
             }
 
             tinymce.init({
-                selector: '.tiny-mce-editor',
+                selector: '#tanda_tangan',
                 height: 400,
                 readonly: false,
                 plugins: 'table visualblocks fullscreen',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | align | table fullscreen | removeformat',
                 font_family_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace;',
+                valid_children: '+table[tr],+tr[td],+tbody[tr],+thead[tr],+tfoot[tr],+table[tbody],+table[thead],+table[tfoot]',
+                extended_valid_elements: 'table[class|style|border|cellspacing|cellpadding|width],tr[class|style],td[class|style|width|colspan|rowspan],tbody[class|style],thead[class|style],tfoot[class|style],strong[class|style]',
+                custom_elements: '~tanda_tangan',
+                verify_html: false,
+                cleanup: false,
+                entity_encoding: 'raw',
             });
 
         $(document).on('click', '#simpanTtdPelaporan', function (e) {

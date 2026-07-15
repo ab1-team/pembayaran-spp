@@ -6,9 +6,9 @@
                 <script>
                     document.write(new Date().getFullYear())
                 </script>,
-                made with <i class="fa fa-heart"></i> by
+                dibuat dengan <i class="fa fa-heart"></i> oleh
                 <a href="" class="font-weight-bold" target="_blank">Asta Brata</a>
-                for a better web.
+                untuk web yang lebih baik.
             </div>
         </div>
     </div>

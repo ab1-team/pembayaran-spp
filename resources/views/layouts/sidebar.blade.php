@@ -25,7 +25,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/Jenis-biaya">
+                        <a class="nav-link text-dark py-2" href="/app/jenis-biaya">
                             <span class="sidenav-normal">Jenis Pembayaran</span>
                         </a>
                     </li>
@@ -41,25 +41,16 @@
             Master Data
         </p>
         <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#submenuSiswa" class="nav-link text-dark py-2 my-1"
-                aria-controls="submenuSiswa" role="button" aria-expanded="false">
-                <span class="material-symbols-rounded opacity-5">school</span>
-                <span class="sidenav-normal ms-1">Siswa</span>
+            <a class="nav-link text-dark py-2 my-1" href="/app/siswa/create">
+                <span class="material-symbols-rounded opacity-5">person_add</span>
+                <span class="sidenav-normal ms-1">Tambah Siswa</span>
             </a>
-            <div class="collapse" id="submenuSiswa">
-                <ul class="nav ms-4">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/siswa/create">
-                            <span class="sidenav-normal">Tambah Data Siswa</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/siswa">
-                            <span class="sidenav-normal">Daftar Siswa</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark py-2 my-1" href="/app/siswa">
+                <span class="material-symbols-rounded opacity-5">school</span>
+                <span class="sidenav-normal ms-1">Data Siswa</span>
+            </a>
         </li>
         <p class="text-uppercase text-muted ms-3 mb-1 mt-3" style="font-size: 12px;">
             Transaksi

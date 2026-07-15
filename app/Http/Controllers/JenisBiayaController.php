@@ -13,11 +13,6 @@ class JenisBiayaController extends Controller
     {
         if ($request->ajax()) {
             $data = Jenis_Biaya::with('get_jenis_pembayaran');
-            if ($request->has('tahun') && $request->tahun != '') {
-                $data->where('angkatan', $request->tahun);
-            } else {
-                $data->where('angkatan', date('Y'));
-            }
             return DataTables::eloquent($data)
                 ->addIndexColumn()
                 ->addColumn('nama_jenis', function ($row) {
@@ -29,9 +24,9 @@ class JenisBiayaController extends Controller
                 ->addColumn('action', function ($row) {
                     return '
                         <div class="d-inline-flex gap-1">
-                            <a href="/app/jenis-biaya/'.$row->id.'/edit" class="btn btn-warning">
+                            <button class="btn btn-warning btnEdit" data-id="'.$row->id.'">
                                 <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
+                            </button>
                             <button class="btn btn-danger btnDelete" data-id="'.$row->id.'">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -49,6 +44,31 @@ class JenisBiayaController extends Controller
         $title = 'Tambah Nominal Keuangan';
 
         return view('jenis_biaya.create', compact('title', 'jenisPembayaran'));
+    }
+
+    public function createForm()
+    {
+        $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
+        return response()->json([
+            'html' => view('jenis_biaya._form', [
+                'mode'           => 'create',
+                'jenisPembayaran' => $jenisPembayaran,
+                'jenis_biaya'    => new Jenis_Biaya(),
+            ])->render(),
+        ]);
+    }
+
+    public function editForm(Jenis_Biaya $jenis_biaya)
+    {
+        $jenis_biaya->load('get_jenis_pembayaran');
+        $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
+        return response()->json([
+            'html' => view('jenis_biaya._form', [
+                'mode'           => 'edit',
+                'jenisPembayaran' => $jenisPembayaran,
+                'jenis_biaya'    => $jenis_biaya,
+            ])->render(),
+        ]);
     }
 
     public function store(Request $request)

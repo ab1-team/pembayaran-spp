@@ -56,6 +56,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::resource('/Transaksi', TransaksiController::class);
 
     Route::resource('/jenis-biaya', JenisBiayaController::class);
+    Route::get('/jenis-biaya-create-form', [JenisBiayaController::class, 'createForm']);
+    Route::get('/jenis-biaya-edit-form/{jenis_biaya}', [JenisBiayaController::class, 'editForm']);
     Route::get('/spp/CariSiswa', [SppController::class, 'CariSiswaAktif']);
     Route::get('/spp/Pembayaran-spp/{id}', [SppController::class, 'spp']);
     Route::resource('/spp', SppController::class);

@@ -323,10 +323,10 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div
-                                            class="input-group input-group-outline mb-3 {{ old('alokasi_spp', $jenisBiaya->total_beban) ? 'is-filled' : '' }}">
+                                            class="input-group input-group-outline mb-3 {{ old('alokasi_spp', $jenisBiaya?->total_beban) ? 'is-filled' : '' }}">
                                             <label class="form-label">Alokasi SPP per Bulan</label>
                                             <input type="text" name="alokasi_spp"
-                                                value="{{ number_format($jenisBiaya->total_beban, 2) }}" id="alokasi_spp"
+                                                value="{{ number_format($jenisBiaya->total_beban ?? 0, 2) }}" id="alokasi_spp"
                                                 class="form-control nominal">
                                         </div>
                                     </div>

@@ -42,6 +42,25 @@
             z-index: 1999 !important;
         }
 
+        body:not(.modal-open) .card {
+            border: none !important;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, .08),
+                        0 2px 6px rgba(15, 23, 42, .06) !important;
+        }
+
+        .row > [class*="col-"] > .card {
+            margin-bottom: 1.25rem;
+        }
+
+        .card .card {
+            box-shadow: 0 4px 12px rgba(15, 23, 42, .07) !important;
+        }
+
+        .card-header,
+        .card-footer {
+            border: none !important;
+        }
+
         .card-body {
             transition: all 0.3s ease;
         }

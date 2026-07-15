@@ -13,7 +13,7 @@
                 </div>
                 <br>
                 <div class="card-body">
-                    <form id="FormJenisBiaya" method="POST" action="/app/Jenis-biaya/{{ $Jenis_biaya->id }}"
+                    <form id="FormJenisBiaya" method="POST" action="/app/jenis-biaya/{{ $jenis_biaya->id }}"
                         class="text-start">
                         @csrf
                         @method('PUT')
@@ -22,35 +22,40 @@
                                 <label class="form-label">Masukkan tahun angkatan</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <input type="number" name="angkatan" class="form-control"
-                                        value="{{ $Jenis_biaya->angkatan }}" required>
+                                        value="{{ $jenis_biaya->angkatan }}" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Pilih Jenis</label>
+                                <label class="form-label">Pilih Jenis Pembayaran</label>
                                 <div class="input-group input-group-outline mb-3">
-                                    <select name="kode_akun" id="kode_akun" class="form-control select2">
-                                        <option value="{{ $Jenis_biaya->getkeuanganJenis->id ?? '' }}">
-                                            {{ $Jenis_biaya->getkeuanganJenis->nama_jenis ?? 'Pilih Jenis' }}
-                                        </option>
-                                        @foreach ($Rekening as $RK)
-                                            <option value="{{ $RK->kode_akun }}"
-                                                {{ $RK->kode_akun == $Jenis_biaya->kode_akun ? 'selected' : '' }}>
-                                                {{ $RK->kode_akun }} - {{ $RK->nama_akun }}
+                                    <select name="id_jp" id="id_jp" class="form-control select2">
+                                        <option value="">-- Pilih Jenis Pembayaran --</option>
+                                        @foreach ($jenisPembayaran as $jp)
+                                            <option value="{{ $jp->id }}" data-kode="{{ $jp->kode_akun }}"
+                                                {{ $jp->id == $jenis_biaya->id_jp ? 'selected' : '' }}>
+                                                {{ $jp->kode_akun }} - {{ $jp->nama }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
+                                <label class="form-label">Kode Akun</label>
+                                <div class="input-group input-group-outline mb-3">
+                                    <input type="text" id="kode_akun" class="form-control"
+                                        value="{{ $jenis_biaya->get_jenis_pembayaran->kode_akun ?? '' }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <label class="form-label">Total Beban</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <input type="text" name="total_beban" class="form-control nominal"
-                                        value="{{ number_format($Jenis_biaya->total_beban, 2) }}" required>
+                                        value="{{ number_format($jenis_biaya->total_beban, 2) }}" required>
                                 </div>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between mt-3">
-                            <a href="/app/Jenis-biaya" class="btn btn-secondary">Kembali</a>
+                            <a href="/app/jenis-biaya" class="btn btn-secondary">Kembali</a>
                             <button type="submit" class="btn btn-info" id="simpan">Update Data</button>
                         </div>
                     </form>
@@ -65,6 +70,11 @@
         $('.select2').select2({
             theme: 'bootstrap-5',
             allowClear: false
+        });
+
+        $('#id_jp').on('change', function() {
+            var kode = $(this).find(':selected').data('kode') || '';
+            $('#kode_akun').val(kode);
         });
 
         $(".nominal").maskMoney({
@@ -92,7 +102,7 @@
                             timer: 3000,
                             timerProgressBar: true,
                             didClose: () => {
-                                window.location.href = '/app/Jenis-biaya';
+                                window.location.href = '/app/jenis-biaya';
                             }
                         });
                     }

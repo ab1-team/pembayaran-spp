@@ -37,6 +37,68 @@ class PengaturanController extends Controller
     public function ttdPelaporan()
     {
         $title = "Pengaturan Tanda Tangan Pelaporan";
+
+        if (!Tanda_tangan::first()) {
+            Tanda_tangan::create([
+                'tanda_tangan' => '<table class="p0" border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 11px;">
+<tbody>
+<tr>
+<td style="width: 33.3333%;">&nbsp;</td>
+<td style="width: 33.3333%;">&nbsp;</td>
+<td style="width: 33.3333%; text-align: center;">{tanggal}</td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<td style="text-align: center;">Diperiksa Oleh</td>
+<td style="text-align: center;">Diketahui</td>
+<td style="text-align: center;">Dilaporkan</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</td>
+<td style="text-align: center;">&nbsp;</td>
+<td style="text-align: center;">&nbsp;</td>
+</tr>
+<tr>
+<td style="text-align: center;">..........rrr.....rrr.............</td>
+<td style="text-align: center;">...............................................</td>
+<td style="text-align: center;"><strong>......................................</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Badan Pengawas</strong></td>
+<td style="text-align: center;"><strong>Manager DBM</strong></td>
+<td style="text-align: center;"><strong>Bendahara</strong></td>
+</tr>
+<tr>
+<td style="text-align: center;">Disetujui Oleh</td>
+<td style="text-align: center;" colspan="2">&nbsp;</td>
+</tr>
+<tr>
+<td style="text-align: center;">
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</td>
+<td style="text-align: center;">&nbsp;</td>
+<td style="text-align: center;">&nbsp;</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>......................................</strong></td>
+<td style="text-align: center;" colspan="2">&nbsp;</td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong>Direktur</strong></td>
+<td style="text-align: center;" colspan="2">&nbsp;</td>
+</tr>
+</tbody>
+</table>',
+            ]);
+        }
+
         $ttd = Tanda_tangan::first();
 
         $tanggal = false;
@@ -96,24 +158,32 @@ class PengaturanController extends Controller
     public function logo(Request $request, $id)
     {
         $request->validate([
-            'logo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'logo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'logo.required' => 'Pilih file logo terlebih dahulu.',
+            'logo.image'    => 'File harus berupa gambar.',
+            'logo.mimes'    => 'Format logo harus JPG, JPEG, atau PNG.',
+            'logo.max'      => 'Ukuran logo maksimal 2MB.',
         ]);
 
         $profil = Profil::findOrFail($id);
 
-        if ($profil->logo && Storage::disk('public')->exists($profil->logo)) {
-            Storage::disk('public')->delete($profil->logo);
+        if ($profil->logo && Storage::disk('public')->exists('logo/' . $profil->logo)) {
+            Storage::disk('public')->delete('logo/' . $profil->logo);
         }
 
-        $path = $request->file('logo')->store('logo', 'public');
+        $file = $request->file('logo');
+        $name = $file->hashName();
+        $file->storeAs('logo', $name, 'public');
 
         $profil->update([
-            'logo' => $path
+            'logo' => $name
         ]);
 
         return response()->json([
             'success' => true,
-            'msg' => 'Logo berhasil diperbarui'
+            'msg' => 'Logo berhasil diperbarui',
+            'logo' => asset('storage/logo/' . $name),
         ]);
     }
 

@@ -12,7 +12,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form id="FormJenisBiaya" method="POST" action="/app/Jenis-biaya" class="text-start">
+                    <form id="FormJenisBiaya" method="POST" action="/app/jenis-biaya" class="text-start">
                         @csrf
                         <div class="row">
                             <div class="col-md-4">
@@ -23,15 +23,20 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label for="">Pilih Jenis Pembayaran/Nama jenis lain</label>
+                                <label for="">Pilih Jenis Pembayaran</label>
                                 <div class="input-group input-group-outline flex-fill">
-                                    <select name="kode_akun" id="kode_akun" class="form-control select2">
+                                    <select name="id_jp" id="id_jp" class="form-control select2" required>
                                         <option value="">-- Pilih Jenis Pembayaran --</option>
-                                        @foreach ($Rekening as $RK)
-                                            <option value="{{ $RK->kode_akun }}">{{ $RK->kode_akun }} - {{ $RK->nama_akun }}
-                                            </option>
+                                        @foreach ($jenisPembayaran as $jp)
+                                            <option value="{{ $jp->id }}" data-kode="{{ $jp->kode_akun }}">{{ $jp->kode_akun }} - {{ $jp->nama }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Kode Akun</label>
+                                <div class="input-group input-group-outline mb-3">
+                                    <input type="text" id="kode_akun" class="form-control" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -43,7 +48,7 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-between mt-3">
-                            <a href="/app/Jenis-biaya" class="btn btn-secondary">Kembali</a>
+                            <a href="/app/jenis-biaya" class="btn btn-secondary">Kembali</a>
                             <button type="submit" class="btn btn-info" id="simpan">Simpan Data</button>
                         </div>
                     </form>
@@ -62,20 +67,9 @@
                 allowClear: true
             });
 
-            $('#namaJenisSelect').on('change', function() {
-                if ($(this).val()) {
-                    $('#namaJenisInput').val('').prop('disabled', true);
-                } else {
-                    $('#namaJenisInput').prop('disabled', false);
-                }
-            });
-
-            $('#namaJenisInput').on('input', function() {
-                if ($(this).val().trim() !== '') {
-                    $('#namaJenisSelect').val(null).trigger('change').prop('disabled', true);
-                } else {
-                    $('#namaJenisSelect').prop('disabled', false);
-                }
+            $('#id_jp').on('change', function() {
+                var kode = $(this).find(':selected').data('kode') || '';
+                $('#kode_akun').val(kode);
             });
         });
 
@@ -107,7 +101,7 @@
                             if (res.isConfirmed) {
                                 window.location.reload();
                             } else if (res.isDenied) {
-                                window.location.href = '/app/Jenis-biaya';
+                                window.location.href = '/app/jenis-biaya';
                             }
                         });
                     }

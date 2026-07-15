@@ -1,67 +1,221 @@
 @extends('layouts.base')
 @section('content')
 <style>
-    .sop-content {
-        display: none
+    .sop-shell {
+        --sop-accent: #37d17c;
+        --sop-accent-dark: #0f9b58;
+        --sop-ink: #0f172a;
+        --sop-muted: #64748b;
     }
 
-    .sop-content:target {
-        display: block
+    .sop-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+        border-radius: 18px;
+        padding: 22px 26px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, .18);
+    }
+    .sop-hero::after {
+        content: "";
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(55, 209, 124, .35), transparent 70%);
+        pointer-events: none;
+    }
+    .sop-hero .crumb {
+        font-size: 12px;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        opacity: 1;
+    }
+    .sop-hero h4 { font-weight: 700; margin: 4px 0 6px; color: #fff; }
+    .sop-hero h4 i { color: #fff; }
+
+    .sop-menu {
+        gap: 4px !important;
+    }
+    .sop-menu a.btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 6px 12px;
+        color: var(--sop-ink);
+        font-weight: 500;
+        font-size: 13px;
+        transition: all .2s ease;
+        position: relative;
+    }
+    .sop-menu a.btn .mi {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 14px;
+        transition: all .2s ease;
+    }
+    .sop-menu a.btn:hover {
+        border-color: var(--sop-accent);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, .06);
+    }
+    .sop-menu a.btn:hover .mi {
+        background: rgba(55, 209, 124, .15);
+        color: var(--sop-accent-dark);
     }
 
-    .sop-setting:not(:has(:target)) #lembaga {
-        display: block
-    }
-
-    .sop-menu .btn {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        color: #000
-    }
-
-    .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"] {
-        background: #7f7f80;
-        color: #fff
-    }
-
+    /* active state */
+    .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"],
     .sop-wrapper:has(#lembaga:target) .sop-menu a[href="#lembaga"],
     .sop-wrapper:has(#logo:target) .sop-menu a[href="#logo"],
-    .sop-wrapper:has(#kelas:target) .sop-menu a[href="#kelas"],
-    .sop-wrapper:has(#jurusan:target) .sop-menu a[href="#jurusan"],
-    .sop-wrapper:has(#ruangan:target) .sop-menu a[href="#ruangan"] {
-        background: #7f7f80;
-        color: #fff
+    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"] {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, .25);
+    }
+    .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"] .mi,
+    .sop-wrapper:has(#lembaga:target) .sop-menu a[href="#lembaga"] .mi,
+    .sop-wrapper:has(#logo:target) .sop-menu a[href="#logo"] .mi,
+    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"] .mi {
+        background: rgba(255, 255, 255, .14);
+        color: #fff;
+    }
+    .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"]::after,
+    .sop-wrapper:has(#lembaga:target) .sop-menu a[href="#lembaga"]::after,
+    .sop-wrapper:has(#logo:target) .sop-menu a[href="#logo"]::after,
+    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"]::after {
+        content: "";
+        position: absolute;
+        right: 14px; top: 50%;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--sop-accent);
+        transform: translateY(-50%);
+        box-shadow: 0 0 0 4px rgba(55, 209, 124, .25);
+    }
+
+    .sop-content { display: none; }
+    .sop-content:target { display: block; animation: sopFade .3s ease; }
+    .sop-setting:not(:has(:target)) #lembaga { display: block; animation: sopFade .3s ease; }
+
+    @keyframes sopFade {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .sop-card .card-header {
+        background: #fff;
+        border-bottom: 1px solid #f1f5f9;
+        padding: 14px 18px;
+        display: flex; align-items: center; gap: 12px;
+    }
+    .sop-card .card-header .header-icon {
+        width: 32px; height: 32px;
+        border-radius: 9px;
+        background: linear-gradient(135deg, rgba(55, 209, 124, .15), rgba(15, 118, 110, .15));
+        color: var(--sop-accent-dark);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 15px;
+    }
+    .sop-card .card-header h5 { margin: 0; font-weight: 700; color: var(--sop-ink); }
+    .sop-card .card-header .sub {
+        font-size: 12px; color: var(--sop-muted); margin-top: 2px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 767.98px) {
+        .sop-hero {
+            padding: 16px 18px;
+            border-radius: 14px;
+        }
+        .sop-hero .crumb { font-size: 10px; letter-spacing: .1em; }
+        .sop-hero h4 { font-size: 18px; margin: 2px 0; }
+        .sop-hero::after { width: 140px; height: 140px; right: -40px; top: -40px; }
+
+        .sop-menu a.btn { padding: 10px 12px; font-size: 13px; }
+        .sop-menu a.btn .mi { width: 30px; height: 30px; font-size: 14px; }
+
+        .sop-card .card-header { padding: 12px 14px; gap: 10px; }
+        .sop-card .card-header h5 { font-size: 15px; }
+        .sop-card .card-header .sub { font-size: 11px; }
+        .sop-card .card-header .header-icon { width: 30px; height: 30px; font-size: 14px; }
+
+        /* hide active dot on small screens */
+        .sop-wrapper .sop-menu a.btn::after { display: none !important; }
+    }
+
+    @media (max-width: 575.98px) {
+        .sop-hero { padding: 14px 16px; }
+        .sop-hero h4 { font-size: 17px; }
+        .sop-card .card-body { padding: 14px; }
     }
 </style>
-<div class="container-fluid py-4 sop-setting">
-    <div class="row sop-wrapper">
-        <div class="col-lg-3 col-md-4 mt-3">
-            <div class="card shadow-sm">
-                <div class="card-header fw-semibold">⚙️ SOP Pengaturan</div>
-                <hr class="horizontal dark my-1">
-                <div class="card-body d-grid sop-menu">
-                    <a href="#lembaga" class="btn text-start">🏫 Lembaga</a>
-                    <a href="#logo" class="btn text-start">🖼️ Logo</a>
-                    <a href="#jatuhTempo" class="btn text-start">⏰ Jatuh Tempo</a>
+
+<div class="container-fluid py-4 sop-setting sop-shell">
+    <div class="row sop-wrapper g-3">
+        <div class="col-lg-3 col-md-4">
+            <div class="card sop-card shadow-sm">
+                <div class="card-header">
+                    <div>
+                        <h5>Menu SOP</h5>
+                        <div class="sub">Pilih modul pengaturan</div>
+                    </div>
+                </div>
+                <div class="card-body d-grid gap-1 sop-menu">
+                    <a href="#lembaga" class="btn text-start">
+                        <span class="mi"><i class="fas fa-school"></i></span>
+                        <span>Lembaga</span>
+                    </a>
+                    <a href="#logo" class="btn text-start">
+                        <span class="mi"><i class="fas fa-image"></i></span>
+                        <span>Logo</span>
+                    </a>
+                    <a href="#jatuhTempo" class="btn text-start">
+                        <span class="mi"><i class="fas fa-clock"></i></span>
+                        <span>Jatuh Tempo</span>
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="col-lg-9 col-md-8 mt-3">
-            <div class="sop-content card shadow-sm" id="lembaga">
+
+        <div class="col-lg-9 col-md-8">
+            <div class="sop-content card sop-card shadow-sm" id="lembaga">
                 <div class="card-header">
-                    <h5 class="mb-0">Pengaturan Lembaga</h5>
+                    <div class="header-icon"><i class="fas fa-school"></i></div>
+                    <div>
+                        <h5>Pengaturan Lembaga</h5>
+                        <div class="sub">Nama, alamat, kontak, dan penanggung jawab</div>
+                    </div>
                 </div>
                 <div class="card-body">@include('pengaturan.view.lembaga')</div>
             </div>
-            <div class="sop-content card shadow-sm" id="logo">
+
+            <div class="sop-content card sop-card shadow-sm" id="logo">
                 <div class="card-header">
-                    <h5 class="mb-0">Pengaturan Logo</h5>
+                    <div class="header-icon"><i class="fas fa-image"></i></div>
+                    <div>
+                        <h5>Pengaturan Logo</h5>
+                        <div class="sub">Logo yang tampil di kwitansi & laporan</div>
+                    </div>
                 </div>
                 <div class="card-body">@include('pengaturan.view.logo')</div>
             </div>
-            <div class="sop-content card shadow-sm" id="jatuhTempo">
+
+            <div class="sop-content card sop-card shadow-sm" id="jatuhTempo">
                 <div class="card-header">
-                    <h5 class="mb-0">Pengaturan Jatuh Tempo</h5>
+                    <div class="header-icon"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <h5>Pengaturan Jatuh Tempo</h5>
+                        <div class="sub">Tanggal toleransi pengingat tunggakan bulanan</div>
+                    </div>
                 </div>
                 <div class="card-body">@include('pengaturan.view.jatuh_tempo')</div>
             </div>
@@ -77,144 +231,80 @@
         });
     });
 
-    $(document).on('click', '#SimpanLembaga', function(e) {
-        e.preventDefault();
-        $('small').html('');
-
-        var form = $('#FormLembaga');
-        var actionUrl = form.attr('action');
-
+    function sopSubmit(opts) {
+        $(document).on('click', opts.btn, function(e) {
+            e.preventDefault();
+            const $form = $(opts.form);
+            $form.find('small').html('');
             $.ajax({
-                type: 'PUT',
-                url: actionUrl,
-                data: form.serialize(),
+                type: 'POST',
+                url: $form.attr('action'),
+                data: $form.serialize(),
                 success: function(result) {
                     if (result.success) {
-
-                        const Toast = Swal.mixin({
+                        Swal.fire({
                             toast: true,
                             position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            didOpen: (toast) => {
-                                toast.addEventListener('mouseenter', Swal.stopTimer)
-                                toast.addEventListener('mouseleave', Swal.resumeTimer)
-                            }
-                        });
-
-                        Toast.fire({
                             icon: 'success',
-                            title: result.msg
-                        }).then(() => {
-                            window.location.reload();
-                        });
+                            title: result.msg,
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        }).then(() => window.location.reload());
                     }
                 },
                 error: function(xhr) {
                     Swal.fire('Error', 'Cek kembali input yang anda masukkan', 'error');
-
                     if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        $.each(errors, function(key, value) {
-                            $('#' + key)
-                                .closest('.input-group-outline')
-                                .addClass('is-invalid');
+                        $.each(xhr.responseJSON.errors, function(key, value) {
+                            $('#' + key).closest('.input-group-outline').addClass('is-invalid');
                             $('#msg_' + key).html(value[0]);
                         });
                     }
                 }
             });
-    });
+        });
+    }
+    sopSubmit({ btn: '#SimpanLembaga',     form: '#FormLembaga' });
+    sopSubmit({ btn: '#SimpanJatuhTempo',  form: '#FormJatuhTempo' });
 
     $(document).on('click', '#SimpanLogo', function (e) {
         e.preventDefault();
+        const form = document.getElementById('FormLogo');
+        const formData = new FormData(form);
 
-        let form = document.getElementById('FormLogo');
-        let actionUrl = form.action;
-        let formData = new FormData(form);
+        if (!formData.get('logo') || !formData.get('logo').name) {
+            Swal.fire('Info', 'Pilih file logo terlebih dahulu', 'info');
+            return;
+        }
 
         $.ajax({
-            url: actionUrl,
+            url: form.action,
             type: 'POST',
             data: formData,
-            processData: false, 
-            contentType: false, 
-            headers: {
-                'X-HTTP-Method-Override': 'PUT' 
-            },
+            processData: false,
+            contentType: false,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             success: function (result) {
-
-                const Toast = Swal.mixin({
+                Swal.fire({
                     toast: true,
                     position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-
-                Toast.fire({
                     icon: 'success',
-                    title: result.msg
-                }).then(() => {
-                    window.location.reload();
-                });
+                    title: result.msg,
+                    showConfirmButton: false,
+                    timer: 2500,
+                    timerProgressBar: true
+                }).then(() => window.location.reload());
             },
             error: function (xhr) {
-                Swal.fire('Error', 'Logo belum dipilih atau format salah', 'error');
-                console.log(xhr.responseJSON);
+                let msg = 'Logo belum dipilih atau format salah';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.logo) {
+                    msg = xhr.responseJSON.errors.logo[0];
+                }
+                Swal.fire('Error', msg, 'error');
+                console.error('Logo upload error:', xhr.responseJSON);
             }
         });
-    });
-    
-    $(document).on('click', '#SimpanJatuhTempo', function(e) {
-        e.preventDefault();
-        $('small').html('');
-
-        var form = $('#FormJatuhTempo');
-        var actionUrl = form.attr('action');
-
-            $.ajax({
-                type: 'PUT',
-                url: actionUrl,
-                data: form.serialize(),
-                success: function(result) {
-                    if (result.success) {
-
-                        const Toast = Swal.mixin({
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
-                            didOpen: (toast) => {
-                                toast.addEventListener('mouseenter', Swal.stopTimer)
-                                toast.addEventListener('mouseleave', Swal.resumeTimer)
-                            }
-                        });
-
-                        Toast.fire({
-                            icon: 'success',
-                            title: result.msg
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    }
-                },
-                error: function(xhr) {
-                    Swal.fire('Error', 'Cek kembali input yang anda masukkan', 'error');
-
-                    if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        $.each(errors, function(key, value) {
-                            $('#' + key)
-                                .closest('.input-group-outline')
-                                .addClass('is-invalid');
-                            $('#msg_' + key).html(value[0]);
-                        });
-                    }
-                }
-            });
     });
 </script>
 @endsection

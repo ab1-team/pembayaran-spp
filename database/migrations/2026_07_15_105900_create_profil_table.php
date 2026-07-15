@@ -17,10 +17,6 @@ return new class extends Migration
             $table->string('email', 150)->nullable();
             $table->string('logo', 255)->nullable();
             $table->unsignedTinyInteger('jatuh_tempo')->default(10);
-            $table->boolean('status_pembayaran')->default(0);
-            $table->unsignedTinyInteger('toleransi_tunggakan')->default(0);
-            $table->text('pesan_tagihan')->nullable();
-            $table->text('pesan_pembayaran')->nullable();
             $table->timestamps();
         });
     }

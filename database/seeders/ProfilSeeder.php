@@ -22,10 +22,6 @@ class ProfilSeeder extends Seeder
             'penanggung_jawab' => 'Direktur Utama',
             'logo'       => null,
             'jatuh_tempo' => 26,
-            'status_pembayaran' => 1,
-            'toleransi_tunggakan' => 3,
-            'pesan_tagihan' => 'Yth. {customer}, tagihan bulan ini sebesar {jumlah_tagihan}. Mohon segera melakukan pembayaran sebelum jatuh tempo.',
-            'pesan_pembayaran' => 'Yth. {customer}, pembayaran sebesar {tagihan} telah kami terima.',
             'created_at' => now(),
             'updated_at' => now(),
         ]);

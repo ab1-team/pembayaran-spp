@@ -3,39 +3,29 @@
     <div class="row">
         <div class="col-12">
             <div class="card my-4">
-                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                    <div class="bg-gradient-secondary shadow-secondary border-radius-lg pt-3 pb-3">
-                        <div class="row align-items-center g-2 px-3">
+                <div class="card-header p-0 position-relative mt-n4 mx-2 mx-md-3 z-index-2">
+                    <div class="bg-gradient-secondary shadow-secondary border-radius-lg pt-3 pb-0">
+                        <div class="row align-items-center g-2 px-2 px-md-3">
                             <div class="col-12 col-lg-5">
                                 <h6 class="text-white text-capitalize mb-0" id="headerTitle">
-                                    Jenis dan Nominal Pembayaran
-                                    <span id="titleYear" class="text-muted"></span>
                                 </h6>
                             </div>
                             <div class="col-12 col-lg-7">
                                 <div class="d-flex
                                             flex-column flex-lg-row
                                             align-items-stretch align-items-lg-center
+                                            justify-content-lg-end
                                             gap-2">
-                                    <label class="text-white mb-0">Angkatan :</label>
-                                    <div class="input-group input-group-static w-100 w-lg-auto">
-                                        <label class="form-label active">Tahun</label>
-                                        <input type="number" class="form-control tahun text-white">
-                                    </div>
-                                    <button id="Filter_angkatan"
-                                            class="btn btn-info text-white w-100 w-lg-auto">
-                                        Lihat
-                                    </button>
-                                    <a href="/app/Jenis-biaya/create"
-                                    class="btn btn-primary text-white w-100 w-lg-auto">
+                                    <button type="button" id="btnTambah"
+                                        class="btn btn-primary text-white w-100 w-lg-auto">
                                         Tambah Jenis Bayar
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body px-2 px-md-3">
                     <div id="tableWrapper">
                         <table id="keuangan" class="table align-items-center table-striped">
                             <thead>
@@ -80,18 +70,24 @@
     </form>
 @endsection
 
+@section('modal')
+    <div class="modal fade modal-fullscreen" id="formModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formModalTitle">Form</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="formModalBody"></div>
+            </div>
+        </div>
+    </div>
+@endsection
+
 @section('script')
     <script>
         //index
         $(document).ready(function() {
-            let currentYear = new Date().getFullYear();
-
-            $('.tahun').each(function() {
-                $(this).val(currentYear);
-                $(this).closest('.input-group-static').addClass('is-filled');
-            });
-            $('#titleYear').text(currentYear);
-
             const table = $('#keuangan').DataTable({
                 dom: '<"row mb-3"<"col-md-6"l><"col-md-6">>rt<"row mt-3"<"col-md-5"i><"col-md-7"p>>',
                 processing: true,
@@ -103,10 +99,7 @@
                     emptyTable: "Maaf! Data kosong"
                 },
                 ajax: {
-                    url: '/app/Jenis-biaya',
-                    data: function(d) {
-                        d.tahun = $('.tahun').val();
-                    }
+                    url: '/app/jenis-biaya',
                 },
                 columns: [{
                         data: 'DT_RowIndex',
@@ -126,8 +119,8 @@
                         className: 'text-start'
                     },
                     {
-                        data: 'nama_akun',
-                        name: 'nama_akun',
+                        data: 'nama_jenis',
+                        name: 'nama_jenis',
                         className: 'text-start'
                     },
                     {
@@ -147,9 +140,6 @@
             });
 
             $('#Filter_angkatan').on('click', function() {
-                const selectedYear = $('.tahun').val();
-                $('#titleYear').text(selectedYear);
-
                 table.ajax.reload();
             });
 
@@ -167,7 +157,7 @@
             e.preventDefault();
 
             var hapus_id = $(this).attr('data-id');
-            var actionUrl = '/app/Jenis-biaya/' + hapus_id;
+            var actionUrl = '/app/jenis-biaya/' + hapus_id;
 
             Swal.fire({
                 title: "Apakah Anda yakin?",
@@ -221,6 +211,62 @@
                         icon: "info",
                         confirmButtonText: "Oke"
                     });
+                }
+            });
+        });
+
+        // modal tambah / edit
+        const formModal = $('#formModal');
+
+        function initFormPlugins() {
+            $('#formModal .select2').select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#formModal'),
+                placeholder: "-- Pilih Jenis Pembayaran --",
+                allowClear: true
+            });
+            $('#formModal .nominal').maskMoney({ allowNegative: true });
+            $('#formModal #id_jp').on('change', function() {
+                var kode = $(this).find(':selected').data('kode') || '';
+                $('#formModal #kode_akun').val(kode);
+            });
+        }
+
+        function openFormModal(title, html) {
+            $('#formModalTitle').text(title);
+            $('#formModalBody').html(html);
+            formModal.modal('show');
+            initFormPlugins();
+        }
+
+        $('#btnTambah').on('click', function() {
+            $.get('/app/jenis-biaya-create-form', function(res) {
+                openFormModal('Tambah Nominal Keuangan', res.html);
+            });
+        });
+
+        $(document).on('click', '.btnEdit', function() {
+            var id = $(this).data('id');
+            $.get('/app/jenis-biaya-edit-form/' + id, function(res) {
+                openFormModal('Edit Nominal Keuangan', res.html);
+            });
+        });
+
+        $(document).on('submit', '#FormJenisBiaya', function(e) {
+            e.preventDefault();
+            var form = $(this);
+            $.ajax({
+                type: form.attr('method'),
+                url: form.attr('action'),
+                data: form.serialize(),
+                success: function(result) {
+                    formModal.modal('hide');
+                    Swal.fire('Berhasil', result.msg, 'success').then(() => {
+                        window.location.reload();
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire('Error', 'Cek kembali input yang anda masukkan', 'error');
                 }
             });
         });
