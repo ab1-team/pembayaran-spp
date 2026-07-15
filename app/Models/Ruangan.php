@@ -10,4 +10,9 @@ class Ruangan extends Model
     use HasFactory;
     protected $table = 'ruangan';
     protected $guarded = ['id'];
+
+    public function siswa()
+    {
+        return $this->hasMany(Siswa::class, 'ruang', 'kode_ruangan');
+    }
 }

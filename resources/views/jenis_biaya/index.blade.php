@@ -45,7 +45,7 @@
                                     <th>Kode Rekening</th>
                                     <th>Jenis Pembayaran</th>
                                     <th>Nominal</th>
-                                    <th>Action</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,7 +100,7 @@
                 scrollX: true,
                 autoWidth: true,
                 language: {
-                    emptyTable: "Hello, Maaf! Data kosong"
+                    emptyTable: "Maaf! Data kosong"
                 },
                 ajax: {
                     url: '/app/Jenis-biaya',
@@ -190,7 +190,7 @@
                                     title: "Berhasil!",
                                     text: result.msg,
                                     icon: "success",
-                                    confirmButtonText: "OK"
+                                    confirmButtonText: "Oke"
                                 }).then((res) => {
                                     if (res.isConfirmed) {
                                         window.location.reload();
@@ -201,16 +201,16 @@
                                     title: "Gagal",
                                     text: result.msg,
                                     icon: "info",
-                                    confirmButtonText: "OK"
+                                    confirmButtonText: "Oke"
                                 });
                             }
                         },
                         error: function(response) {
                             Swal.fire({
-                                title: "Error",
+                                title: "Kesalahan",
                                 text: "Terjadi kesalahan pada server. Silakan coba lagi.",
                                 icon: "error",
-                                confirmButtonText: "OK"
+                                confirmButtonText: "Oke"
                             });
                         }
                     });
@@ -219,7 +219,7 @@
                         title: "Dibatalkan",
                         text: "Data tidak jadi dihapus.",
                         icon: "info",
-                        confirmButtonText: "OK"
+                        confirmButtonText: "Oke"
                     });
                 }
             });

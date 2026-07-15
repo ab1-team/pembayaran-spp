@@ -19,9 +19,8 @@
 }
 </style>
 
-<div class="row">
-    <div class="row mb-4 d-flex align-items-stretch">
-        <div class="col-xl-8 d-flex flex-column">
+<div class="row mb-4 d-flex align-items-stretch">
+    <div class="col-xl-8 d-flex flex-column">
             <div class="row mb-4">
                 <div class="col-md-6 mb-3">
                     <div class="card h-100">
@@ -52,7 +51,7 @@
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <p class="text-sm mb-0 text-capitalize">Tunggakan</p>
-                                    <h4 class="mb-0 text-center">103</h4>
+                                    <h4 class="mb-0 text-center">{{ $tunggakan->count() }}</h4>
                                 </div>
                                 <div
                                     class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow 
@@ -160,7 +159,7 @@
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
-                    <table id="siswaTable" class="table table-bordered table-striped">
+                    <table id="tunggakanTable" class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>NISN</th>

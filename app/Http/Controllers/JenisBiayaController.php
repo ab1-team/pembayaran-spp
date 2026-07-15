@@ -3,24 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Jenis_Biaya;
-use App\Models\Rekening;
+use App\Models\JenisPembayaran;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class JenisBiayaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Jenis_Biaya::with('get_rekening');
+            $data = Jenis_Biaya::with('get_jenis_pembayaran');
             if ($request->has('tahun') && $request->tahun != '') {
                 $data->where('angkatan', $request->tahun);
             } else {
@@ -28,16 +20,16 @@ class JenisBiayaController extends Controller
             }
             return DataTables::eloquent($data)
                 ->addIndexColumn()
-                ->addColumn('nama_akun', function ($row) {
-                    return $row->get_rekening->nama_akun ?? '-';
+                ->addColumn('nama_jenis', function ($row) {
+                    return $row->get_jenis_pembayaran->nama ?? '-';
                 })
                 ->addColumn('kode_akun', function ($row) {
-                    return $row->get_rekening->kode_akun ?? '-';
+                    return $row->get_jenis_pembayaran->kode_akun ?? '-';
                 })
                 ->addColumn('action', function ($row) {
                     return '
                         <div class="d-inline-flex gap-1">
-                            <a href="/app/Jenis-biaya/'.$row->id.'/edit" class="btn btn-warning">
+                            <a href="/app/jenis-biaya/'.$row->id.'/edit" class="btn btn-warning">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
                             <button class="btn btn-danger btnDelete" data-id="'.$row->id.'">
@@ -51,116 +43,74 @@ class JenisBiayaController extends Controller
         return view('jenis_biaya.index', ['title' => 'Jenis Keuangan']);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $Rekening = Rekening::where('kode_akun', 'like', '1.1.03.%')->get();
+        $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
         $title = 'Tambah Nominal Keuangan';
 
-        return view('jenis_biaya.create', compact('title', 'Rekening'));
+        return view('jenis_biaya.create', compact('title', 'jenisPembayaran'));
     }
 
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $data = $request->only([
-            'kode_akun',
-            'total_beban',
-            'angkatan'
+        $data = $request->validate([
+            'total_beban' => 'required',
+            'angkatan'    => 'required',
+            'id_jp'       => 'required|exists:jenis_pembayaran,id',
         ]);
 
-        $rules = [
-            'total_beban'       => 'required',
-            'angkatan'          => 'required',
-            'kode_akun'         => 'required'
-        ];
-
-        $validate = Validator::make($data, $rules);
-        if ($validate->fails()) {
-            return response()->json($validate->errors(), Response::HTTP_MOVED_PERMANENTLY);
-        }
-
-        $Jenis_biaya = Jenis_Biaya::create([
-            'angkatan'          => $request->angkatan,
-            'kode_akun'         => $request->kode_akun,
-            'total_beban'       => str_replace(',', '', str_replace('.00', '', $request->total_beban)),
+        Jenis_Biaya::create([
+            'id_jp'       => $data['id_jp'],
+            'angkatan'    => $data['angkatan'],
+            'total_beban' => $this->normalizeNominal($data['total_beban']),
         ]);
 
         return response()->json([
             'success' => true,
-            'msg' => 'Jenis Biaya berhasil ditambahkan',
+            'msg'     => 'Jenis Biaya berhasil ditambahkan',
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Jenis_biaya $Jenis_biaya)
+    public function edit(Jenis_Biaya $jenis_biaya)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Jenis_biaya $Jenis_biaya)
-    {
-        $Rekening = Rekening::where('kode_akun', 'like', '1.1.03.%')->get();
-        $Jenis_biaya->load('get_rekening');
+        $jenis_biaya->load('get_jenis_pembayaran');
+        $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
         $title = 'Edit Nominal Keuangan';
 
-        return view('jenis_biaya.edit', compact('title', 'Rekening','Jenis_biaya'));
+        return view('jenis_biaya.edit', compact('title', 'jenisPembayaran', 'jenis_biaya'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Jenis_Biaya $Jenis_biaya)
+    public function update(Request $request, Jenis_Biaya $jenis_biaya)
     {
-        $data = $request->only([
-            'kode_akun',
-            'total_beban',
-            'angkatan'
+        $data = $request->validate([
+            'total_beban' => 'required',
+            'angkatan'    => 'required',
+            'id_jp'       => 'required|exists:jenis_pembayaran,id',
         ]);
 
-        $rules = [
-            'total_beban'       => 'required',
-            'angkatan'          => 'required',
-            'kode_akun'         => 'required'
-        ];
-
-        $validate = Validator::make($data, $rules);
-        if ($validate->fails()) {
-            return response()->json($validate->errors(), Response::HTTP_MOVED_PERMANENTLY);
-        }
-
-        $Jenis_biaya->update([
-            'angkatan'          => $request->angkatan,
-            'kode_akun'         => $request->kode_akun,
-            'total_beban'       => str_replace(',', '', str_replace('.00', '', $request->total_beban)),
+        $jenis_biaya->update([
+            'id_jp'       => $data['id_jp'],
+            'angkatan'    => $data['angkatan'],
+            'total_beban' => $this->normalizeNominal($data['total_beban']),
         ]);
 
         return response()->json([
             'success' => true,
-            'msg' => 'Jenis Biaya berhasil diupdate',
+            'msg'     => 'Jenis Biaya berhasil diupdate',
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Jenis_biaya $Jenis_biaya)
+    public function destroy(Jenis_Biaya $jenis_biaya)
     {
-        $Jenis_biaya->delete();
+        $jenis_biaya->delete();
         return response()->json([
-            'success'       => true,
-            'msg'           => 'Data Biaya berhasil dihapus',
-            'biaya'         => $Jenis_biaya
+            'success' => true,
+            'msg'     => 'Data Biaya berhasil dihapus',
         ]);
+    }
+
+    private function normalizeNominal($value): int
+    {
+        return (int) str_replace(['.', ','], '', (string) $value);
     }
 }

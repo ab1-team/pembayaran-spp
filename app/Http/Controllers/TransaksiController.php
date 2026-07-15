@@ -8,7 +8,7 @@ use App\Models\Profil;
 use App\Models\Siswa;
 use App\Models\Spp;
 use App\Models\Inventaris;
-use App\Utils\UtilsInventaris;
+use App\Utils\Inventaris as UtilsInventaris;
 use App\Utils\Tanggal;
 use App\Models\Rekening;
 use Illuminate\Http\Request;
@@ -344,7 +344,7 @@ class TransaksiController extends Controller
                     'siswa_id' => $request->siswa_id,
                     'jumlah' => $nilai,
                     'keterangan' => $request->keterangan . '(' .
-                        Tanggal::NamaBulan($spp->tanggal) . ' ' .
+                        Tanggal::namaBulan($spp->tanggal) . ' ' .
                         Tanggal::tahun($spp->tanggal) . ')',
                     'user_id' => auth()->user()->id,
                 ]);

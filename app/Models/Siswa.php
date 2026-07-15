@@ -11,22 +11,63 @@ class Siswa extends Model
     protected $table = 'siswa';
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'tanggal_masuk' => 'date',
+        'tanggal_lahir' => 'date',
+    ];
+
+    public function tahunAkademik()
+    {
+        return $this->belongsTo(Tahun_akademik::class, 'tahun_akademik', 'id');
+    }
+
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kode_kelas', 'kode_kelas');
+    }
+
+    public function jurusan()
+    {
+        return $this->belongsTo(Jurusan::class, 'kode_jurusan', 'kode_jurusan');
+    }
+
+    public function ruang()
+    {
+        return $this->belongsTo(Ruangan::class, 'ruang', 'kode_ruangan');
+    }
+
+    public function anggotaKelas()
+    {
+        return $this->hasMany(Anggota_Kelas::class, 'id_siswa', 'id');
+    }
+
+    public function transaksi()
+    {
+        return $this->hasMany(Transaksi::class, 'siswa_id');
+    }
+
+    public function spp()
+    {
+        return $this->hasManyThrough(Spp::class, Anggota_Kelas::class, 'id_siswa', 'anggota_kelas', 'id', 'id');
+    }
+
     public function getTahunAkademik()
     {
-        return $this->belongsTo(Tahun_akademik::class, '');
+        return $this->tahunAkademik();
     }
 
     public function getKelas()
     {
-        return $this->belongsTo(Kelas::class, '');
+        return $this->kelas();
     }
 
     public function getAnggotaKelas()
     {
-        return $this->hasMany(Anggota_Kelas::class, 'id_siswa', 'id');
+        return $this->anggotaKelas();
     }
+
     public function getTransaksi()
     {
-        return $this->hasMany(Transaksi::class, 'siswa_id');
+        return $this->transaksi();
     }
 }

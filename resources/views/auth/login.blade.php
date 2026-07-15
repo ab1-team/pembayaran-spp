@@ -34,7 +34,7 @@
                             </div>
                             <div class="card-body">
                                 <p class="text-center mt-2 mb-3" style="font-size: 12px;">
-                                    Silahkan Login Pada Form dibawah ini
+                                    Silakan Login Pada Form di bawah ini
                                 </p>
                                 <form method="POST" action="/auth/login" class="text-start">
                                     @csrf
@@ -49,13 +49,11 @@
                                         <input type="password" name="password" class="form-control">
                                     </div>
                                     <div class="text-center">
-                                        <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2">Sign
-                                            in</button>
+                                        <button type="submit" class="btn bg-gradient-dark w-100 my-4 mb-2">Masuk</button>
                                     </div>
                                     <p class="mt-4 text-sm text-center">
-                                        Don't have an account?
-                                        <a href="/" class="text-primary text-gradient font-weight-bold">Sign
-                                            up</a>
+                                        Belum punya akun?
+                                        <a href="/" class="text-primary text-gradient font-weight-bold">Daftar</a>
                                     </p>
                                 </form>
                             </div>
@@ -71,9 +69,9 @@
                                 ©
                                 <script>
                                     document.write(new Date().getFullYear())
-                                </script>, made with <i class="fa fa-heart" aria-hidden="true"></i> by
-                                <a href="" class="font-weight-bold text-white" target="_blank">Asta Brata Tim</a>
-                                for a better web.
+                                </script>, dibuat dengan <i class="fa fa-heart" aria-hidden="true"></i> oleh
+                                <a href="" class="font-weight-bold text-white" target="_blank">Tim Asta Brata</a>
+                                untuk web yang lebih baik.
                             </div>
                         </div>
                         <div class="col-12 col-md-6"></div>

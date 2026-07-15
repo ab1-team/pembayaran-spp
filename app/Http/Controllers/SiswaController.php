@@ -6,23 +6,22 @@ use App\Models\Siswa;
 use App\Models\Anggota_Kelas;
 use App\Models\Ruangan;
 use App\Models\Jenis_Biaya;
-use App\Models\Spp;
 use App\Models\Tahun_akademik;
 use App\Models\Kelas;
 use App\Models\Jurusan;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Http\Controllers\Controller;
 use App\Models\Transaksi;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Http\Requests\SiswaRequest;
+use App\Services\SiswaService;
 
 
 class SiswaController extends Controller
 {
+    public function __construct(protected SiswaService $service) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -89,7 +88,11 @@ class SiswaController extends Controller
 
         $query = Kelas::select('id', 'nama_kelas', 'kode_kelas', 'tingkat');
         if ($search) {
-            $query->where('kode_kelas', 'nama_kelas', 'tingkat', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_kelas', 'like', "%{$search}%")
+                    ->orWhere('nama_kelas', 'like', "%{$search}%")
+                    ->orWhere('tingkat', 'like', "%{$search}%");
+            });
         }
 
         return response()->json(
@@ -129,98 +132,55 @@ class SiswaController extends Controller
             'ids'   => 'required|array',
         ]);
 
-        [$kode_kelas_baru, $tingkat_baru] = explode('-', $request->kelas);
+        [$kodeKelasBaru, $tingkatBaru] = $this->service->splitKelas($request->kelas);
 
         $year = Carbon::now()->year;
-        $tahun_akademik = $year . "/" . ($year + 1);
+        $tahunAkademik = $year . '/' . ($year + 1);
+        $tglMasuk = Carbon::today();
+        $tglKeluar = Carbon::today()->addYear();
 
-        $tgl_masuk  = Carbon::today();
-        $tgl_keluar = Carbon::today()->addYear();
-
-        foreach ($request->ids as $id_siswa) {
-
-            $siswa = Siswa::where('id', $id_siswa)->first();
+        foreach ($request->ids as $idSiswa) {
+            $siswa = Siswa::find($idSiswa);
             if (!$siswa) continue;
 
-            $nominal_spp = $siswa->spp_nominal;
+            $siswa->update([
+                'tingkat'    => $tingkatBaru,
+                'kode_kelas' => $kodeKelasBaru,
+            ]);
 
-            $anggota = Anggota_Kelas::where('id_siswa', $id_siswa)
-                ->orderBy('id', 'DESC')
+            $anggota = Anggota_Kelas::where('id_siswa', $idSiswa)
+                ->orderByDesc('id')
                 ->first();
 
-            /*
-        |--------------------------------------------------------------------------
-        | UPDATE DATA SISWA
-        |--------------------------------------------------------------------------
-        */
-            if ($siswa->tingkat == $tingkat_baru) {
-                // tingkat sama → update kelas saja
-                $siswa->update([
-                    'kode_kelas' => $kode_kelas_baru,
-                ]);
-            } else {
-                // tingkat beda → update tingkat + kelas
-                $siswa->update([
-                    'tingkat'    => $tingkat_baru,
-                    'kode_kelas' => $kode_kelas_baru,
-                ]);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | UPDATE ANGGOTA_KELAS
-        |--------------------------------------------------------------------------
-        */
-            // Jika tingkat sama → update kelas saja
-            if ($anggota && $anggota->tingkat == $tingkat_baru) {
-                $anggota->update([
-                    'kode_kelas' => $kode_kelas_baru,
-                ]);
+            if ($anggota && $anggota->tingkat === $tingkatBaru) {
+                $anggota->update(['kode_kelas' => $kodeKelasBaru]);
                 continue;
             }
 
-            // Nonaktifkan anggota_kelas lama
             if ($anggota) {
-                $anggota->update([
-                    'status' => 'nonaktif'
-                ]);
+                $anggota->update(['status' => 'nonaktif']);
             }
 
-            // Buat anggota_kelas baru
             $anggotaBaru = Anggota_Kelas::create([
-                'id_siswa'       => $id_siswa,
-                'tahun_akademik' => $tahun_akademik,
-                'tingkat'        => $tingkat_baru,
-                'kode_kelas'     => $kode_kelas_baru,
-                'tgl_masuk'      => $tgl_masuk->format('Y-m-d'),
-                'tgl_keluar'     => $tgl_keluar->format('Y-m-d'),
+                'id_siswa'       => $idSiswa,
+                'tahun_akademik' => $tahunAkademik,
+                'tingkat'        => $tingkatBaru,
+                'kode_kelas'     => $kodeKelasBaru,
+                'tgl_masuk'      => $tglMasuk->format('Y-m-d'),
+                'tgl_keluar'     => $tglKeluar->format('Y-m-d'),
                 'status'         => 'aktif',
             ]);
 
-            /*
-        |--------------------------------------------------------------------------
-        | BUAT SPP BARU
-        |--------------------------------------------------------------------------
-        */
-            $anggota_kelas_id = $anggotaBaru->id;
-            $tahunMasuk = $tgl_masuk->year;
-            $awal = Carbon::create($tahunMasuk, 7, 1);
-            $akhir = $awal->copy()->addYear()->subDay();
-
-            while ($awal->lte($akhir)) {
-                Spp::create([
-                    'tanggal'       => $awal->format('Y-m-d'),
-                    'anggota_kelas' => $anggota_kelas_id,
-                    'nominal'       => $nominal_spp,
-                ]);
-
-                $awal->addMonth();
-            }
+            $this->service->generateSppBulanan(
+                $anggotaBaru,
+                $this->service->normalizeNominal($siswa->spp_nominal),
+                ['tanggal_masuk' => $tglMasuk->format('Y-m-d')]
+            );
         }
 
         return response()->json([
             'success' => true,
-            'msg' => "Mutasi berhasil diproses!"
+            'msg'     => 'Mutasi berhasil diproses!',
         ]);
     }
     /**
@@ -233,7 +193,9 @@ class SiswaController extends Controller
         $ruang          = Ruangan::get();
         $jurusan        = Jurusan::get();
         $tahunAkademmik = Tahun_akademik::get();
-        $jenisBiaya     = Jenis_Biaya::where('kode_akun', '1.1.03.01')->where('angkatan', date('Y'))->first();
+        $jenisBiaya     = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
+            ->where('angkatan', date('Y'))
+            ->first();
 
         return view('siswa.create', compact('title', 'kelas', 'jurusan', 'jenisBiaya', 'ruang', 'tahunAkademmik'));
     }
@@ -241,230 +203,28 @@ class SiswaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SiswaRequest $request)
     {
-        $data = $request->only([
-            'nipd',
-            'nisn',
-            'nik',
-            'nama',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'jenis_kelamin',
-            'agama',
-            'kecamatan',
-            'kelurahan',
-            'dusun',
-            'rt',
-            'rw',
-            'alamat',
-            'kode_pos',
-            'status_awal',
-            'status_siswa',
-            'tahun_akademik',
-            'foto',
-            'kebutuhan_khusus',
-            'jenis_tinggal',
-            'transportasi',
-            'hp',
-            'kelas',
-            'password',
-            'jurusan',
-            'angkatan',
-            'skhun',
-            'penerima_kps',
-            'no_kps',
-            'alokasi_spp',
-            'email',
-            'ruangan',
-            'tanggal_masuk',
-            'nama_ayah',
-            'tahun_lahir_ayah',
-            'pendidikan_ayah',
-            'pekerjaan_ayah',
-            'penghasilan_ayah',
-            'kebutuhan_khusus_ayah',
-            'no_telp_ayah',
-            'nama_ibu',
-            'tahun_lahir_ibu',
-            'pendidikan_ibu',
-            'pekerjaan_ibu',
-            'penghasilan_ibu',
-            'kebutuhan_khusus_ibu',
-            'no_telp_ibu',
-            'nama_wali',
-            'tahun_lahir_wali',
-            'pendidikan_wali',
-            'pekerjaan_wali',
-            'penghasilan_wali',
-            'kebutuhan_khusus_wali',
-            'no_telp_wali'
-        ]);
+        $data = $request->validated();
+        $data['foto'] = $this->handleFoto($request);
 
-        $rules = [
-            'nipd'                  => 'required',
-            'nisn'                  => 'required',
-            'tahun_akademik'        => 'required',
-            'nik'                   => 'required',
-            'nama'                  => 'required',
-            'tempat_lahir'          => 'required',
-            'tanggal_lahir'         => 'required|date',
-            'jenis_kelamin'         => 'required',
-            'agama'                 => 'required',
-            'kecamatan'             => 'required',
-            'kelurahan'             => 'required',
-            'tanggal_masuk'         => 'required',
-            'ruangan'               => 'required',
-            'email'                 => 'required',
-            'dusun'                 => 'required',
-            'rt'                    => 'required',
-            'rw'                    => 'required',
-            'password'              => 'required',
-            'alamat'                => 'required',
-            'kode_pos'              => 'required',
-            'status_awal'           => 'required',
-            'status_siswa'          => 'required',
-            'foto'                  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'kebutuhan_khusus'      => 'required',
-            'jenis_tinggal'         => 'required',
-            'transportasi'          => 'required',
-            'hp'                    => 'required',
-            'kelas'                 => 'required',
-            'jurusan'               => 'required',
-            'angkatan'              => 'required',
-            'skhun'                 => 'required',
-            'penerima_kps'          => 'required',
-            'no_kps'                => 'nullable',
-            'alokasi_spp'           => 'required',
-            'nama_ayah'             => 'required',
-            'tahun_lahir_ayah'      => 'required',
-            'pendidikan_ayah'       => 'required',
-            'pekerjaan_ayah'        => 'required',
-            'penghasilan_ayah'      => 'required',
-            'kebutuhan_khusus_ayah' => 'required',
-            'no_telp_ayah'          => 'required',
-            'nama_ibu'              => 'required',
-            'tahun_lahir_ibu'       => 'required',
-            'pendidikan_ibu'        => 'required',
-            'pekerjaan_ibu'         => 'required',
-            'penghasilan_ibu'       => 'required',
-            'kebutuhan_khusus_ibu'  => 'required',
-            'no_telp_ibu'           => 'required',
-            'nama_wali'             => 'nullable',
-            'tahun_lahir_wali'      => 'nullable',
-            'pendidikan_wali'       => 'nullable',
-            'pekerjaan_wali'        => 'nullable',
-            'penghasilan_wali'      => 'nullable',
-            'kebutuhan_khusus_wali' => 'nullable',
-            'no_telp_wali'          => 'nullable',
-        ];
-
-        $validate = Validator::make($data, $rules);
-
-        if ($validate->fails()) {
-            return response()->json($validate->errors(), 422);
-        }
-
-        $fileName = 'default.png';
-        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
-            $fileName = time() . $request->file('foto')->getClientOriginalName();
-            $request->file('foto')->storeAs('siswa', $fileName, 'public');
-        }
-        $data['foto'] = $fileName;
-
-        $kelas = $request->kelas;
-        list($kodeKls, $tingkat) = explode('-', $kelas);
-
-        $create = Siswa::create([
-            'nipd'                  => $request->nipd,
-            'nisn'                  => $request->nisn,
-            'password'              => $request->password,
-            'nik'                   => $request->nik,
-            'email'                 => $request->email,
-            'tahun_akademik'        => $request->tahun_akademik,
-            'tanggal_masuk'         => $request->tanggal_masuk,
-            'tingkat'               => $tingkat,
-            'ruang'                 => $request->ruangan,
-            'id_user'               => Auth::user()->id,
-            'nama'                  => $request->nama,
-            'tempat_lahir'          => $request->tempat_lahir,
-            'tanggal_lahir'         => $request->tanggal_lahir,
-            'jenis_kelamin'         => $request->jenis_kelamin,
-            'agama'                 => $request->agama,
-            'kecamatan'             => $request->kecamatan,
-            'kelurahan'             => $request->kelurahan,
-            'dusun'                 => $request->dusun,
-            'rt'                    => $request->rt,
-            'rw'                    => $request->rw,
-            'alamat'                => $request->alamat,
-            'kode_pos'              => $request->kode_pos,
-            'status_awal'           => $request->status_awal,
-            'status_siswa'          => $request->status_siswa,
-            'foto'                  => $fileName,
-            'kebutuhan_khusus'      => $request->kebutuhan_khusus,
-            'jenis_tinggal'         => $request->jenis_tinggal,
-            'alat_transportasi'     => $request->transportasi,
-            'hp'                    => $request->hp,
-            'kode_kelas'            => $kodeKls,
-            'kode_jurusan'          => $request->jurusan,
-            'angkatan'              => $request->angkatan,
-            'skhun'                 => $request->skhun,
-            'penerima_kps'          => $request->penerima_kps,
-            'no_kps'                => $request->no_kps,
-            'spp_nominal'           => str_replace(',', '', str_replace('.00', '', $request->alokasi_spp)),
-            'nama_ayah'             => $request->nama_ayah,
-            'tahun_lahir_ayah'      => $request->tahun_lahir_ayah,
-            'pendidikan_ayah'       => $request->pendidikan_ayah,
-            'pekerjaan_ayah'        => $request->pekerjaan_ayah,
-            'penghasilan_ayah'      => $request->penghasilan_ayah,
-            'kebutuhan_khusus_ayah' => $request->kebutuhan_khusus_ayah,
-            'no_telepon_ayah'       => $request->no_telp_ayah,
-            'nama_ibu'              => $request->nama_ibu,
-            'tahun_lahir_ibu'       => $request->tahun_lahir_ibu,
-            'pendidikan_ibu'        => $request->pendidikan_ibu,
-            'pekerjaan_ibu'         => $request->pekerjaan_ibu,
-            'penghasilan_ibu'       => $request->penghasilan_ibu,
-            'kebutuhan_khusus_ibu'  => $request->kebutuhan_khusus_ibu,
-            'no_telepon_ibu'        => $request->no_telp_ibu,
-            'nama_wali'             => $request->nama_wali,
-            'tahun_lahir_wali'      => $request->tahun_lahir_wali,
-            'pendidikan_wali'       => $request->pendidikan_wali,
-            'pekerjaan_wali'        => $request->pekerjaan_wali,
-            'penghasilan_wali'      => $request->penghasilan_wali,
-            'kebutuhan_khusus_wali' => $request->kebutuhan_khusus_wali,
-            'no_telepon_wali'       => $request->no_telp_wali,
-            'id_keuangan_jenis'     => $keuanganJenisId ?? null,
-        ]);
-
-        $anggota_kelas = Anggota_Kelas::create([
-            'id_siswa'          => $create->id,
-            'tahun_akademik' => $request->tahun_akademik,
-            'tingkat'           => $tingkat,
-            'kode_kelas'        => $kodeKls,
-            'tgl_masuk'         => $request->tanggal_masuk,
-            'tgl_keluar'        => Carbon::parse($request->tanggal_masuk)->addYear()->format('Y-m-d'),
-            'status'            => 'aktif',
-        ]);
-
-        $tahunMasuk = Carbon::parse($request->tanggal_masuk)->year;
-        $mulai = Carbon::create($tahunMasuk, 7, 1);
-        $akhir = $mulai->copy()->addYear()->subDay();
-
-        while ($mulai->lte($akhir)) {
-            Spp::create([
-                'tanggal'       => $mulai->format('Y-m-d'),
-                'anggota_kelas' => $anggota_kelas->id,
-                'nominal'       => str_replace(',', '', str_replace('.00', '', $request->alokasi_spp)),
-            ]);
-
-            $mulai->addMonth();
-        }
+        $siswa = $this->service->createWithKelasDanSpp($data);
 
         return response()->json([
             'success' => true,
-            'msg' => 'Siswa berhasil disimpan',
-            'data' => $create
+            'msg'     => 'Siswa berhasil disimpan',
+            'data'    => $siswa,
         ]);
+    }
+
+    private function handleFoto(Request $request, ?string $existing = null): string
+    {
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $fileName = time() . '_' . $request->file('foto')->getClientOriginalName();
+            $request->file('foto')->storeAs('siswa', $fileName, 'public');
+            return $fileName;
+        }
+        return $existing ?? 'default.png';
     }
 
     /**
@@ -513,7 +273,9 @@ class SiswaController extends Controller
         $ruang          = Ruangan::get();
         $jurusan        = Jurusan::get();
         $tahunAkademmik = Tahun_akademik::get();
-        $jenisBiaya     = Jenis_Biaya::where('kode_akun', '1.1.03.01')->where('angkatan', date('Y'))->first();
+        $jenisBiaya     = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
+            ->where('angkatan', date('Y'))
+            ->first();
 
         return view('siswa.edit', compact('title', 'kelas', 'jurusan', 'jenisBiaya', 'siswa', 'ruang', 'tahunAkademmik'));
     }
@@ -521,202 +283,35 @@ class SiswaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Siswa $siswa)
+    public function update(SiswaRequest $request, Siswa $siswa)
     {
-        $data = $request->only([
-            'nipd',
-            'nisn',
-            'nik',
-            'nama',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'jenis_kelamin',
-            'agama',
-            'kecamatan',
-            'kelurahan',
-            'dusun',
-            'rt',
-            'rw',
-            'alamat',
-            'kode_pos',
-            'status_awal',
-            'status_siswa',
-            'foto',
-            'kebutuhan_khusus',
-            'jenis_tinggal',
-            'transportasi',
-            'hp',
-            'kelas',
-            'password',
-            'jurusan',
-            'angkatan',
-            'skhun',
-            'penerima_kps',
-            'no_kps',
-            'spp_nominal',
-            'email',
-            'ruangan',
-            'tanggal_masuk',
-            'nama_ayah',
-            'tahun_lahir_ayah',
-            'pendidikan_ayah',
-            'pekerjaan_ayah',
-            'penghasilan_ayah',
-            'kebutuhan_khusus_ayah',
-            'no_telp_ayah',
-            'nama_ibu',
-            'tahun_lahir_ibu',
-            'pendidikan_ibu',
-            'pekerjaan_ibu',
-            'penghasilan_ibu',
-            'kebutuhan_khusus_ibu',
-            'no_telp_ibu',
-            'nama_wali',
-            'tahun_lahir_wali',
-            'pendidikan_wali',
-            'pekerjaan_wali',
-            'penghasilan_wali',
-            'kebutuhan_khusus_wali',
-            'no_telp_wali'
-        ]);
+        $data = $request->validated();
+        $data['foto'] = $this->handleFoto($request, $siswa->foto);
 
-        $rules = [
-            'nipd'                  => 'required',
-            'nisn'                  => 'required',
-            'nik'                   => 'required',
-            'nama'                  => 'required',
-            'tempat_lahir'          => 'required',
-            'tanggal_lahir'         => 'required|date',
-            'jenis_kelamin'         => 'required',
-            'agama'                 => 'required',
-            'kecamatan'             => 'required',
-            'kelurahan'             => 'required',
-            'dusun'                 => 'required',
-            'rt'                    => 'required',
-            'rw'                    => 'required',
-            'password'              => 'required',
-            'alamat'                => 'required',
-            'tanggal_masuk'         => 'required',
-            'email'                 => 'required',
-            'kode_pos'              => 'required',
-            'status_awal'           => 'required',
-            'status_siswa'          => 'required',
-            'foto'                  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'kebutuhan_khusus'      => 'required',
-            'jenis_tinggal'         => 'required',
-            'transportasi'          => 'required',
-            'hp'                    => 'required',
-            'kelas'                 => 'required',
-            'jurusan'               => 'required',
-            'angkatan'              => 'required',
-            'skhun'                 => 'required',
-            'penerima_kps'          => 'required',
-            'no_kps'                => 'nullable',
-            'spp_nominal'           => 'required',
-            'nama_ayah'             => 'required',
-            'tahun_lahir_ayah'      => 'required',
-            'pendidikan_ayah'       => 'required',
-            'pekerjaan_ayah'        => 'required',
-            'penghasilan_ayah'      => 'required',
-            'kebutuhan_khusus_ayah' => 'required',
-            'no_telp_ayah'          => 'required',
-            'nama_ibu'              => 'required',
-            'tahun_lahir_ibu'       => 'required',
-            'pendidikan_ibu'        => 'required',
-            'pekerjaan_ibu'         => 'required',
-            'penghasilan_ibu'       => 'required',
-            'kebutuhan_khusus_ibu'  => 'required',
-            'no_telp_ibu'           => 'required',
-            'nama_wali'             => 'nullable',
-            'tahun_lahir_wali'      => 'nullable',
-            'pendidikan_wali'       => 'nullable',
-            'pekerjaan_wali'        => 'nullable',
-            'penghasilan_wali'      => 'nullable',
-            'kebutuhan_khusus_wali' => 'nullable',
-            'no_telp_wali'          => 'nullable',
-        ];
-
-        $validate = Validator::make($data, $rules);
-
-        if ($validate->fails()) {
-            return response()->json($validate->errors(), 422);
+        if (empty($data['password'])) {
+            unset($data['password']);
         }
 
-        $fileName = 'default.png';
+        [$kodeKls, $tingkat] = $this->service->splitKelas($data['kelas']);
+        $data['kode_kelas'] = $kodeKls;
+        $data['tingkat'] = $tingkat;
+        $data['ruang'] = $data['ruangan'];
+        $data['id_user'] = auth()->id();
+        $data['alat_transportasi'] = $data['transportasi'];
+        $data['no_telepon_ayah'] = $data['no_telp_ayah'];
+        $data['no_telepon_ibu'] = $data['no_telp_ibu'];
+        $data['no_telepon_wali'] = $data['no_telp_wali'];
+        $data['spp_nominal'] = (string) $this->service->normalizeNominal($data['spp_nominal']);
 
-        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
-            $fileName = time() . $request->file('foto')->getClientOriginalName();
-            $request->file('foto')->storeAs('siswa', $fileName, 'public');
-        }
-        $data['foto'] = $fileName;
+        unset($data['kelas'], $data['ruangan'], $data['transportasi'],
+              $data['no_telp_ayah'], $data['no_telp_ibu'], $data['no_telp_wali']);
 
-        $kelas = $request->kelas;
-        list($kodeKls, $tingkat) = explode('-', $kelas);
-
-        $siswa->update([
-            'nipd'                  => $request->nipd,
-            'nisn'                  => $request->nisn,
-            'password'              => $request->password,
-            'nik'                   => $request->nik,
-            'email'                 => $request->email,
-            'tingkat'               => $tingkat,
-            'tanggal_masuk'         => $request->tanggal_masuk,
-            'ruang'                 => $request->ruangan,
-            'id_user'               => Auth::user()->id,
-            'nama'                  => $request->nama,
-            'tempat_lahir'          => $request->tempat_lahir,
-            'tanggal_lahir'         => $request->tanggal_lahir,
-            'jenis_kelamin'         => $request->jenis_kelamin,
-            'agama'                 => $request->agama,
-            'kecamatan'             => $request->kecamatan,
-            'kelurahan'             => $request->kelurahan,
-            'dusun'                 => $request->dusun,
-            'rt'                    => $request->rt,
-            'rw'                    => $request->rw,
-            'alamat'                => $request->alamat,
-            'kode_pos'              => $request->kode_pos,
-            'status_awal'           => $request->status_awal,
-            'status_siswa'          => $request->status_siswa,
-            'foto'                  => $fileName,
-            'kebutuhan_khusus'      => $request->kebutuhan_khusus,
-            'jenis_tinggal'         => $request->jenis_tinggal,
-            'alat_transportasi'     => $request->transportasi,
-            'hp'                    => $request->hp,
-            'kode_kelas'            => $kodeKls,
-            'kode_jurusan'          => $request->jurusan,
-            'angkatan'              => $request->angkatan,
-            'skhun'                 => $request->skhun,
-            'penerima_kps'          => $request->penerima_kps,
-            'no_kps'                => $request->no_kps,
-            'spp_nominal'           => str_replace(',', '', str_replace('.00', '', $request->spp_nominal)),
-            'nama_ayah'             => $request->nama_ayah,
-            'tahun_lahir_ayah'      => $request->tahun_lahir_ayah,
-            'pendidikan_ayah'       => $request->pendidikan_ayah,
-            'pekerjaan_ayah'        => $request->pekerjaan_ayah,
-            'penghasilan_ayah'      => $request->penghasilan_ayah,
-            'kebutuhan_khusus_ayah' => $request->kebutuhan_khusus_ayah,
-            'no_telepon_ayah'       => $request->no_telp_ayah,
-            'nama_ibu'              => $request->nama_ibu,
-            'tahun_lahir_ibu'       => $request->tahun_lahir_ibu,
-            'pendidikan_ibu'        => $request->pendidikan_ibu,
-            'pekerjaan_ibu'         => $request->pekerjaan_ibu,
-            'penghasilan_ibu'       => $request->penghasilan_ibu,
-            'kebutuhan_khusus_ibu'  => $request->kebutuhan_khusus_ibu,
-            'no_telepon_ibu'        => $request->no_telp_ibu,
-            'nama_wali'             => $request->nama_wali,
-            'tahun_lahir_wali'      => $request->tahun_lahir_wali,
-            'pendidikan_wali'       => $request->pendidikan_wali,
-            'pekerjaan_wali'        => $request->pekerjaan_wali,
-            'penghasilan_wali'      => $request->penghasilan_wali,
-            'kebutuhan_khusus_wali' => $request->kebutuhan_khusus_wali,
-            'no_telepon_wali'       => $request->no_telp_wali,
-            'id_keuangan_jenis'     => $keuanganJenisId ?? null,
-        ]);
+        $siswa->update($data);
 
         return response()->json([
             'success' => true,
-            'msg' => 'Siswa berhasil diupdate',
-            'data' => $siswa
+            'msg'     => 'Siswa berhasil diupdate',
+            'data'    => $siswa,
         ]);
     }
 

@@ -23,27 +23,27 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('username', $request->username)
-            ->where('password', $request->password)
-            ->first();
+        $user = User::where('username', $request->username)->first();
 
-        $profil = Profil::first();
-
-        if (!$user) {
-            return redirect()->back()->with('error', 'Username atau password salah');
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return redirect()->back()
+                ->withInput(['username' => $request->username])
+                ->with('error', 'Username atau password salah');
         }
 
         Auth::login($user);
+        $profil = Profil::first();
+        session()->put('profil', $profil);
 
         return redirect('/app/dashboard')->with([
-            'icon'   => 'success',
-            'msg'    => 'Selamat datang ' . ($user->nama ?? $user->name ?? 'Pengguna'),
-            'profil' => $profil,
+            'icon' => 'success',
+            'msg'  => 'Selamat datang ' . ($user->name ?? 'Pengguna'),
         ]);
     }
 
     public function logout()
     {
+        session()->forget('profil');
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();

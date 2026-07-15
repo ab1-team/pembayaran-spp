@@ -4,13 +4,13 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body py-2 px-2">
-                    <div class="row  align-items-center">
-                        <div class="col-md-9 col-12 ps-3 ps-lg-4">
-                            <input type="text" id="pembayaranSPP" placeholder="Search NISN / Nama Siswa ...."
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-9 col-12">
+                            <input type="text" id="pembayaranSPP" placeholder="Cari NISN / Nama Siswa ...."
                                 class="form-control form-search" autocomplete="off">
                         </div>
-                        <div class="col-md-3 col-12 d-flex align-items-end mt-4 mt-lg-0">
-                            <a href="/app/laporan" class="btn btn-danger mb-0 w-100">Laporan Pembayaran</a>
+                        <div class="col-md-3 col-12 mt-2 mt-md-0">
+                            <a href="/app/laporan" class="btn btn-danger w-100">Laporan Pembayaran</a>
                         </div>
                     </div>
                 </div>
@@ -55,11 +55,14 @@
                     </div>
                 </div>
 
-                <div class="position-fixed bottom-0 end-0 p-4 d-flex gap-2">
-                    <button type="button" class="btn btn-secondary" id="btnPrintAllDetail">
-                        <i class="bi bi-printer-fill me-1"></i> Print All
+                <div class="modal-footer
+                            flex-column flex-sm-row
+                            justify-content-end gap-2
+                            position-sticky bottom-0 bg-white border-top">
+                    <button type="button" class="btn btn-secondary w-100 w-sm-auto" id="btnPrintAllDetail">
+                        <i class="bi bi-printer-fill me-1"></i> Cetak Semua
                     </button>
-                    <button type="button" class="btn btn-danger btn-close-modal" id="btnTutupDetail">
+                    <button type="button" class="btn btn-danger btn-close-modal w-100 w-sm-auto" id="btnTutupDetail">
                         <i class="bi bi-x-circle me-1"></i> Tutup
                     </button>
                 </div>
@@ -82,11 +85,14 @@
                         <p class="mt-2">Silakan cari siswa terlebih dahulu</p>
                     </div>
                 </div>
-                <div class="position-fixed bottom-0 end-0 p-4 d-flex gap-2">
-                    <button type="button" class="btn btn-success" id="btnCetak">
+                <div class="modal-footer
+                            flex-column flex-sm-row
+                            justify-content-end gap-2
+                            position-sticky bottom-0 bg-white border-top">
+                    <button type="button" class="btn btn-success w-100 w-sm-auto" id="btnCetak">
                         <i class="bi bi-printer-fill me-1"></i> Cetak
                     </button>
-                    <button type="button" class="btn btn-danger btn-close-modal" id="btnTutupCakbox">
+                    <button type="button" class="btn btn-danger btn-close-modal w-100 w-sm-auto" id="btnTutupCakbox">
                         <i class="bi bi-x-circle me-1"></i> Tutup
                     </button>
                 </div>
@@ -313,7 +319,7 @@
                 error: function () {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
+                        title: 'Kesalahan',
                         text: 'Cek kembali input yang anda masukkan',
                         timer: 2500,
                         showConfirmButton: false
@@ -381,7 +387,7 @@
                                     title: "Berhasil!",
                                     text: result.msg,
                                     icon: "success",
-                                    confirmButtonText: "OK"
+                                    confirmButtonText: "Oke"
                                 }).then((res) => {
                                     if (res.isConfirmed) {
                                         window.location.reload();
@@ -392,16 +398,16 @@
                                     title: "Gagal",
                                     text: result.msg,
                                     icon: "info",
-                                    confirmButtonText: "OK"
+                                    confirmButtonText: "Oke"
                                 });
                             }
                         },
                         error: function(response) {
                             Swal.fire({
-                                title: "Error",
+                                title: "Kesalahan",
                                 text: "Terjadi kesalahan pada server. Silakan coba lagi.",
                                 icon: "error",
-                                confirmButtonText: "OK"
+                                confirmButtonText: "Oke"
                             });
                         }
                     });
@@ -410,7 +416,7 @@
                         title: "Dibatalkan",
                         text: "Data tidak jadi dihapus.",
                         icon: "info",
-                        confirmButtonText: "OK"
+                        confirmButtonText: "Oke"
                     });
                 }
             });

@@ -12,7 +12,13 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LaporanSppController;
 use App\Http\Controllers\SppController;
 use App\Http\Controllers\SystemController;
-
+use App\Http\Controllers\JurusanController;
+use App\Http\Controllers\KelasController;
+use App\Http\Controllers\KurikulumController;
+use App\Http\Controllers\RuanganController;
+use App\Http\Controllers\TahunAkademikController;
+use App\Http\Controllers\JenisPembayaranController;
+use App\Http\Controllers\RekeningController;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
@@ -31,7 +37,7 @@ Route::get('/link', function () {
 });
 
 Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('app.dashboard');
 
     Route::put('/profile/update/{id}', [ProfilController::class, 'update']);
     Route::get('/profile', [ProfilController::class, 'index']);
@@ -49,7 +55,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::delete('/transaksi/pembayaranSPPDestroy/{Transaksi}', [TransaksiController::class, 'pembayaranSPPDestroy']);
     Route::resource('/Transaksi', TransaksiController::class);
 
-    Route::resource('/Jenis-biaya', JenisBiayaController::class);
+    Route::resource('/jenis-biaya', JenisBiayaController::class);
     Route::get('/spp/CariSiswa', [SppController::class, 'CariSiswaAktif']);
     Route::get('/spp/Pembayaran-spp/{id}', [SppController::class, 'spp']);
     Route::resource('/spp', SppController::class);
@@ -77,6 +83,37 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::get('/laporan/preview', [LaporanSppController::class, 'preview']);
 
     Route::get('/pelaporan/sub_laporan/{file}', [LaporanController::class, 'subLaporan']);
+
+    Route::resource('jurusan', JurusanController::class)
+        ->parameters(['jurusan' => 'jurusan'])
+        ->names('app.jurusan');
+
+    Route::resource('kelas', KelasController::class)
+        ->parameters(['kelas' => 'kelas'])
+        ->names('app.kelas');
+
+    Route::resource('kurikulum', KurikulumController::class)
+        ->parameters(['kurikulum' => 'kurikulum'])
+        ->names('app.kurikulum');
+
+    Route::resource('ruangan', RuanganController::class)
+        ->parameters(['ruangan' => 'ruangan'])
+        ->names('app.ruangan');
+
+    Route::resource('tahun-akademik', TahunAkademikController::class)
+        ->parameters(['tahun-akademik' => 'tahun_akademik'])
+        ->names('app.tahun-akademik');
+
+    Route::post('tahun-akademik/{tahun_akademik}/aktifkan', [TahunAkademikController::class, 'aktifkan'])
+        ->name('app.tahun-akademik.aktifkan');
+
+    Route::resource('jenis-pembayaran', JenisPembayaranController::class)
+        ->parameters(['jenis-pembayaran' => 'jenis_pembayaran'])
+        ->names('app.jenis-pembayaran');
+
+    Route::get('coa', [RekeningController::class, 'tree'])->name('app.coa');
+    Route::post('coa/{rekening}/nonaktifkan', [RekeningController::class, 'nonaktifkan'])->name('app.coa.nonaktifkan');
+    Route::post('coa/{rekening}/aktifkan', [RekeningController::class, 'aktifkan'])->name('app.coa.aktifkan');
 
     Route::post('/logout', [AuthController::class, 'logout']);
 });

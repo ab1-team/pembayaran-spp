@@ -11,28 +11,23 @@ class Rekening extends Model
     protected $table = 'rekening';
     protected $guarded = [];
 
+    protected $casts = [
+        'saldo' => 'decimal:2',
+        'tgl_nonaktif' => 'date',
+    ];
+
+    public function akunLevel3()
+    {
+        return $this->belongsTo(AkunLevel3::class, 'parent_id');
+    }
+
     public function transaksiDebit()
     {
-        return $this->hasMany(
-            Transaksi::class,
-            'rekening_debit',   
-            'kode_akun'         
-        );
+        return $this->hasMany(Transaksi::class, 'rekening_debit', 'kode_akun');
     }
 
     public function transaksiKredit()
     {
-        return $this->hasMany(
-            Transaksi::class,
-            'rekening_kredit',
-            'kode_akun'
-        );
+        return $this->hasMany(Transaksi::class, 'rekening_kredit', 'kode_akun');
     }
-    
-    public function transaksi()
-    {
-        return $this->hasMany(Transaksi::class, 'rekening_debit', 'kode_akun')
-            ->orWhere('rekening_kredit', $this->kode_akun);
-    }
-   
 }

@@ -229,13 +229,13 @@ class LaporanController extends Controller
 
         // Total Kumulatif Tahun (sampai Desember)
         $transaksi_tahun_ini = Transaksi::where(fn($q) => $q
-            ->where('rekening_debit', $rek->ikode_akund)
+            ->where('rekening_debit', $rek->kode_akun)
             ->orWhere('rekening_kredit', $rek->kode_akun))
             ->whereBetween('tanggal_transaksi', [$tgl_awal_tahun, "$thn-12-31"])
             ->get();
 
         $total_tahun_ini = $transaksi_tahun_ini->reduce(function ($carry, $trx) use ($rek) {
-            if ($trx->rekening_debit == $rek->ikode_akund) {
+            if ($trx->rekening_debit == $rek->kode_akun) {
                 $carry['debit'] += $trx->jumlah;
             } elseif ($trx->rekening_kredit == $rek->kode_akun) {
                 $carry['kredit'] += $trx->jumlah;

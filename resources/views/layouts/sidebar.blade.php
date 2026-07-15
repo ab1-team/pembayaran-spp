@@ -3,7 +3,7 @@
         <li class="nav-item">
             <a class="nav-link active bg-gradient-dark text-white" href="/app/dashboard">
                 <span class="material-symbols-rounded opacity-5">dashboard</span>
-                <span class="nav-link-text ms-1">Dashboard</span>
+                <span class="nav-link-text ms-1">Beranda</span>
             </a>
         </li>
         <li class="nav-item">
@@ -21,7 +21,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-dark py-2" href="/app/pengaturan/coa">
-                            <span class="sidenav-normal">Chart of Accounts</span>
+                            <span class="sidenav-normal">Bagan Akun (CoA)</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -31,7 +31,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-dark py-2" href="/app/pengaturan/ttd-pelaporan">
-                            <span class="sidenav-normal">TTD Pelaporan</span>
+                            <span class="sidenav-normal">Tanda Tangan Pelaporan</span>
                         </a>
                     </li>
                 </ul>

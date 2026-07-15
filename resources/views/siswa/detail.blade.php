@@ -486,7 +486,7 @@
                                     title: "Berhasil!",
                                     text: result.msg,
                                     icon: "success",
-                                    confirmButtonText: "OK"
+                                    confirmButtonText: "Oke"
                                 }).then((res) => {
                                     if (res.isConfirmed) {
                                         window.location.href =
@@ -499,7 +499,7 @@
                                     title: "Gagal",
                                     text: result.msg,
                                     icon: "info",
-                                    confirmButtonText: "OK"
+                                    confirmButtonText: "Oke"
                                 });
                             }
                         },
@@ -512,7 +512,7 @@
                                 title: "Gagal",
                                 text: msg,
                                 icon: "error",
-                                confirmButtonText: "OK"
+                                confirmButtonText: "Oke"
                             });
                         }
                     });
@@ -521,7 +521,7 @@
                         title: "Dibatalkan",
                         text: "Data tidak jadi diblokir.",
                         icon: "info",
-                        confirmButtonText: "OK"
+                        confirmButtonText: "Oke"
                     });
                 }
             });

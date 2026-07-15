@@ -170,7 +170,9 @@
             </div>
             <hr class="horizontal dark my-1">
             <div class="card-body text-center pt-0">
-                <canvas id="pie" height="270"></canvas>
+                <div style="position:relative; max-height:320px;">
+                    <canvas id="pie"></canvas>
+                </div>
             </div>
         </div>
     </div>

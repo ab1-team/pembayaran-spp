@@ -55,8 +55,8 @@ class SppController extends Controller
         }
 
         $spp_perbulan = $anggota_kelas->getSiswa->spp_nominal;
-        $target_bulan = $anggota_kelas->getSpp->SUM('nominal');
-        $sd_bulan_ini = $anggota_kelas->getSpp->where('status', 'L')->SUM('nominal');
+        $target_bulan = $anggota_kelas->getSpp->sum('nominal');
+        $sd_bulan_ini = $anggota_kelas->getSpp->where('status', 'L')->sum('nominal');
         $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
         $jenis_biaya = Rekening::where('kode_akun', 'like', '4.1.01.%')->get();
         $kode_tunggakan = Transaksi::where('rekening_debit', '1.1.03.01')

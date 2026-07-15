@@ -11,9 +11,8 @@ class Jenis_Biaya extends Model
     protected $table = 'jenis_biaya';
     protected $guarded = ['id'];
 
-
-    public function get_rekening()
+    public function get_jenis_pembayaran()
     {
-        return $this->belongsTo(Rekening::class, 'kode_akun', 'kode_akun');
+        return $this->belongsTo(JenisPembayaran::class, 'id_jp');
     }
 }

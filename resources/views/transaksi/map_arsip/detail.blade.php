@@ -14,7 +14,7 @@
                                 <th width="15%">Bulan SPP</th>
                                 <th width="15%">Nominal</th>
                                 <th width="40%">Keterangan</th>
-                                <th width="15%" style="padding-left:60px;">Action</th>
+                                <th width="15%" style="padding-left:60px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>

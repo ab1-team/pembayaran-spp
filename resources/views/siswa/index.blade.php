@@ -193,7 +193,7 @@
                                 else if (data === 'blokir') {
                                     return '<span class="badge bg-danger">Blokir</span>';
                                 }
-                                return '<span class="badge bg-secondary">Unknown</span>';
+                                return '<span class="badge bg-secondary">Tidak Diketahui</span>';
                             }
                             return data;
                         }
@@ -271,7 +271,7 @@
                         showDenyButton: true,
                         confirmButtonText: "Pindahkan Siswa",
                         denyButtonText: "Print Data Siswa",
-                        cancelButtonText: "Cancel",
+                        cancelButtonText: "Batal",
                         width: 600,
 
                         didOpen: () => {
@@ -383,7 +383,7 @@
                         title: "Peringatan",
                         text: "Silakan pilih minimal satu siswa terlebih dahulu.",
                         icon: "warning",
-                        confirmButtonText: "OK"
+                        confirmButtonText: "Oke"
                     });
                     return;
                 }
@@ -431,7 +431,7 @@
                             title: "Berhasil!",
                             text: result.msg,
                             icon: "success",
-                            confirmButtonText: "OK"
+                            confirmButtonText: "Oke"
                         }).then((res) => {
                             if (res.isConfirmed) {
                                 window.location.href =
