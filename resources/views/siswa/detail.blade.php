@@ -382,7 +382,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @forelse ($riwayat as $item)
+                                                @foreach ($riwayat as $item)
                                                     <tr>
                                                         <td width="15%">{{ $item->tanggal_transaksi }}</td>
                                                         <td width="15%">
@@ -391,11 +391,7 @@
                                                         <td width="60%" class="text-wrap">{{ $item->keterangan }}</td>
                                                         <td width="10%" class="text-end">{{ number_format($item->jumlah,2) }}</td>
                                                     </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="4" class="text-center">Belum ada data</td>
-                                                    </tr>
-                                                @endforelse
+                                                @endforeach
                                             </tbody>
                                         </table>
                                     </div>
@@ -446,10 +442,17 @@
                     tbRiwayat = $('#TBriwayat').DataTable({
                         ordering: false,
                         pageLength: 10,
-                        lengthChange: true, 
-                        searching: true,    
+                        lengthChange: true,
+                        searching: true,
                         info: true,
-                        autoWidth: false
+                        autoWidth: false,
+                        deferRender: true,
+                        columns: [
+                            { width: '15%' },
+                            { width: '15%' },
+                            { width: '60%' },
+                            { width: '10%', className: 'text-end' }
+                        ]
                     });
                 } else {
                     tbRiwayat.columns.adjust().draw();

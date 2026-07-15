@@ -104,7 +104,7 @@ class TransaksiController extends Controller
                 'rekening_debit' => $data['disimpan_ke'],
                 'rekening_kredit' => $data['sumber_dana'],
                 'keterangan' => $form['keterangan'],
-                'jumlah' => floatval(str_replace(',', '', $form['nominal'])),
+                'jumlah' => (int) preg_replace('/[^0-9]/', '', $form['nominal']),
             ]);
         }
 
@@ -112,7 +112,7 @@ class TransaksiController extends Controller
             $jenis_inventaris = $form['jenis_inventaris'];
             $kategori_inventaris = $form['kategori_inventaris'];
             $nama_barang = $form['nama_barang'];
-            $harga_satuan = floatval(str_replace(',', '', $form['harga_satuan']));
+            $harga_satuan = (int) preg_replace('/[^0-9]/', '', $form['harga_satuan']);
             $umur_ekonomis = $form['umur_ekonomis'];
             $jumlah_unit = $form['jumlah_unit'];
             $harga_perolehan = $harga_satuan * $jumlah_unit;
@@ -146,8 +146,8 @@ class TransaksiController extends Controller
             $jumlah_barang = $nama_barang[1];
             $status = $form['alasan'];
             $jumlah_unit = $form['jumlah_unit_inventaris'];
-            $nilai_buku = floatval(str_replace(',', '', $form['nilai_buku']));
-            $harga_jual = floatval(str_replace(',', '', $form['harga_jual']));
+            $nilai_buku = (int) preg_replace('/[^0-9]/', '', $form['nilai_buku']);
+            $harga_jual = (int) preg_replace('/[^0-9]/', '', $form['harga_jual']);
 
             $inv = Inventaris::where('id', $id_inv)->first();
 
@@ -219,7 +219,7 @@ class TransaksiController extends Controller
             }
 
             if ($status == 'revaluasi') {
-                $harga_jual = floatval(str_replace(',', '', str_replace('.00', '', $request->harga_jual)));
+                $harga_jual = (int) preg_replace('/[^0-9]/', '', $request->harga_jual);
 
                 $insert_inventaris_baru = [
                     'nama' => $barang,
@@ -321,7 +321,7 @@ class TransaksiController extends Controller
             }
             foreach ($sppIds as $i => $sppId) {
 
-                $nilai = (int) str_replace(['.', ','], '', $nominals[$i]);
+                $nilai = (int) preg_replace('/[^0-9]/', '', $nominals[$i]);
                 $spp   = Spp::findOrFail($sppId);
 
                 $isTunggakan = Carbon::parse($spp->tanggal)
@@ -347,9 +347,13 @@ class TransaksiController extends Controller
                         Tanggal::namaBulan($spp->tanggal) . ' ' .
                         Tanggal::tahun($spp->tanggal) . ')',
                     'user_id' => auth()->user()->id,
+                    'urutan' => '0',
                 ]);
 
+                $detailSpp[] = ['bulan' => Tanggal::namaBulan($spp->tanggal) . ' ' . Tanggal::tahun($spp->tanggal)];
+
                 $spp->update(['status' => 'L']);
+                $transaksiList[] = $transaksi;
             }
         } else {
             $transaksi = Transaksi::create([
@@ -359,9 +363,10 @@ class TransaksiController extends Controller
                 'rekening_kredit' => $request->jenis_biaya,
                 'spp_id' => 0,
                 'siswa_id' => $request->siswa_id,
-                'jumlah' => str_replace(',', '', str_replace('.00', '', $request->nominal)),
+                'jumlah' => (int) preg_replace('/[^0-9]/', '', $request->nominal),
                 'keterangan' => $request->keterangan,
                 'user_id' => auth()->user()->id,
+                'urutan' => '0',
             ]);
 
             $transaksiList[] = $transaksi;

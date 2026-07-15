@@ -48,7 +48,7 @@ class SiswaRequest extends FormRequest
             'skhun'                 => 'required',
             'penerima_kps'          => 'required',
             'no_kps'                => 'nullable',
-            'spp_nominal'           => 'required',
+            'alokasi_spp'           => 'required',
             'nama_ayah'             => 'required',
             'tahun_lahir_ayah'      => 'required',
             'pendidikan_ayah'       => 'required',

@@ -5,7 +5,7 @@
             <form action="/app/pelaporan/preview" method="GET" target="_blank">
                 <div id="laporanRow" class="row g-3 mt-2">
                     {{-- Tahun --}}
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="wrapTahun">
                         <label class="form-label">Pilih Tahun</label>
                         <select name="tahun" class="form-select select2">
                             @for ($i = 2020; $i <= date('Y'); $i++)
@@ -16,7 +16,7 @@
                     </div>
 
                     {{-- Bulan --}}
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="wrapBulan">
                         <label class="form-label"> Pilih Bulan</label>
                         <select name="bulan" class="form-select select2">
                             @foreach ([
@@ -41,7 +41,7 @@
                     </div>
 
 
-                    <div class="col-md-4 mb-3" style="padding-right: 10px;">
+                    <div class="col-md-4 mb-3" id="wrapHari" style="padding-right: 10px;">
                         <label class="form-label">Pilih Hari</label>
                         <select name="hari" class="form-select select2">
                             <option value="">---</option>
@@ -52,6 +52,27 @@
                         </select>
                     </div>
 
+                    {{-- Periode SPP (show kalau spp/daftar_ulang) --}}
+                    <div class="col-md-6 d-none" id="wrapPeriode">
+                        <label class="form-label">Periode Tanggal</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="text" name="tgl_awal" class="form-control datepicker flex-fill"
+                                value="{{ \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d') }}">
+                            <span class="text-muted small">s.d</span>
+                            <input type="text" name="tgl_akhir" class="form-control datepicker flex-fill"
+                                value="{{ \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-none" id="wrapTahunAkademik">
+                        <label class="form-label">Tahun Akademik</label>
+                        <select name="tahun_akademik_id" class="form-select select2">
+                            <option value="">-- Semua --</option>
+                            @foreach (\App\Models\Tahun_Akademik::orderBy('nama_tahun', 'desc')->get() as $ta)
+                                <option value="{{ $ta->id }}">{{ $ta->nama_tahun }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div id="colLaporan" class="col-md-6 mb-3" style="padding-left: 10px;">
                         <label class="form-label"> Pilih Nama Laporan</label>
                         <select id="laporan" name="laporan" class="form-select select2">
@@ -59,7 +80,7 @@
                             @foreach ($laporan as $item)
                                 <option value="{{ $item->file }}"
                                     {{ request('laporan') == $item->file ? 'selected' : '' }}>
-                                    {{ $item->nama_laporan }}
+                                    {{ $item->nama }}
                                 </option>
                             @endforeach
                         </select>
@@ -90,7 +111,12 @@
                 theme: 'bootstrap-5'
             });
 
-            // kondisi awal (jika reload & calk terpilih)
+            if (typeof flatpickr !== 'undefined') {
+                flatpickr('.datepicker', {
+                    dateFormat: "Y-m-d"
+                });
+            }
+
             const initFile = $('#laporan').val();
             adjustLayout(initFile);
 
@@ -99,34 +125,29 @@
             }
         });
 
+        const SPP_FILES = ['pembayaran_spp', 'daftar_ulang'];
+
         function adjustLayout(file) {
             const laporanCol = $('#colLaporan');
             const subCol = $('#subLaporan');
 
             if (file === 'calk') {
-                laporanCol
-                    .removeClass('col-md-6')
-                    .addClass('col-12 mb-2');
-
-                subCol
-                    .removeClass('col-md-6')
-                    .addClass('col-12');
+                laporanCol.removeClass('col-md-6').addClass('col-12 mb-2');
+                subCol.removeClass('col-md-6').addClass('col-12');
             } else {
-                laporanCol
-                    .removeClass('col-12 mb-2')
-                    .addClass('col-md-6');
-
-                subCol
-                    .removeClass('col-12')
-                    .addClass('col-md-6');
+                laporanCol.removeClass('col-12 mb-2').addClass('col-md-6');
+                subCol.removeClass('col-12').addClass('col-md-6');
             }
+
+            const isSpp = SPP_FILES.includes(file);
+            $('#wrapTahun, #wrapBulan, #wrapHari').toggleClass('d-none', isSpp);
+            $('#wrapPeriode, #wrapTahunAkademik').toggleClass('d-none', !isSpp);
         }
 
         function initQuill() {
             const editor = document.getElementById('editor');
             if (!editor || typeof Quill === 'undefined') return;
 
-            // hindari double init
             if (editor.__quill) {
                 editor.__quill = null;
             }

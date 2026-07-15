@@ -1,5 +1,5 @@
 <title>{{ $title }}</title>
-@extends('laporan.layout.base')
+@extends('laporan-keuangan.layout.base')
 
 @section('content')
     <table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:15px;">

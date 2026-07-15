@@ -12,8 +12,8 @@ class Anggota_Kelas extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'tgl_masuk' => 'date',
-        'tgl_keluar' => 'date',
+        'tgl_masuk' => 'date:Y-m-d',
+        'tgl_keluar' => 'date:Y-m-d',
     ];
 
     public function tahunAkademik()

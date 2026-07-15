@@ -4,20 +4,21 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body py-2 px-2">
-                    <div class="row g-2 align-items-center">
+                    <div class="row g-2 align-items-end">
                         <div class="col-md-9 col-12">
                             <input type="text" id="pembayaranSPP" placeholder="Cari NISN / Nama Siswa ...."
                                 class="form-control form-search" autocomplete="off">
                         </div>
-                        <div class="col-md-3 col-12 mt-2 mt-md-0">
-                            <a href="/app/laporan" class="btn btn-danger w-100">Laporan Pembayaran</a>
+                        <div class="col-md-3 col-12 mt-2 mt-md-2">
+                            <button type="button" id="btnDetailSiswaTop" class="btn btn-danger w-100">
+                                <i class="bi bi-receipt-cutoff me-1"></i> Detail Pembayaran
+                            </button>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
         <div id="accordion" class="col-12">
-            <div class="mt-7">
+            <div class="mt-4">
                 <div class="card-body text-center py-4">
                     <i class="bi bi-person-search text-danger fs-1 mb-2"></i>
                     <div class="mb-3">
@@ -204,7 +205,7 @@
             }
         }
 
-        $(document).on('click', '#btnDetailSiswa', function() {
+        $(document).on('click', '#btnDetailSiswa, #btnDetailSiswaTop', function() {
             loadTransaksiSiswa('detail');
         });
 

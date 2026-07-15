@@ -9,7 +9,6 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\JenisBiayaController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\LaporanController;
-use App\Http\Controllers\LaporanSppController;
 use App\Http\Controllers\SppController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\JurusanController;
@@ -79,10 +78,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::resource('/siswa', SiswaController::class);
 
     Route::get('/laporan-keuangan', [LaporanController::class, 'index']);
-    Route::get('/laporan', [LaporanSppController::class, 'index']);
 
     Route::get('/pelaporan/preview', [LaporanController::class, 'preview']);
-    Route::get('/laporan/preview', [LaporanSppController::class, 'preview']);
 
     Route::get('/pelaporan/sub_laporan/{file}', [LaporanController::class, 'subLaporan']);
 
@@ -119,3 +116,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+
+
+
+

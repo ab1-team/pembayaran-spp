@@ -2,7 +2,7 @@
     use App\Utils\Tanggal;
 @endphp
 <title>{{ $title }}</title>
-@extends('laporan.layout.base')
+@extends('laporan-keuangan.layout.base')
 @section('content')
 
     <head>

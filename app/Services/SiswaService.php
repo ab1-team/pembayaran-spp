@@ -43,6 +43,7 @@ class SiswaService
             'kebutuhan_khusus'      => $data['kebutuhan_khusus'],
             'jenis_tinggal'         => $data['jenis_tinggal'],
             'alat_transportasi'     => $data['transportasi'],
+            'telepon'               => $data['telepon'] ?? $data['hp'] ?? '-',
             'hp'                    => $data['hp'],
             'kode_kelas'            => $kodeKelas,
             'kode_jurusan'          => $data['jurusan'],
@@ -111,12 +112,13 @@ class SiswaService
 
     public function splitKelas(string $kelas): array
     {
-        return explode('-', $kelas) + [null, null];
+        return explode('|', $kelas) + [null, null];
     }
 
     public function normalizeNominal($value): int
     {
-        return (int) str_replace(['.', ','], '', (string) $value);
+        $value = preg_replace('/[^0-9]/', '', (string) $value);
+        return (int) $value;
     }
 
     public function resolveTahunAkademikNama(array $data): string

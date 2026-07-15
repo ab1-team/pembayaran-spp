@@ -3,7 +3,7 @@
     $i = 0;
 @endphp
 
-@extends('laporan.layout.base')
+@extends('laporan-keuangan.layout.base')
 <title>{{ $title }}</title>
 @section('content')
     <style>

@@ -4,11 +4,8 @@
         <div class="col-12">
             <div class="card my-4">
                 <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                    <div class="bg-gradient-secondary shadow-secondary border-radius-lg pt-3 pb-3">
-                        <div class="row align-items-center px-3 gy-2">
-                            <div class="col-12 col-md-2">
-                                <h6 class="text-white text-capitalize mb-0">&nbsp;</h6>
-                            </div>
+                    <div class="bg-gradient-secondary shadow-secondary border-radius-lg py-2 px-3 d-flex align-items-center">
+                        <div class="row align-items-center w-100 gx-2">
                             <div class="col-12 col-md-3">
                                 <select id="tahun_akademik" class="form-control select2 text-white w-100">
                                     <option value="">Pilih Tahun Akademik</option>
@@ -16,16 +13,12 @@
                             </div>
                             <div class="col-12 col-md-3">
                                 <select id="kelas" class="form-control select2 text-white w-100">
-                                    <option value="">Kelas</option>
+                                    <option value="">Pilih Kelas</option>
                                 </select>
                             </div>
-                            <div class="col-12 col-md-2 mt-md-4">
-                                <button id="btnFilter" class="btn btn-info text-white w-100">
-                                    Lihat
-                                </button>
-                            </div>
-                            <div class="col-12 col-md-2 mt-md-4">
-                                <button id="btnPrint" class="btn btn-success text-white w-100">
+                            <div class="col-12 col-md-auto pt-2 ms-md-auto">
+                                <button id="btnPrint" class="btn btn-success text-white w-100 w-md-auto">
+                                    <i class="material-icons align-middle me-1">print</i>
                                     Cetak Siswa
                                 </button>
                             </div>
@@ -34,7 +27,7 @@
                     </div>
                 </div>
 
-                <div class="card-body px-3 pb-3">
+                <div class="card-body px-3 py-2">
                     <div id="notifikasi">
                         <div class="alert alert-light alert-dismissible text-secondary" role="alert">
                             Silakan gunakan fitur Filter untuk menampilkan data siswa.
@@ -45,8 +38,8 @@
                         <table id="siswa" class="table table-striped align-items-center mb-0">
                             <thead>
                                 <tr>
-                                    <th>
-                                        <div class="form-check">
+                                    <th class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
                                             <input class="form-check-input" type="checkbox" id="checkAll">
                                         </div>
                                     </th>
@@ -156,7 +149,8 @@
                         width: "10%",
                         data: 'checkbox',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        className: 'text-center'
                     },
                     {
                         width: "15%",
@@ -237,7 +231,7 @@
                 table.ajax.reload();
             }
 
-            $('#btnFilter').click(function() {
+            function applyFilter() {
                 let tahun = $('#tahun_akademik').val();
                 let kelas = $('#kelas').val();
                 let params = new URLSearchParams(window.location.search);
@@ -247,9 +241,11 @@
                 $('#notifikasi').addClass('d-none');
                 $('#tableWrapper').removeClass('d-none');
                 table.ajax.reload(function () {
-                    table.columns.adjust().draw(); 
+                    table.columns.adjust().draw();
                 });
-            });
+            }
+
+            $('#tahun_akademik, #kelas').on('change', applyFilter);
 
             $('#checkAll').on('click', function () {
                 $('.checkItem').prop('checked', this.checked);
@@ -280,7 +276,7 @@
                                 kelas.empty().append('<option value="">Pilih Kelas</option>');
 
                                 data.forEach(k => {
-                                    kelas.append(`<option value="${k.kode_kelas}-${k.tingkat}">${k.kode_kelas} - ${k.nama_kelas}</option>`);
+                                    kelas.append(`<option value="${k.kode_kelas}|${k.tingkat}">${k.kode_kelas} - ${k.nama_kelas}</option>`);
                                 });
                                 $('#mutasi_kelas').select2({
                                     dropdownParent: $('.swal2-popup'),
@@ -345,7 +341,7 @@
                             kelas.empty().append('<option value="">Pilih Kelas</option>');
 
                             data.forEach(k => {
-                                kelas.append(`<option value="${k.kode_kelas}-${k.tingkat}">${k.kode_kelas} - ${k.nama_kelas}</option>`);
+                                kelas.append(`<option value="${k.kode_kelas}|${k.tingkat}">${k.kode_kelas} - ${k.nama_kelas}</option>`);
                             });
                             $('#mutasi_kelas').select2({
                                 dropdownParent: $('.swal2-popup'), 
@@ -435,8 +431,8 @@
                         }).then((res) => {
                             if (res.isConfirmed) {
                                 window.location.href =
-                                    '/app/siswa?tahun_akademik=' + qs_tahun +
-                                    '&kelas=' + qs_kelas;
+                                    '/app/siswa?tahun_akademik=' + $('#tahun_akademik').val() +
+                                    '&kelas=' + $('#kelas').val();
                             }
                         });
                     } else {

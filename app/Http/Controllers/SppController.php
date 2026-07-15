@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Spp;
 use App\Models\Siswa;
 use App\Models\Rekening;
+use App\Models\JenisPembayaran;
 use App\Models\Jenis_Biaya;
 use App\Models\Anggota_Kelas;
 use App\Models\Transaksi;
@@ -58,7 +59,7 @@ class SppController extends Controller
         $target_bulan = $anggota_kelas->getSpp->sum('nominal');
         $sd_bulan_ini = $anggota_kelas->getSpp->where('status', 'L')->sum('nominal');
         $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
-        $jenis_biaya = Rekening::where('kode_akun', 'like', '4.1.01.%')->get();
+        $jenis_biaya = JenisPembayaran::orderBy('nama')->get();
         $kode_tunggakan = Transaksi::where('rekening_debit', '1.1.03.01')
             ->where('rekening_kredit', '4.1.01.01')
             ->where('siswa_id', $anggota_kelas->getSiswa->id)

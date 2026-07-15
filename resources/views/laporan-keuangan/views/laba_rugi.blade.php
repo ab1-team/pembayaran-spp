@@ -9,7 +9,7 @@
 @endphp
 <title>{{ $title }} ({{ $title_bulan }})</title>
 
-@extends('laporan.layout.base')
+@extends('laporan-keuangan.layout.base')
 
 @section('content')
     <style>

@@ -46,7 +46,7 @@
                             <select name="jenis_biaya" id="jenis_biaya" class="form-control select2">
                                 <option value="0">Pilih Jenis Pembayaran</option>
                                 @foreach ($jenis_biaya as $jb)
-                                    <option value="{{ $jb->kode_akun }}">{{ $jb->nama_akun }}</option>
+                                    <option value="{{ $jb->kode_akun }}">{{ $jb->nama }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -143,10 +143,6 @@
                     <button type="button" id="CetakPadaKartu"
                         class="btn btn-outline-info btn-sm d-none w-100 w-md-auto">
                         Cetak Pada Kartu
-                    </button>
-                    <button class="btn btn-danger w-100 w-md-auto"
-                        id="btnDetailSiswa" type="button">
-                        Detail
                     </button>
                     <button type="submit" id="Tunai"
                         data-sumber="1.1.01.01"

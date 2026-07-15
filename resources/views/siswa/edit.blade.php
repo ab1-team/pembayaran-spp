@@ -192,12 +192,12 @@
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <div
-                                            class="input-group input-group-outline mb-3 {{ old('status_awal', $siswa->status_awal) ? 'is-filled' : '' }}">
-                                            <label class="form-label">Status Awal</label>
-                                            <input type="text" name="status_awal" id="status_awal"
-                                                value="{{ old('status_awal', $siswa->status_awal) }}"
-                                                class="form-control">
+                                        <div class="input-group input-group-outline mb-3">
+                                            <select name="status_awal" id="status_awal" class="form-select select2">
+                                                <option value="" disabled>Status Awal</option>
+                                                <option value="baru" {{ old('status_awal', $siswa->status_awal) === 'baru' ? 'selected' : '' }}>Baru</option>
+                                                <option value="pindahan" {{ old('status_awal', $siswa->status_awal) === 'pindahan' ? 'selected' : '' }}>Pindahan</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -240,12 +240,14 @@
                                         </div>
                                     </div>
                                     <div class="col-md-3">
-                                        <div
-                                            class="input-group input-group-outline mb-3 {{ old('jenis_tinggal', $siswa->jenis_tinggal) ? 'is-filled' : '' }}">
-                                            <label class="form-label">Jenis Tinggal</label>
-                                            <input type="text" name="jenis_tinggal" id="jenis_tinggal"
-                                                value="{{ old('jenis_tinggal', $siswa->jenis_tinggal) }}"
-                                                class="form-control">
+                                        <div class="input-group input-group-outline mb-3">
+                                            <select name="jenis_tinggal" id="jenis_tinggal" class="form-select select2">
+                                                <option value="" disabled>Jenis Tinggal</option>
+                                                <option value="orang_tua" {{ old('jenis_tinggal', $siswa->jenis_tinggal) === 'orang_tua' ? 'selected' : '' }}>Orang Tua</option>
+                                                <option value="asrama" {{ old('jenis_tinggal', $siswa->jenis_tinggal) === 'asrama' ? 'selected' : '' }}>Asrama</option>
+                                                <option value="kost" {{ old('jenis_tinggal', $siswa->jenis_tinggal) === 'kost' ? 'selected' : '' }}>Kost</option>
+                                                <option value="wali" {{ old('jenis_tinggal', $siswa->jenis_tinggal) === 'wali' ? 'selected' : '' }}>Wali</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -307,8 +309,8 @@
                                             <select name="kelas" id="kelas" class="form-select select2">
                                                 <option value="" disabled>Pilih Kelas</option>
                                                 @foreach ($kelas as $kls)
-                                                    <option value="{{ $kls->kode_kelas }}-{{ $kls->tingkat }}"
-                                                        {{ old('kelas', $siswa->kelas) == $kls->kode_kelas ? 'selected' : '' }}>
+                                                    <option value="{{ $kls->kode_kelas }}|{{ $kls->tingkat }}"
+                                                        {{ old('kelas', $siswa->kode_kelas) == $kls->kode_kelas ? 'selected' : '' }}>
                                                         {{ $kls->kode_kelas }} - {{ $kls->nama_kelas }}
                                                     </option>
                                                 @endforeach

@@ -10,8 +10,14 @@ use App\Models\Calk;
 use App\Models\AkunLevel1;
 use App\Models\MasterArusKas;
 use App\Models\Tanda_tangan;
+use App\Models\Tahun_Akademik;
+use App\Models\Kelas;
+use App\Models\Spp;
+use App\Models\Anggota_Kelas;
+use App\Models\SubLaporan;
 use App\Utils\Keuangan;
 use App\Utils\Tanggal;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -23,11 +29,32 @@ class LaporanController extends Controller
         $laporan = JenisLaporan::where('file', '!=', '0')
             ->orderBy('urut', 'ASC')
             ->get();
-        return view('laporan.index', compact('title', 'laporan'));
+        return view('laporan-keuangan.index', compact('title', 'laporan'));
     }
 
     public function subLaporan($file)
     {
+        $jenis = JenisLaporan::where('file', $file)->first();
+        $idLap = $jenis?->id ?? 0;
+
+        $dbSubs = $jenis
+            ? SubLaporan::where('id_lap', $idLap)->orderBy('urut')->orderBy('id')->get()
+            : collect();
+
+        if ($dbSubs->isNotEmpty()) {
+            $sub_laporan = [['value' => '', 'title' => '---']];
+            foreach ($dbSubs as $sub) {
+                $sub_laporan[] = [
+                    'value' => $sub->file === '0' ? $sub->id : $sub->file,
+                    'title' => $sub->nama_laporan,
+                ];
+            }
+            return view('laporan-keuangan.partials.sub_laporan', [
+                'type' => 'select',
+                'sub_laporan' => $sub_laporan,
+            ]);
+        }
+
         if ($file == 'buku_besar') {
 
             $rekening = Rekening::orderBy('kode_akun', 'ASC')->get();
@@ -40,7 +67,7 @@ class LaporanController extends Controller
                 ];
             }
 
-            return view('laporan.partials.sub_laporan', [
+            return view('laporan-keuangan.partials.sub_laporan', [
                 'type' => 'select',
                 'sub_laporan' => $sub_laporan
             ]);
@@ -53,13 +80,40 @@ class LaporanController extends Controller
 
             $calk = Calk::where('tanggal', $tanggal)->first();
 
-            return view('laporan.partials.sub_laporan', [
+            return view('laporan-keuangan.partials.sub_laporan', [
                 'type'       => 'textarea',
                 'keterangan' => $calk->catatan ?? ''
             ]);
+        } elseif (in_array($file, ['pembayaran_spp', 'daftar_ulang'], true)) {
+
+            $kelas = Anggota_Kelas::where('status', 'aktif')
+                ->select('kode_kelas')
+                ->distinct()
+                ->orderBy('kode_kelas')
+                ->get()
+                ->map(function ($row) {
+                    $k = Kelas::where('kode_kelas', $row->kode_kelas)->first();
+                    return (object) [
+                        'kode_kelas' => $row->kode_kelas,
+                        'nama_kelas' => $k->nama_kelas ?? $row->kode_kelas,
+                    ];
+                });
+
+            $sub_laporan = [];
+            foreach ($kelas as $k) {
+                $sub_laporan[] = [
+                    'value' => (string) $k->kode_kelas,
+                    'title' => $k->kode_kelas . ' - ' . $k->nama_kelas,
+                ];
+            }
+
+            return view('laporan-keuangan.partials.sub_laporan', [
+                'type' => 'select',
+                'sub_laporan' => $sub_laporan,
+            ]);
         } else {
 
-            return view('laporan.partials.sub_laporan', [
+            return view('laporan-keuangan.partials.sub_laporan', [
                 'type' => 'select',
                 'sub_laporan' => [
                     ['value' => '', 'title' => '---']
@@ -100,12 +154,17 @@ class LaporanController extends Controller
             return $this->buku_besar($data);
         }
 
+        // ================= SPP / DAFTAR ULANG =================
+        if (in_array($laporan, ['pembayaran_spp', 'daftar_ulang'], true)) {
+            return $this->{$laporan}($request);
+        }
+
         if (method_exists($this, $laporan)) {
             return $this->$laporan($data);
         }
 
-        if (view()->exists("laporan.views.{$laporan}")) {
-            return view("laporan.views.{$laporan}", $data);
+        if (view()->exists("laporan-keuangan.views.{$laporan}")) {
+            return view("laporan-keuangan.views.{$laporan}", $data);
         }
 
         abort(404, 'Laporan tidak ditemukan');
@@ -131,7 +190,7 @@ class LaporanController extends Controller
         }
 
         $data['profil'] = Profil::first();
-        $view = view('laporan.views.cover', $data)->render();
+        $view = view('laporan-keuangan.views.cover', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -252,7 +311,7 @@ class LaporanController extends Controller
         $data['bulan'] = $bln;
         $data['ttd'] = Tanda_tangan::first();
 
-        $view = view('laporan.views.buku_besar', $data)->render();
+        $view = view('laporan-keuangan.views.buku_besar', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -296,7 +355,7 @@ class LaporanController extends Controller
             ->orderBy('tanggal_transaksi', 'asc')
             ->get();
         $data['ttd'] = Tanda_tangan::first();
-        $view = view('laporan.views.jurnal_transaksi', $data)->render();
+        $view = view('laporan-keuangan.views.jurnal_transaksi', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -356,7 +415,7 @@ class LaporanController extends Controller
         $saldo_bulan_lalu = $keuangan->saldoKas($tgl_saldo_lalu);
         $data['saldo_bulan_lalu'] = $saldo_bulan_lalu;
 
-        $view = view('laporan.views.arus_kas', $data)->render();
+        $view = view('laporan-keuangan.views.arus_kas', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -410,7 +469,7 @@ class LaporanController extends Controller
         }
         $data['ttd'] = Tanda_tangan::first();
 
-        $view = view('laporan.views.laba_rugi', $data)->render();
+        $view = view('laporan-keuangan.views.laba_rugi', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -454,7 +513,7 @@ class LaporanController extends Controller
         $data['tgl_akhir'] = $tgl_akhir;
         $data['ttd'] = Tanda_tangan::first();
 
-        $view = view('laporan.views.neraca', $data)->render();
+        $view = view('laporan-keuangan.views.neraca', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -509,7 +568,7 @@ class LaporanController extends Controller
             });
         $data['ttd'] = Tanda_tangan::first();
 
-        $view = view('laporan.views.neraca_saldo', $data)->render();
+        $view = view('laporan-keuangan.views.neraca_saldo', $data)->render();
 
         $pdf = Pdf::loadHTML($view)
         ->setPaper('a4', 'landscape')
@@ -562,7 +621,7 @@ class LaporanController extends Controller
         $data['catatan'] = $calk ? $calk->catatan : '';
         $data['ttd'] = Tanda_tangan::first();
 
-        $view = view('laporan.views.calk', $data)->render();
+        $view = view('laporan-keuangan.views.calk', $data)->render();
 
         $pdf = Pdf::loadHTML($view)->setOptions([
             'margin-top'    => 30,
@@ -573,5 +632,161 @@ class LaporanController extends Controller
         ]);
 
         return $pdf->stream();
+    }
+
+    public function pembayaran_spp(Request $request)
+    {
+        $request->validate([
+            'tgl_awal'          => 'required|date',
+            'tgl_akhir'         => 'required|date',
+            'tahun_akademik_id' => 'nullable|exists:tahun_akademik,id',
+            'sub_laporan'       => 'nullable',
+        ]);
+
+        $data = [
+            'tgl_awal'          => $request->tgl_awal,
+            'tgl_akhir'         => $request->tgl_akhir,
+            'tahun_akademik_id' => $request->tahun_akademik_id,
+            'sub_laporan'       => $request->sub_laporan,
+            'title'             => 'Laporan Pembayaran SPP',
+        ];
+
+        $data['kelas'] = !empty($data['sub_laporan'])
+            ? Kelas::where('kode_kelas', $data['sub_laporan'])->first()
+            : null;
+
+        $data['periode'] = [
+            'awal'  => Carbon::parse($data['tgl_awal'])->locale('id'),
+            'akhir' => Carbon::parse($data['tgl_akhir'])->locale('id'),
+        ];
+
+        $tglAwal  = Carbon::parse($data['tgl_awal'])->startOfMonth();
+        $tglAkhir = Carbon::parse($data['tgl_akhir'])->endOfMonth();
+
+        $anggotaKelas = Anggota_Kelas::with(['getSiswa'])
+            ->when(!empty($data['sub_laporan']), function ($q) use ($data) {
+                $q->where('kode_kelas', $data['sub_laporan']);
+            })
+            ->when(!empty($data['tahun_akademik_id']), function ($q) use ($data) {
+                $tahun = Tahun_Akademik::find($data['tahun_akademik_id']);
+                if ($tahun) {
+                    $q->where('tahun_akademik', $tahun->nama_tahun);
+                }
+            })
+            ->orderBy('id')
+            ->get()
+            ->map(function ($row) use ($tglAwal, $tglAkhir) {
+
+                $jumlahBulan = $tglAwal->diffInMonths($tglAkhir) + 1;
+
+                $row->per_bulan = $row->getSiswa->spp_nominal ?? 0;
+
+                $row->target_sd_saat_ini = $jumlahBulan * $row->per_bulan;
+
+                $row->sd_periode_lalu = Spp::where('anggota_kelas', $row->id)
+                    ->where('status', 'L')
+                    ->where('tanggal', '<', $tglAwal)
+                    ->sum('nominal');
+
+                $row->periode_ini = Spp::where('anggota_kelas', $row->id)
+                    ->where('status', 'L')
+                    ->whereBetween('tanggal', [$tglAwal, $tglAkhir])
+                    ->sum('nominal');
+
+                $row->sd_periode_ini = $row->sd_periode_lalu + $row->periode_ini;
+
+                $row->sisa = $row->target_sd_saat_ini - $row->sd_periode_ini;
+
+                return $row;
+            });
+
+        $data['anggotaKelas'] = $anggotaKelas;
+
+        $logoPath = public_path('assets/img/apple-icon.png');
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
+        }
+
+        $pdf = Pdf::loadView('laporan-keuangan.views.pembayaran_spp', $data)
+            ->setPaper('A4', 'landscape');
+
+        return $pdf->stream('laporan-spp.pdf');
+    }
+
+    public function daftar_ulang(Request $request)
+    {
+        $request->validate([
+            'tgl_awal'          => 'required|date',
+            'tgl_akhir'         => 'required|date',
+            'tahun_akademik_id' => 'nullable|exists:tahun_akademik,id',
+            'sub_laporan'       => 'nullable',
+        ]);
+
+        $data = [
+            'tgl_awal'          => $request->tgl_awal,
+            'tgl_akhir'         => $request->tgl_akhir,
+            'tahun_akademik_id' => $request->tahun_akademik_id,
+            'sub_laporan'       => $request->sub_laporan,
+            'title'             => 'Laporan Pembayaran Daftar Ulang',
+        ];
+
+        $data['kelas'] = !empty($data['sub_laporan'])
+            ? Kelas::where('kode_kelas', $data['sub_laporan'])->first()
+            : null;
+
+        $tglAwal  = Carbon::parse($data['tgl_awal'])->startOfDay();
+        $tglAkhir = Carbon::parse($data['tgl_akhir'])->endOfDay();
+
+        $data['periode'] = [
+            'awal'  => $tglAwal->locale('id'),
+            'akhir' => $tglAkhir->locale('id'),
+        ];
+
+        $anggotaKelas = Anggota_Kelas::with(['getSiswa', 'getTahunAkademik'])
+            ->when(!empty($data['sub_laporan']), function ($q) use ($data) {
+                $q->where('kode_kelas', $data['sub_laporan']);
+            })
+            ->when(!empty($data['tahun_akademik_id']), function ($q) use ($data) {
+                $tahun = Tahun_Akademik::find($data['tahun_akademik_id']);
+                if ($tahun) {
+                    $q->where('tahun_akademik', $tahun->nama_tahun);
+                }
+            })
+            ->orderBy('id')
+            ->get()
+            ->map(function ($row) use ($tglAwal, $tglAkhir) {
+
+                $row->target = $row->getSiswa->spp_nominal ?? 0;
+
+                $row->realisasi = Transaksi::where('siswa_id', $row->getSiswa->id ?? 0)
+                    ->where('rekening_kredit', '1.1.03.02')
+                    ->whereBetween('tanggal_transaksi', [$tglAwal, $tglAkhir])
+                    ->sum('jumlah');
+
+                $row->sisa = $row->target - $row->realisasi;
+
+                return $row;
+            });
+
+        $data['anggotaKelas'] = $anggotaKelas;
+
+        $logoPath = public_path('assets/img/apple-icon.png');
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
+        }
+
+        $pdf = Pdf::loadView('laporan-keuangan.views.daftar_ulang', $data)
+            ->setPaper('A4', 'landscape')
+            ->setOptions([
+                'margin-top'             => 30,
+                'margin-bottom'          => 15,
+                'margin-left'            => 20,
+                'margin-right'           => 20,
+                'enable-local-file-access' => true,
+            ]);
+
+        return $pdf->stream('laporan-daftar-ulang.pdf');
     }
 }

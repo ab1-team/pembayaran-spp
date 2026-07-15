@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class JenisLaporan extends Model
+class SubLaporan extends Model
 {
     use HasFactory;
-    protected $table = 'jenis_laporan';
+    protected $table = 'sub_laporans';
     protected $guarded = ['id'];
 
-    public function subLaporans()
+    public function jenisLaporan()
     {
-        return $this->hasMany(SubLaporan::class, 'id_lap', 'id');
+        return $this->belongsTo(JenisLaporan::class, 'id_lap', 'id');
     }
 }

@@ -159,9 +159,11 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="input-group input-group-outline mb-3">
-                                            <label class="form-label">Status Awal</label>
-                                            <input type="text" name="status_awal" id="status_awal"
-                                                class="form-control">
+                                            <select name="status_awal" id="status_awal" class="form-select select2">
+                                                <option value="" disabled selected>Status Awal</option>
+                                                <option value="baru">Baru</option>
+                                                <option value="pindahan">Pindahan</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -203,9 +205,13 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="input-group input-group-outline mb-3">
-                                            <label class="form-label">Jenis Tinggal</label>
-                                            <input type="text" name="jenis_tinggal" id="jenis_tinggal"
-                                                class="form-control">
+                                            <select name="jenis_tinggal" id="jenis_tinggal" class="form-select select2">
+                                                <option value="" disabled selected>Jenis Tinggal</option>
+                                                <option value="orang_tua">Orang Tua</option>
+                                                <option value="asrama">Asrama</option>
+                                                <option value="kost">Kost</option>
+                                                <option value="wali">Wali</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -257,9 +263,9 @@
                                                 class="form-select select2">
                                                 <option value="" disabled selected>Tahun Ajaran</option>
                                                 @foreach ($tahunAkademmik as $tA)
-                                                    <option value="{{ $tA->nama_tahun }}">
-                                                        {{ $tA->nama_tahun }} -
-                                                        {{ $tA->keterangan }}</option>
+                                                    <option value="{{ $tA->nama_tahun }}"
+                                                        {{ \Illuminate\Support\Str::startsWith($tA->nama_tahun, date('Y')) ? 'selected' : '' }}>
+                                                        {{ $tA->nama_tahun }} - {{ ucfirst($tA->keterangan) }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -269,7 +275,7 @@
                                             <select name="kelas" id="kelas" class="form-select select2">
                                                 <option value="" disabled selected>Pilih Kelas</option>
                                                 @foreach ($kelas as $kls)
-                                                    <option value="{{ $kls->kode_kelas }}-{{ $kls->tingkat }}">
+                                                    <option value="{{ $kls->kode_kelas }}|{{ $kls->tingkat }}">
                                                         {{ $kls->kode_kelas }} -
                                                         {{ $kls->nama_kelas }}</option>
                                                 @endforeach
@@ -595,8 +601,26 @@
                         });
                     }
                 },
-                error: function(result) {
-                    Swal.fire('Error', 'Cek kembali input yang anda masukkan', 'error');
+                error: function(xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var list = Object.keys(errors)
+                            .map(function(field) {
+                                var label = $('[name="' + field + '"]')
+                                    .closest('.input-group')
+                                    .find('.form-label').text().trim();
+                                return '<li>' + (label || field) + '</li>';
+                            })
+                            .join('');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Data belum lengkap',
+                            html: 'Inputan berikut masih kosong / tidak valid:<ul class="text-start">' +
+                                list + '</ul>'
+                        });
+                    } else {
+                        Swal.fire('Error', 'Cek kembali input yang anda masukkan', 'error');
+                    }
                 }
             });
         });

@@ -18,7 +18,7 @@ class Siswa extends Model
 
     public function tahunAkademik()
     {
-        return $this->belongsTo(Tahun_akademik::class, 'tahun_akademik', 'id');
+        return $this->belongsTo(Tahun_akademik::class, 'tahun_akademik', 'nama_tahun');
     }
 
     public function kelas()

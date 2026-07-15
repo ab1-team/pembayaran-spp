@@ -13,7 +13,7 @@ class Spp extends Model
 
     protected $casts = [
         'tanggal' => 'date',
-        'nominal' => 'decimal:2',
+        'nominal' => 'integer',
     ];
 
     public function transaksi()

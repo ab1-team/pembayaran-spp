@@ -19,7 +19,7 @@
     $total_pendapatan = $total_beban = 0;
 @endphp
 <title>{{ $title }}</title>
-@extends('laporan.layout.base')
+@extends('laporan-keuangan.layout.base')
 
 @section('content')
     <table border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 11px;">

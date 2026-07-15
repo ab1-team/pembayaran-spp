@@ -182,7 +182,7 @@
 
 <body>
 
-    @include('laporan.layout.header')
+    @include('laporan-keuangan.layout.header')
 
     @yield('content')
 

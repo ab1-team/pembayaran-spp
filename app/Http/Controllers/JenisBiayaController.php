@@ -21,6 +21,9 @@ class JenisBiayaController extends Controller
                 ->addColumn('kode_akun', function ($row) {
                     return $row->get_jenis_pembayaran->kode_akun ?? '-';
                 })
+                ->editColumn('total_beban', function ($row) {
+                    return number_format((float) $row->total_beban, 2, '.', ',');
+                })
                 ->addColumn('action', function ($row) {
                     return '
                         <div class="d-inline-flex gap-1">
@@ -131,6 +134,7 @@ class JenisBiayaController extends Controller
 
     private function normalizeNominal($value): int
     {
-        return (int) str_replace(['.', ','], '', (string) $value);
+        $value = preg_replace('/[^0-9]/', '', (string) $value);
+        return (int) $value;
     }
 }

@@ -13,7 +13,7 @@ class Tahun_akademik extends Model
 
     public function siswa()
     {
-        return $this->hasMany(Siswa::class, 'tahun_akademik', 'id');
+        return $this->hasMany(Siswa::class, 'tahun_akademik', 'nama_tahun');
     }
 
     public function anggotaKelas()
