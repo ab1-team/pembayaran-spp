@@ -32,12 +32,13 @@ class SiswaSeeder extends Seeder
         }
 
         $kurikulumList = [
-            ['kode_kurikulum' => 'K-2013', 'nama_kurikulum' => 'Kurikulum 2013'],
             ['kode_kurikulum' => 'K-MERDEKA', 'nama_kurikulum' => 'Kurikulum Merdeka'],
+            ['kode_kurikulum' => 'K-2013', 'nama_kurikulum' => 'Kurikulum 2013'],
         ];
         foreach ($kurikulumList as $k) {
-            if (!DB::table('kurikulum')->where('nama_kurikulum', $k['nama_kurikulum'])->exists()) {
+            if (!DB::table('kurikulum')->where('kode_kurikulum', $k['kode_kurikulum'])->exists()) {
                 DB::table('kurikulum')->insert([
+                    'kode_kurikulum' => $k['kode_kurikulum'],
                     'nama_kurikulum' => $k['nama_kurikulum'], 'status' => 'aktif',
                     'created_at' => $now, 'updated_at' => $now,
                 ]);
@@ -58,7 +59,7 @@ class SiswaSeeder extends Seeder
             }
         }
         $tahunAktifId = DB::table('tahun_akademik')->where('nama_tahun', '2025/2026')->value('id');
-        $kurikulumId = DB::table('kurikulum')->where('nama_kurikulum', 'Kurikulum Merdeka')->value('id');
+        $kurikulumKode = DB::table('kurikulum')->where('kode_kurikulum', 'K-MERDEKA')->value('kode_kurikulum');
 
         $ruanganList = [
             ['kode_gedung' => 'A', 'kode_ruangan' => 'A-101', 'nama_ruangan' => 'Ruang Kelas X TKJ 1', 'kapasitas_belajar' => '36', 'kapasitas_ujian' => '32', 'keterangan' => 'Lantai 1'],
@@ -75,10 +76,10 @@ class SiswaSeeder extends Seeder
         }
 
         $kelasList = [
-            ['kode_kelas' => 'X-TKJ-1',  'nama_kelas' => 'X TKJ 1',  'tingkat' => '10', 'kode_kurikulum' => $kurikulumId],
-            ['kode_kelas' => 'X-MM-1',   'nama_kelas' => 'X MM 1',   'tingkat' => '10', 'kode_kurikulum' => $kurikulumId],
-            ['kode_kelas' => 'XI-AKL-1', 'nama_kelas' => 'XI AKL 1', 'tingkat' => '11', 'kode_kurikulum' => $kurikulumId],
-            ['kode_kelas' => 'XI-OTKP-1','nama_kelas' => 'XI OTKP 1','tingkat' => '11', 'kode_kurikulum' => $kurikulumId],
+            ['kode_kelas' => 'X-TKJ-1',  'nama_kelas' => 'X TKJ 1',  'tingkat' => '10', 'kode_kurikulum' => $kurikulumKode],
+            ['kode_kelas' => 'X-MM-1',   'nama_kelas' => 'X MM 1',   'tingkat' => '10', 'kode_kurikulum' => $kurikulumKode],
+            ['kode_kelas' => 'XI-AKL-1', 'nama_kelas' => 'XI AKL 1', 'tingkat' => '11', 'kode_kurikulum' => $kurikulumKode],
+            ['kode_kelas' => 'XI-OTKP-1','nama_kelas' => 'XI OTKP 1','tingkat' => '11', 'kode_kurikulum' => $kurikulumKode],
         ];
         foreach ($kelasList as $k) {
             if (!DB::table('kelas')->where('kode_kelas', $k['kode_kelas'])->exists()) {
