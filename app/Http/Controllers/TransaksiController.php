@@ -318,6 +318,7 @@ class TransaksiController extends Controller
 
         $transaksiList = [];
         $detailSpp = [];
+        $idtp = str_pad((int) Transaksi::max('idtp') + 1, 4, '0', STR_PAD_LEFT);
 
         if ($isSpp) {
             $request->validate([
@@ -349,7 +350,7 @@ class TransaksiController extends Controller
 
                 $transaksi = Transaksi::create([
                     'tanggal_transaksi' => $request->tanggal,
-                    'invoice_id' => '0',
+                    'idtp' => $idtp,
                     'rekening_debit' => $request->sumber_dana,
                     'rekening_kredit' => $rekeningKredit,
                     'spp_id' => $sppId,
@@ -370,7 +371,7 @@ class TransaksiController extends Controller
         } else {
             $transaksi = Transaksi::create([
                 'tanggal_transaksi' => $request->tanggal,
-                'invoice_id' => '0',
+                'idtp' => $idtp,
                 'rekening_debit' => $request->sumber_dana,
                 'rekening_kredit' => $jp->kode_akun,
                 'spp_id' => 0,
@@ -389,6 +390,7 @@ class TransaksiController extends Controller
             'msg' => 'Pembayaran berhasil disimpan',
             'keterangan' => $request->keterangan,
             'id_transaksi' => collect($transaksiList)->pluck('id')->toArray(),
+            'idtp' => $idtp,
             'detail_spp' => $detailSpp,
         ]);
     }
@@ -428,11 +430,17 @@ class TransaksiController extends Controller
      */
     public function pembayaranSPPPrint(Request $request)
     {
-        $ids = explode(',', $request->query('ids'));
+        $idtp = $request->query('idtp');
+        $query = Transaksi::with('siswa')->whereNull('deleted_at');
 
-        $transaksis = Transaksi::with('siswa')
-            ->whereIn('id', $ids)
-            ->get();
+        if ($idtp) {
+            $query->where('idtp', $idtp);
+        } else {
+            $ids = explode(',', $request->query('ids'));
+            $query->whereIn('id', $ids);
+        }
+
+        $transaksis = $query->get();
 
         if ($transaksis->isEmpty()) {
             abort(404);

@@ -61,7 +61,7 @@ class SystemController extends Controller
                     // langsung create karena transaksi lama sudah dihapus
                     Transaksi::create([
                         'tanggal_transaksi' => now()->format('Y-m-d'),
-                        'invoice_id' => '0',
+                        'idtp' => null,
                         'rekening_debit' => '1.1.03.01',
                         'rekening_kredit' => '4.1.01.01',
                         'spp_id' => $spp->id,
