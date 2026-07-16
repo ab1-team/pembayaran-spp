@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('kode_kelas');
             $table->string('tgl_masuk');
             $table->string('tgl_keluar');
-            $table->string('status');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
             $table->timestamps();
         });
     }

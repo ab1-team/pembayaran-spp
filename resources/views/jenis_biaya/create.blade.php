@@ -28,7 +28,7 @@
                                     <select name="id_jp" id="id_jp" class="form-control select2" required>
                                         <option value="">-- Pilih Jenis Pembayaran --</option>
                                         @foreach ($jenisPembayaran as $jp)
-                                            <option value="{{ $jp->id }}" data-kode="{{ $jp->kode_akun }}">{{ $jp->kode_akun }} - {{ $jp->nama }}</option>
+                                            <option value="{{ $jp->id }}" data-kode="{{ $jp->kode_akun }}" data-jumlah="{{ $jp->jumlah }}">{{ $jp->kode_akun }} - {{ $jp->nama }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -67,14 +67,18 @@
                 allowClear: true
             });
 
-            $('#id_jp').on('change', function() {
-                var kode = $(this).find(':selected').data('kode') || '';
-                $('#kode_akun').val(kode);
+            $(".nominal").maskMoney({
+                allowNegative: true
             });
-        });
 
-        $(".nominal").maskMoney({
-            allowNegative: true
+            $('#id_jp').on('change', function() {
+                var opt = $(this).find(':selected');
+                $('#kode_akun').val(opt.data('kode') || '');
+                var jumlah = opt.data('jumlah');
+                if (jumlah) {
+                    $('input[name="total_beban"]').maskMoney('mask', jumlah);
+                }
+            });
         });
 
         $(document).on('click', '#simpan', function(e) {

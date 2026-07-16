@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('siswa', function (Blueprint $table) {
-            $table->string('tahun_akademik')->change();
+        Schema::table('spp', function (Blueprint $table) {
+            $table->date('tgl_lunas')->nullable()->after('status');
         });
     }
 
     public function down(): void
     {
-        Schema::table('siswa', function (Blueprint $table) {
-            $table->integer('tahun_akademik')->change();
+        Schema::table('spp', function (Blueprint $table) {
+            $table->dropColumn('tgl_lunas');
         });
     }
 };

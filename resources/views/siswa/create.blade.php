@@ -239,12 +239,6 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="input-group input-group-outline mb-3">
-                                            <label class="form-label">Angkatan</label>
-                                            <input type="text" name="angkatan" id="angkatan" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group input-group-outline mb-3">
                                             <label class="form-label">Email</label>
                                             <input type="email" name="email" id="email" class="form-control">
                                         </div>
@@ -257,7 +251,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="input-group input-group-outline mb-3">
                                             <select name="tahun_akademik" id="tahun_akademik"
                                                 class="form-select select2">
@@ -270,7 +264,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="input-group input-group-outline mb-3">
                                             <select name="kelas" id="kelas" class="form-select select2">
                                                 <option value="" disabled selected>Pilih Kelas</option>
@@ -282,19 +276,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group input-group-outline mb-3">
-                                            <select name="jurusan" id="jurusan" class="form-select select2">
-                                                <option value="" disabled selected>Pilih Jurusan</option>
-                                                @foreach ($jurusan as $J)
-                                                    <option value="{{ $J->kode_jurusan }}">
-                                                        {{ $J->kode_jurusan }} -
-                                                        {{ $J->nama }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="input-group input-group-outline mb-3">
                                             <select name="ruangan" id="ruangan" class="form-select select2">
                                                 <option value="" disabled selected>Pilih Ruangan</option>
@@ -325,15 +307,6 @@
                                         <div class="input-group input-group-outline mb-3">
                                             <label class="form-label">No KPS</label>
                                             <input type="text" name="no_kps" id="no_kps" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div
-                                            class="input-group input-group-outline mb-3 {{ old('alokasi_spp', $jenisBiaya?->total_beban) ? 'is-filled' : '' }}">
-                                            <label class="form-label">Alokasi SPP per Bulan</label>
-                                            <input type="text" name="alokasi_spp"
-                                                value="{{ number_format($jenisBiaya->total_beban ?? 0, 2) }}" id="alokasi_spp"
-                                                class="form-control nominal">
                                         </div>
                                     </div>
                                 </div>

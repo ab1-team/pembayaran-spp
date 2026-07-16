@@ -73,13 +73,13 @@
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Tempat Lahir:</strong>
-                                                        <span>{{ $siswa->tempat_lahir }}</span>
+                                                        <span>{{ $siswa->tempat_lahir ?: '-' }}</span>
                                                     </li>
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Tanggal Lahir:</strong>
                                                         <span>
-                                                            {{ \Carbon\Carbon::parse($siswa->tanggal_lahir)->format('d F Y') }}
+                                                            {{ $siswa->tanggal_lahir ? \Carbon\Carbon::parse($siswa->tanggal_lahir)->format('d F Y') : '-' }}
                                                         </span>
                                                     </li>
                                                 </ul>
@@ -89,12 +89,12 @@
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Jenis Kelamin:</strong>
-                                                        <span>{{ $siswa->jenis_kelamin == '1' ? 'Laki-laki' : 'Perempuan' }}</span>
+                                                        <span>{{ $siswa->jenis_kelamin == 'L' ? 'Laki-laki' : ($siswa->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</span>
                                                     </li>
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Agama:</strong>
-                                                        <span>{{ $siswa->agama == '1' ? 'Islam' : '-' }}</span>
+                                                        <span>{{ $siswa->agama ?: '-' }}</span>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -109,12 +109,12 @@
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Password:</strong>
-                                                        <span>{{ $siswa->password }}</span>
+                                                        <span>••••••••</span>
                                                     </li>
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Kelas:</strong>
-                                                        <span>{{ $siswa->kode_kelas }}</span>
+                                                        <span>{{ $siswa->kode_kelas ?: '-' }}</span>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -123,13 +123,12 @@
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Angkatan:</strong>
-                                                        <span>{{ $siswa->angkatan }}</span>
+                                                        <span>{{ $siswa->tahun_akademik ?: '-' }}</span>
                                                     </li>
                                                     <li
                                                         class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                         <strong>Status Siswa:</strong>
-                                                        <span>{{ $siswa->status_siswa }}
-                                                        </span>
+                                                        <span>{{ ucfirst($siswa->status_siswa) }}</span>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -197,27 +196,22 @@
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>Status Awal:</strong>
-                                                    <span>{{ $siswa->status_awal }}</span>
-                                                </li>
-                                                <li
-                                                    class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
-                                                    <strong>Status Siswa:</strong>
-                                                    <span>{{ $siswa->status_siswa }}</span>
+                                                    <span>{{ ucfirst($siswa->status_awal ?: '-') }}</span>
                                                 </li>
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>NIK:</strong>
-                                                    <span>{{ $siswa->nik }}</span>
+                                                    <span>{{ $siswa->nik ?: '-' }}</span>
                                                 </li>
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>Kebutuhan Khusus:</strong>
-                                                    <span>{{ $siswa->kebutuhan_khusus }}</span>
+                                                    <span>{{ $siswa->kebutuhan_khusus ?: '-' }}</span>
                                                 </li>
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>Jenis Tinggal:</strong>
-                                                    <span>{{ $siswa->jenis_tinggal }}</span>
+                                                    <span>{{ ucfirst(str_replace('_', ' ', $siswa->jenis_tinggal ?: '-')) }}</span>
                                                 </li>
                                             </ul>
                                         </div>
@@ -227,27 +221,22 @@
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>Transportasi:</strong>
-                                                    <span>{{ $siswa->alat_transportasi }}</span>
-                                                </li>
-                                                <li
-                                                    class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
-                                                    <strong>No Telpon:</strong>
-                                                    <span>{{ $siswa->telepon }}</span>
+                                                    <span>{{ $siswa->alat_transportasi ?: '-' }}</span>
                                                 </li>
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>No HP:</strong>
-                                                    <span>{{ $siswa->hp }}</span>
+                                                    <span>{{ $siswa->hp ?: '-' }}</span>
                                                 </li>
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>Email:</strong>
-                                                    <span>{{ $siswa->email }}</span>
+                                                    <span>{{ $siswa->email ?: '-' }}</span>
                                                 </li>
                                                 <li
                                                     class="list-group-item border-0 p-1 text-sm d-flex justify-content-between">
                                                     <strong>Penerima KPS:</strong>
-                                                    <span>{{ $siswa->penerima_kps }}</span>
+                                                    <span>{{ $siswa->penerima_kps ?: '-' }}</span>
                                                 </li>
                                             </ul>
                                         </div>

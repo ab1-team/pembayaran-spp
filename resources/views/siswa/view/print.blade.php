@@ -48,7 +48,7 @@
                     <th style="text-align:center;">NISN</th>
                     <th style="text-align:center;">Nama Siswa</th>
                     <th style="text-align:center;">Jenis Kelamin</th>
-                    <th style="text-align:center;">Angkatan</th>
+                    <th style="text-align:center;">Tahun Akademik</th>
                 </tr>
             </thead>
 
@@ -59,8 +59,8 @@
                         <td>{{ $s->nipd }}</td>
                         <td>{{ $s->nisn }}</td>
                         <td>{{ $s->nama }}</td>
-                        <td>{{ $s->jenis_kelamin }}</td>
-                        <td align="center">{{ $s->angkatan }}</td>
+                        <td align="center">{{ $s->jenis_kelamin == 'L' ? 'Laki-laki' : ($s->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</td>
+                        <td align="center">{{ $s->tahun_akademik ?: '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -13,8 +13,19 @@ class Spp extends Model
 
     protected $casts = [
         'tanggal' => 'date',
+        'tgl_lunas' => 'date',
         'nominal' => 'integer',
     ];
+
+    public function markLunas(string $tglBayar): void
+    {
+        $this->forceFill(['status' => 'L', 'tgl_lunas' => $tglBayar])->save();
+    }
+
+    public function batalLunas(): void
+    {
+        $this->forceFill(['status' => 'B', 'tgl_lunas' => null])->save();
+    }
 
     public function transaksi()
     {

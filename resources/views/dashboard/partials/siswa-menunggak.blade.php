@@ -1,3 +1,6 @@
+@php
+    use App\Utils\Tanggal;
+@endphp
 <div class="table-responsive" style="max-height:60vh">
     <table id="tblSiswaMenunggak" class="table table-bordered table-striped table-sm align-middle mb-0">
         <thead>
@@ -15,7 +18,7 @@
                 @php
                     $total_tagihan = $s->getTransaksi->sum('jumlah');
                     $bulanTunggakan = $s->getTransaksi
-                        ->map(fn($trx) => Tanggal::namaBulan($trx->spp?->tanggal))
+                        ->map(fn($trx) => Tanggal::namabulan($trx->spp?->tanggal))
                         ->unique()->values();
                 @endphp
                 <tr>

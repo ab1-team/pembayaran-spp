@@ -29,8 +29,8 @@ class BackfillAnggotaKelas extends Command
         $created = 0;
 
         foreach ($siswa as $s) {
-            $tglMasuk = $s->tanggal_masuk
-                ? Carbon::parse($s->tanggal_masuk)
+            $tglMasuk = $s->tgl_masuk
+                ? Carbon::parse($s->tgl_masuk)
                 : Carbon::now();
 
             $row = [

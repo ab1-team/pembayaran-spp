@@ -26,7 +26,7 @@
                 <select name="id_jp" id="id_jp" class="form-control select2" required>
                     <option value="">-- Pilih Jenis Pembayaran --</option>
                     @foreach ($jenisPembayaran as $jp)
-                        <option value="{{ $jp->id }}" data-kode="{{ $jp->kode_akun }}"
+                        <option value="{{ $jp->id }}" data-kode="{{ $jp->kode_akun }}" data-jumlah="{{ $jp->jumlah }}"
                             {{ (isset($jenis_biaya) && $jenis_biaya->id_jp == $jp->id) ? 'selected' : '' }}>
                             {{ $jp->kode_akun }} - {{ $jp->nama }}
                         </option>

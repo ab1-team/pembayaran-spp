@@ -6,7 +6,6 @@
                 <th>NISN</th>
                 <th>Nama</th>
                 <th>Kelas</th>
-                <th>Jurusan</th>
                 <th>Tahun Akademik</th>
             </tr>
         </thead>
@@ -17,12 +16,11 @@
                     <td class="text-center">{{ $s->nisn }}</td>
                     <td>{{ $s->nama }}</td>
                     <td class="text-center">{{ $s->kode_kelas }}</td>
-                    <td class="text-center">{{ $s->kode_jurusan }}</td>
                     <td class="text-center">{{ $s->tahun_akademik }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
+                    <td colspan="5" class="text-center text-muted py-4">
                         Tidak ada siswa aktif.
                     </td>
                 </tr>

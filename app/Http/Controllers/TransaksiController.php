@@ -352,7 +352,7 @@ class TransaksiController extends Controller
 
                 $detailSpp[] = ['bulan' => Tanggal::namaBulan($spp->tanggal) . ' ' . Tanggal::tahun($spp->tanggal)];
 
-                $spp->update(['status' => 'L']);
+                $spp->markLunas($request->tanggal);
                 $transaksiList[] = $transaksi;
             }
         } else {
@@ -518,7 +518,7 @@ class TransaksiController extends Controller
     {
         $sppId = $Transaksi->spp_id;
         if ($sppId && is_numeric($sppId)) {
-            Spp::where('id', $sppId)->update(['status' => 'B']);
+            Spp::where('id', $sppId)->batalLunas();
         }
 
         $Transaksi->update(['deleted_at' => now()]);

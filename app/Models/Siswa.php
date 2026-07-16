@@ -12,7 +12,7 @@ class Siswa extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'tanggal_masuk' => 'date',
+        'tgl_masuk' => 'date',
         'tanggal_lahir' => 'date',
     ];
 
@@ -24,11 +24,6 @@ class Siswa extends Model
     public function kelas()
     {
         return $this->belongsTo(Kelas::class, 'kode_kelas', 'kode_kelas');
-    }
-
-    public function jurusan()
-    {
-        return $this->belongsTo(Jurusan::class, 'kode_jurusan', 'kode_jurusan');
     }
 
     public function ruang()
@@ -69,5 +64,21 @@ class Siswa extends Model
     public function getTransaksi()
     {
         return $this->transaksi();
+    }
+
+    public function scopeAktif($q)
+    {
+        return $q->whereHas('anggotaKelas', fn($x) => $x->where('status', 'aktif'));
+    }
+
+    public function scopeNonAktif($q)
+    {
+        return $q->whereHas('anggotaKelas', fn($x) => $x->where('status', 'nonaktif'))
+            ->whereDoesntHave('anggotaKelas', fn($x) => $x->where('status', 'aktif'));
+    }
+
+    public function scopeBlokir($q)
+    {
+        return $q->whereDoesntHave('anggotaKelas');
     }
 }

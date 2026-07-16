@@ -12,7 +12,7 @@ class SiswaService
     public function createWithKelasDanSpp(array $data): Siswa
     {
         [$kodeKelas, $tingkat] = $this->splitKelas($data['kelas']);
-        $nominal = $this->normalizeNominal($data['spp_nominal'] ?? $data['alokasi_spp'] ?? 0);
+        $nominal = $this->normalizeNominal($data['spp_nominal'] ?? 0);
 
         $siswa = Siswa::create([
             'nipd'                  => $data['nipd'],
@@ -21,8 +21,7 @@ class SiswaService
             'nik'                   => $data['nik'],
             'email'                 => $data['email'],
             'tahun_akademik'        => $data['tahun_akademik'],
-            'tanggal_masuk'         => $data['tanggal_masuk'],
-            'tingkat'               => $tingkat,
+            'tgl_masuk'             => $data['tanggal_masuk'],
             'ruang'                 => $data['ruangan'],
             'id_user'               => auth()->id(),
             'nama'                  => $data['nama'],
@@ -43,15 +42,11 @@ class SiswaService
             'kebutuhan_khusus'      => $data['kebutuhan_khusus'],
             'jenis_tinggal'         => $data['jenis_tinggal'],
             'alat_transportasi'     => $data['transportasi'],
-            'telepon'               => $data['telepon'] ?? $data['hp'] ?? '-',
-            'hp'                    => $data['hp'],
+            'hp'                    => $data['hp'] ?? $data['telepon'] ?? '-',
             'kode_kelas'            => $kodeKelas,
-            'kode_jurusan'          => $data['jurusan'],
-            'angkatan'              => $data['angkatan'],
             'skhun'                 => $data['skhun'],
             'penerima_kps'          => $data['penerima_kps'],
             'no_kps'                => $data['no_kps'] ?? null,
-            'spp_nominal'           => (string) $nominal,
             'nama_ayah'             => $data['nama_ayah'],
             'tahun_lahir_ayah'      => $data['tahun_lahir_ayah'],
             'pendidikan_ayah'       => $data['pendidikan_ayah'],

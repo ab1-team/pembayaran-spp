@@ -212,6 +212,11 @@
                                                 {{ old('status_siswa', $siswa->status_siswa) == 'nonaktif' ? 'checked' : '' }}>
                                             <label class="btn btn-outline-primary flex-fill"
                                                 for="status_nonaktif">Nonaktif</label>
+                                            <input type="radio" class="btn-check" name="status_siswa"
+                                                id="status_blokir" value="blokir"
+                                                {{ old('status_siswa', $siswa->status_siswa) == 'blokir' ? 'checked' : '' }}>
+                                            <label class="btn btn-outline-primary flex-fill"
+                                                for="status_blokir">Blokir</label>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -271,19 +276,11 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div
-                                            class="input-group input-group-outline mb-3 {{ old('tanggal_masuk', $siswa->tanggal_masuk) ? 'is-filled' : '' }}">
+                                            class="input-group input-group-outline mb-3 {{ old('tanggal_masuk', $siswa->tgl_masuk) ? 'is-filled' : '' }}">
                                             <label class="form-label">Tanggal Masuk</label>
                                             <input type="text" name="tanggal_masuk"
-                                                value="{{ old('tanggal_masuk', $siswa->tanggal_masuk) }}"
+                                                value="{{ old('tanggal_masuk', $siswa->tgl_masuk) }}"
                                                 id="tanggal_masuk" class="form-control datepicker">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div
-                                            class="input-group input-group-outline mb-3 {{ old('angkatan', $siswa->angkatan) ? 'is-filled' : '' }}">
-                                            <label class="form-label">Angkatan</label>
-                                            <input type="text" name="angkatan" id="angkatan"
-                                                value="{{ old('angkatan', $siswa->angkatan) }}" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -306,26 +303,26 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="input-group input-group-outline mb-3">
-                                            <select name="kelas" id="kelas" class="form-select select2">
-                                                <option value="" disabled>Pilih Kelas</option>
-                                                @foreach ($kelas as $kls)
-                                                    <option value="{{ $kls->kode_kelas }}|{{ $kls->tingkat }}"
-                                                        {{ old('kelas', $siswa->kode_kelas) == $kls->kode_kelas ? 'selected' : '' }}>
-                                                        {{ $kls->kode_kelas }} - {{ $kls->nama_kelas }}
+                                            <select name="tahun_akademik" id="tahun_akademik"
+                                                class="form-select select2">
+                                                <option value="" disabled>Tahun Ajaran</option>
+                                                @foreach ($tahunAkademmik as $tA)
+                                                    <option value="{{ $tA->nama_tahun }}"
+                                                        {{ old('tahun_akademik', $siswa->tahun_akademik) == $tA->nama_tahun ? 'selected' : '' }}>
+                                                        {{ $tA->nama_tahun }} - {{ ucfirst($tA->keterangan) }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
-
                                     <div class="col-md-4">
                                         <div class="input-group input-group-outline mb-3">
-                                            <select name="jurusan" id="jurusan" class="form-select select2">
-                                                <option value="" disabled>Pilih Jurusan</option>
-                                                @foreach ($jurusan as $J)
-                                                    <option value="{{ $J->kode_jurusan }}"
-                                                        {{ old('jurusan', $siswa->jurusan) == $J->kode_jurusan ? 'selected' : '' }}>
-                                                        {{ $J->kode_jurusan }} - {{ $J->nama }}
+                                            <select name="kelas" id="kelas" class="form-select select2">
+                                                <option value="" disabled>Pilih Kelas</option>
+                                                @foreach ($kelas as $kls)
+                                                    <option value="{{ $kls->kode_kelas }}|{{ $kls->tingkat }}"
+                                                        {{ old('kelas', $siswa->kode_kelas . '|' . optional($siswa->anggotaKelas->where('status','aktif')->first())->tingkat) == $kls->kode_kelas . '|' . $kls->tingkat ? 'selected' : '' }}>
+                                                        {{ $kls->kode_kelas }} - {{ $kls->nama_kelas }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -357,10 +354,11 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div
-                                            class="input-group input-group-outline mb-3 {{ old('password', $siswa->password) ? 'is-filled' : '' }}">
-                                            <label class="form-label">Password</label>
+                                            class="input-group input-group-outline mb-3 {{ old('password') ? 'is-filled' : '' }}">
+                                            <label class="form-label">Password (kosongkan jika tidak diubah)</label>
                                             <input type="password" name="password" id="password"
-                                                value="{{ old('password', $siswa->password) }}" class="form-control">
+                                                value="" autocomplete="new-password"
+                                                placeholder="••••••" class="form-control">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
@@ -369,15 +367,6 @@
                                             <label class="form-label">No KPS</label>
                                             <input type="text" name="no_kps" id="no_kps"
                                                 value="{{ old('no_kps', $siswa->no_kps) }}" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div
-                                            class="input-group input-group-outline mb-3 {{ old('spp_nominal', $siswa->spp_nominal) ? 'is-filled' : '' }}">
-                                            <label class="form-label">Alokasi SPP</label>
-                                            <input type="text" name="spp_nominal" id="spp_nominal"
-                                                value="{{ old('spp_nominal', number_format($siswa->spp_nominal, 2, ',', '.')) }}"
-                                                class="form-control nominal">
                                         </div>
                                     </div>
                                 </div>

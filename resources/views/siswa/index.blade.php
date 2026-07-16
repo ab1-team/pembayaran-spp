@@ -45,7 +45,7 @@
                                     </th>
                                     <th>NISN</th>
                                     <th>Nama</th>
-                                    <th>Angkatan</th>
+                                    <th>Tahun Akademik</th>
                                     <th>Kode Kelas</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
@@ -80,55 +80,6 @@
             let tahunLoaded = false;
             let kelasLoaded = false;
 
-            function tryReloadTable() {
-                if (!tahunLoaded || !kelasLoaded) return;
-
-                let tahunVal = $('#tahun_akademik').val();
-                let kelasVal = $('#kelas').val();
-
-                if (!tahunVal || !kelasVal) {
-                    $('#notifikasi').removeClass('d-none');
-                    $('#tableWrapper').addClass('d-none');
-                    return;
-                }
-
-                $('#notifikasi').addClass('d-none');
-                $('#tableWrapper').removeClass('d-none');
-
-                table.ajax.url(`/app/siswa?tahun_akademik=${tahunVal}&kelas=${kelasVal}`).load();
-            }
-
-            $('.select2').select2({
-                theme: 'bootstrap-5'
-            });
-
-            $.getJSON('/app/siswa/listTahun', function(data) {
-                let tahun = $('#tahun_akademik');
-                tahun.empty().append('<option value="">Pilih Tahun Akademik</option>');
-                data.forEach(t => tahun.append(`<option value="${t.nama_tahun}">${t.nama_tahun}</option>`));
-
-                if (qs_tahun) {
-                    $('#tahun_akademik').val(qs_tahun).trigger('change');
-                }
-
-                tahunLoaded = true;
-                tryReloadTable();
-            });
-
-            $.getJSON('/app/siswa/listKelas', function(data) {
-                let kelas = $('#kelas');
-                kelas.empty().append('<option value="">Pilih Kelas</option>');
-                data.forEach(k => kelas.append(
-                    `<option value="${k.kode_kelas}">${k.kode_kelas} - ${k.nama_kelas}</option>`));
-
-                if (qs_kelas) {
-                    $('#kelas').val(qs_kelas).trigger('change');
-                }
-
-                kelasLoaded = true;
-                tryReloadTable();
-            });
-
             let table = $('#siswa').DataTable({
                 processing: true,
                 serverSide: true,
@@ -154,22 +105,22 @@
                     },
                     {
                         width: "15%",
-                        nama: 'nisn',
+                        name: 'nisn',
                         data: 'nisn'
                     },
                     {
                         width: "25%",
-                        nama: 'nama',
+                        name: 'nama',
                         data: 'nama'
                     },
                     {
                         width: "15%",
-                        nama: 'angkatan',
-                        data: 'angkatan'
+                        name: 'tahun_akademik',
+                        data: 'tahun_akademik'
                     },
                     {
                         width: "15%",
-                        nama: 'kode_kelas',
+                        name: 'kode_kelas',
                         data: 'kode_kelas'
                     },
                     {
@@ -205,7 +156,55 @@
                     $('#siswa').css('width', '100%');
                 }
             });
-            
+
+            function tryReloadTable() {
+                if (!tahunLoaded || !kelasLoaded) return;
+
+                let tahunVal = $('#tahun_akademik').val();
+                let kelasVal = $('#kelas').val();
+
+                if (!tahunVal || !kelasVal) {
+                    $('#notifikasi').removeClass('d-none');
+                    $('#tableWrapper').addClass('d-none');
+                    table.clear().draw();
+                    return;
+                }
+
+                $('#notifikasi').addClass('d-none');
+                $('#tableWrapper').removeClass('d-none');
+
+                table.ajax.reload();
+            }
+
+            $.getJSON('/app/siswa/listTahun', function(data) {
+                let tahun = $('#tahun_akademik');
+                tahun.empty().append('<option value="">Pilih Tahun Akademik</option>');
+                data.forEach(t => tahun.append(`<option value="${t.nama_tahun}">${t.nama_tahun}</option>`));
+                tahun.select2({ theme: 'bootstrap-5' });
+
+                if (qs_tahun) {
+                    tahun.val(qs_tahun).trigger('change');
+                }
+
+                tahunLoaded = true;
+                tryReloadTable();
+            });
+
+            $.getJSON('/app/siswa/listKelas', function(data) {
+                let kelas = $('#kelas');
+                kelas.empty().append('<option value="">Pilih Kelas</option>');
+                data.forEach(k => kelas.append(
+                    `<option value="${k.kode_kelas}">${k.kode_kelas} - ${k.nama_kelas}</option>`));
+                kelas.select2({ theme: 'bootstrap-5' });
+
+                if (qs_kelas) {
+                    kelas.val(qs_kelas).trigger('change');
+                }
+
+                kelasLoaded = true;
+                tryReloadTable();
+            });
+
             $('#siswa tbody').on('click', 'tr', function (e) {
                 if (
                     $(e.target).closest('input[type="checkbox"]').length ||
@@ -225,19 +224,22 @@
                     `/app/siswa/${data.id}?tahun_akademik=${tahun}&kelas=${kelas}`;
             });
 
-            if (qs_tahun || qs_kelas) {
-                $('#notifikasi').addClass('d-none');
-                $('#tableWrapper').removeClass('d-none');
-                table.ajax.reload();
-            }
-
             function applyFilter() {
                 let tahun = $('#tahun_akademik').val();
                 let kelas = $('#kelas').val();
+
                 let params = new URLSearchParams(window.location.search);
                 params.set('tahun_akademik', tahun);
                 params.set('kelas', kelas);
                 window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+
+                if (!tahun || !kelas) {
+                    $('#notifikasi').removeClass('d-none');
+                    $('#tableWrapper').addClass('d-none');
+                    table.clear().draw();
+                    return;
+                }
+
                 $('#notifikasi').addClass('d-none');
                 $('#tableWrapper').removeClass('d-none');
                 table.ajax.reload(function () {

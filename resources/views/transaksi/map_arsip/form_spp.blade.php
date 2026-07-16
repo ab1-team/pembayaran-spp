@@ -15,6 +15,7 @@
                     @csrf
                     <input type="hidden" name="siswa_id" value="{{ $siswa->id }}">
                     <input type="hidden" name="siswa_nama" id="siswa_nama" value="{{ $siswa->nama }}">
+                    <input type="hidden" id="nominalMap" value='{{ json_encode($nominalMap->mapWithKeys(fn($g, $k) => [$k => $g->pluck("total_beban")])) }}'>
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <div
@@ -43,12 +44,23 @@
                             </select>
                         </div>
                         <div class="col-md-12 mb-2">
-                            <select name="jenis_biaya" id="jenis_biaya" class="form-control select2">
-                                <option value="0">Pilih Jenis Pembayaran</option>
-                                @foreach ($jenis_biaya as $jb)
-                                    <option value="{{ $jb->kode_akun }}">{{ $jb->nama }}</option>
-                                @endforeach
-                            </select>
+                            @if ($jenis_biaya->isEmpty())
+                                <div class="alert alert-warning mb-0">
+                                    Tidak ada jenis pembayaran untuk tahun angkatan {{ $tahun_angkatan }}.
+                                </div>
+                            @else
+                                <select name="jenis_biaya" id="jenis_biaya" class="form-control select2">
+                                    <option value="0">Pilih Jenis Pembayaran</option>
+                                    @foreach ($jenis_biaya as $jb)
+                                        @php
+                                            $nm = $nominalMap[$jb->id.'|'.$tahun_angkatan][0]->total_beban ?? '';
+                                        @endphp
+                                        <option value="{{ $jb->kode_akun }}" data-idjp="{{ $jb->id }}"
+                                            data-nominal="{{ $nm }}">{{ $jb->nama }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
+                            <input type="hidden" id="tahun_angkatan" value="{{ $tahun_angkatan }}">
                         </div>
                     </div>
                     <div class="row mt-2" id="bulanWrapper" style="display: none;">
@@ -211,10 +223,10 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
 </script>
 
 <script>
-    const pieColors = ["#ff6384", "#36a2eb", "#ffcd56"];
-    const sppPerBulan = {{ $spp_perbulan ?? 0 }};
-    const targetBulan = {{ $target_bulan ?? 0 }};
-    const sdBulanIni = {{ $sd_bulan_ini ?? 0 }};
+    var pieColors = ["#ff6384", "#36a2eb", "#ffcd56"];
+    var sppPerBulan = {{ $spp_perbulan ?? 0 }};
+    var targetBulan = {{ $target_bulan ?? 0 }};
+    var sdBulanIni = {{ $sd_bulan_ini ?? 0 }};
     new Chart(document.getElementById("pie"), {
         type: "pie",
         data: {
@@ -274,6 +286,8 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             const jenis = $(this).val();
             const nama = $('#siswa_nama').val();
             const namaAkun = $('#jenis_biaya option:selected').text();
+            const idjp = $('#jenis_biaya option:selected').data('idjp');
+            const angkatan = $('#tahun_angkatan').val();
 
             $('.SPPsimpan')
                 .prop('disabled', false)
@@ -286,20 +300,39 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             $('.spp-checkbox').prop('checked', false).prop('disabled', false);
             $('#sppIDContainer').empty();
 
-            $('#nominal').val(0).maskMoney('mask');
+            const defaultNominal = lookupNominal(idjp, angkatan);
+
+            const syncNominalLabel = () => {
+                const v = $('#nominal').val().trim();
+                $('#nominal').closest('.input-group').toggleClass('is-filled', v !== '');
+            };
+
+            const isAutoFill = jenis === '4.1.01.01' || jenis === '1.1.03.01';
 
             if (jenis === '4.1.01.01') {
-                $('#nominal').prop('readonly', true);
+                $('#nominal').prop('readonly', true).maskMoney('mask', 0);
+                syncNominalLabel();
                 $('#keterangan').val(`${namaAkun} an. ${nama}`);
                 $('#kuitansi, #CetakPadaKartu').addClass('d-none');
-            } else if (jenis.startsWith('4.1.01.')) {
-                $('#nominal').prop('readonly', false).val('');
+            } else if (isAutoFill) {
+                $('#nominal').prop('readonly', false).maskMoney('mask', defaultNominal);
+                syncNominalLabel();
                 $('#kuitansi, #CetakPadaKartu').addClass('d-none');
                 $('#keterangan').val(`${namaAkun} an. ${nama}`);
             } else {
+                $('#nominal').prop('readonly', false).val('');
+                syncNominalLabel();
                 $('#keterangan').val('');
             }
         });
+
+        function lookupNominal(idjp, angkatan) {
+            try {
+                const map = JSON.parse($('#nominalMap').val() || '{}');
+                const arr = map[`${idjp}|${angkatan}`];
+                return arr && arr.length ? arr[0] : 0;
+            } catch (e) { return 0; }
+        }
 
         $('.spp-checkbox').on('change', function() {
             let total = 0;
@@ -318,6 +351,11 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             });
 
             $('#nominal').maskMoney('mask', total);
+            $('#nominal').closest('.input-group').toggleClass('is-filled', total > 0);
+        });
+
+        $('#nominal').on('input', function() {
+            $(this).closest('.input-group').toggleClass('is-filled', $(this).val().trim() !== '');
         });
 
         document.querySelectorAll('.btn-check').forEach(input => {

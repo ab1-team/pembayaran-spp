@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->string('kode_akun');
+            $table->string('jumlah');
             $table->boolean('is_spp')->default(false);
             $table->timestamps();
         });

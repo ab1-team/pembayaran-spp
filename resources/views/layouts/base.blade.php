@@ -42,6 +42,15 @@
         .modal-backdrop.show {
             z-index: 1999 !important;
         }
+        .modal {
+            z-index: 12000 !important;
+        }
+        .modal-backdrop {
+            z-index: 11999 !important;
+        }
+        body.modal-open .sidenav {
+            visibility: hidden;
+        }
 
         body:not(.modal-open) .card {
             border: none !important;
@@ -347,6 +356,19 @@
             display: inline-flex;
             vertical-align: middle;
             white-space: nowrap;
+        }
+
+        .modal-content {
+            border-radius: 1rem !important;
+            overflow: hidden;
+        }
+        .modal-header {
+            border-top-left-radius: 1rem !important;
+            border-top-right-radius: 1rem !important;
+        }
+        .modal-footer {
+            border-bottom-left-radius: 1rem !important;
+            border-bottom-right-radius: 1rem !important;
         }
     </style>
 

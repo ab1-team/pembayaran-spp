@@ -8,7 +8,6 @@ use App\Models\Ruangan;
 use App\Models\Jenis_Biaya;
 use App\Models\Tahun_akademik;
 use App\Models\Kelas;
-use App\Models\Jurusan;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use Yajra\DataTables\Facades\DataTables;
@@ -28,27 +27,37 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Siswa::select('id', 'nisn', 'nama', 'angkatan', 'kode_kelas', 'status_siswa');
+            $ta    = $request->tahun_akademik;
+            $kelas = $request->kelas;
 
-            // Filter tahun akademik
-            if ($request->tahun_akademik) {
-                $tahun = explode('/', $request->tahun_akademik);
-                $query->whereIn('angkatan', $tahun);
-            }
+            $query = Siswa::select('id', 'nisn', 'nama', 'status_siswa')
+                ->with(['anggotaKelas' => function ($q) use ($ta, $kelas) {
+                    if ($ta)    $q->where('tahun_akademik', $ta);
+                    if ($kelas) $q->where('kode_kelas', $kelas);
+                    $q->orderByDesc('id');
+                }]);
 
-            // Filter kelas
-            if ($request->kelas) {
-                $query->where('kode_kelas', $request->kelas);
+            if ($ta || $kelas) {
+                $query->whereHas('anggotaKelas', function ($q) use ($ta, $kelas) {
+                    if ($ta)    $q->where('tahun_akademik', $ta);
+                    if ($kelas) $q->where('kode_kelas', $kelas);
+                });
             }
 
             return DataTables::eloquent($query)
                 ->addIndexColumn()
+                ->addColumn('kode_kelas', function ($row) {
+                    return optional($row->anggotaKelas->first())->kode_kelas ?: '-';
+                })
+                ->addColumn('tahun_akademik', function ($row) {
+                    return optional($row->anggotaKelas->first())->tahun_akademik ?: '-';
+                })
                 ->addColumn('checkbox', function ($row) {
                     return '<div class="form-check">
                                 <input class="form-check-input checkItem" type="checkbox" value="' . $row->id . '">
                             </div>';
                 })
-                ->addColumn('action', function ($row) use ($request) {
+                ->addColumn('action', function ($row) {
                     return '
                                 <button class="btn btn-secondary btnMutasi"
                                     data-id="' . $row->id . '"
@@ -68,7 +77,7 @@ class SiswaController extends Controller
     {
         $search = $request->get('q');
 
-        $query = Tahun_akademik::select('id', 'nama_tahun')->where('status', 'aktif')
+        $query = Tahun_akademik::select('id', 'nama_tahun')
             ->orderByDesc('nama_tahun');
         if ($search) {
             $query->where('nama_tahun', 'like', "%{$search}%");
@@ -144,7 +153,6 @@ class SiswaController extends Controller
             if (!$siswa) continue;
 
             $siswa->update([
-                'tingkat'    => $tingkatBaru,
                 'kode_kelas' => $kodeKelasBaru,
             ]);
 
@@ -171,9 +179,13 @@ class SiswaController extends Controller
                 'status'         => 'aktif',
             ]);
 
+            $nominal = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
+                ->where('angkatan', date('Y'))
+                ->value('total_beban') ?? 0;
+
             $this->service->generateSppBulanan(
                 $anggotaBaru,
-                $this->service->normalizeNominal($siswa->spp_nominal),
+                (int) $this->service->normalizeNominal($nominal),
                 ['tanggal_masuk' => $tglMasuk->format('Y-m-d')]
             );
         }
@@ -191,13 +203,13 @@ class SiswaController extends Controller
         $title          = "Tambah Siswa";
         $kelas          = Kelas::get();
         $ruang          = Ruangan::get();
-        $jurusan        = Jurusan::get();
         $tahunAkademmik = Tahun_akademik::get();
-        $jenisBiaya     = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-            ->where('angkatan', date('Y'))
-            ->first();
 
-        return view('siswa.create', compact('title', 'kelas', 'jurusan', 'jenisBiaya', 'ruang', 'tahunAkademmik'));
+        $nominalSpp = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
+            ->where('angkatan', date('Y'))
+            ->value('total_beban') ?? 0;
+
+        return view('siswa.create', compact('title', 'kelas', 'ruang', 'tahunAkademmik', 'nominalSpp'));
     }
 
     /**
@@ -271,13 +283,9 @@ class SiswaController extends Controller
         $title          = "Edit Siswa";
         $kelas          = Kelas::get();
         $ruang          = Ruangan::get();
-        $jurusan        = Jurusan::get();
         $tahunAkademmik = Tahun_akademik::get();
-        $jenisBiaya     = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-            ->where('angkatan', date('Y'))
-            ->first();
 
-        return view('siswa.edit', compact('title', 'kelas', 'jurusan', 'jenisBiaya', 'siswa', 'ruang', 'tahunAkademmik'));
+        return view('siswa.edit', compact('title', 'kelas', 'siswa', 'ruang', 'tahunAkademmik'));
     }
 
     /**
@@ -294,19 +302,31 @@ class SiswaController extends Controller
 
         [$kodeKls, $tingkat] = $this->service->splitKelas($data['kelas']);
         $data['kode_kelas'] = $kodeKls;
-        $data['tingkat'] = $tingkat;
         $data['ruang'] = $data['ruangan'];
         $data['id_user'] = auth()->id();
         $data['alat_transportasi'] = $data['transportasi'];
         $data['no_telepon_ayah'] = $data['no_telp_ayah'];
         $data['no_telepon_ibu'] = $data['no_telp_ibu'];
         $data['no_telepon_wali'] = $data['no_telp_wali'];
-        $data['spp_nominal'] = (string) $this->service->normalizeNominal($data['spp_nominal']);
+        $data['tgl_masuk'] = $data['tanggal_masuk'] ?? null;
+        $data['hp'] = $data['hp'] ?? $data['telepon'] ?? '-';
 
         unset($data['kelas'], $data['ruangan'], $data['transportasi'],
-              $data['no_telp_ayah'], $data['no_telp_ibu'], $data['no_telp_wali']);
+              $data['no_telp_ayah'], $data['no_telp_ibu'], $data['no_telp_wali'],
+              $data['tanggal_masuk'], $data['tingkat'], $data['spp_nominal'],
+              $data['jurusan']);
 
         $siswa->update($data);
+
+        // Sync kelas & tingkat ke anggota_kelas aktif
+        $anggota = $siswa->anggotaKelas()->where('status', 'aktif')->orderByDesc('id')->first();
+        if ($anggota) {
+            $anggota->update([
+                'kode_kelas'     => $kodeKls,
+                'tingkat'        => $tingkat,
+                'tahun_akademik' => $data['tahun_akademik'] ?? $anggota->tahun_akademik,
+            ]);
+        }
 
         return response()->json([
             'success' => true,

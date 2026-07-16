@@ -20,23 +20,23 @@ class SppController extends Controller
     {
         $params = $request->input('query');
 
-        $anggota_kelas = Anggota_Kelas::select(
-            'anggota_kelas.*',
-            'anggota_kelas.id_siswa',
-            'siswa.nama',
-            'siswa.nisn',
-            'siswa.alamat',
-            'siswa.hp'
-        )
-            ->join('siswa', 'siswa.id', '=', 'anggota_kelas.id_siswa')
-            ->where(function ($query) use ($params) {
-                $query->where('siswa.nama', 'LIKE', "%{$params}%")
-                    ->orWhere('siswa.nisn', 'LIKE', "%{$params}%");
+        $results = Siswa::query()
+            ->where(function ($q) use ($params) {
+                $q->where('nama', 'LIKE', "%{$params}%")
+                    ->orWhere('nisn', 'LIKE', "%{$params}%");
             })
-            ->where('anggota_kelas.status', 'aktif')
-            ->get();
+            ->orderBy('nama')
+            ->limit(20)
+            ->get(['id', 'nama', 'nisn', 'kode_kelas'])
+            ->map(fn ($s) => [
+                'id_siswa'         => $s->id,
+                'nama'             => $s->nama,
+                'nisn'             => $s->nisn,
+                'kode_kelas'       => $s->kode_kelas,
+                'package_inisial'  => null,
+            ]);
 
-        return response()->json($anggota_kelas);
+        return response()->json($results);
     }
 
     public function spp($id)
@@ -59,7 +59,11 @@ class SppController extends Controller
         $target_bulan = $anggota_kelas->getSpp->sum('nominal');
         $sd_bulan_ini = $anggota_kelas->getSpp->where('status', 'L')->sum('nominal');
         $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
+        $tahun_angkatan = date('Y');
         $jenis_biaya = JenisPembayaran::orderBy('nama')->get();
+        $nominalMap = Jenis_Biaya::where('angkatan', (string) $tahun_angkatan)
+            ->get()
+            ->groupBy(fn($i) => $i->id_jp . '|' . $i->angkatan);
         $kode_tunggakan = Transaksi::where('rekening_debit', '1.1.03.01')
             ->where('rekening_kredit', '4.1.01.01')
             ->where('siswa_id', $anggota_kelas->getSiswa->id)
@@ -77,6 +81,8 @@ class SppController extends Controller
                     'sd_bulan_ini'  => $sd_bulan_ini,
                     'sumber_dana'   => $sumber_dana,
                     'jenis_biaya'   => $jenis_biaya,
+                    'tahun_angkatan' => $tahun_angkatan,
+                    'nominalMap'    => $nominalMap,
                     'kode_tunggakan' => $kode_tunggakan,
                 ])
                 ->render(),

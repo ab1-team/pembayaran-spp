@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Jenis_Biaya;
 use App\Models\Siswa;
 use App\Models\Transaksi;
-use App\Utils\Tanggal;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -16,12 +15,12 @@ class DashboardController extends Controller
         $bulanAwal   = Carbon::now()->startOfMonth();
         $bulanAkhir  = Carbon::now()->endOfMonth();
 
-        $siswa        = Siswa::all();
-        $siswaCount   = Siswa::count();
-        $siswaAktif   = Siswa::where('status_siswa', 'aktif')->count();
-        $siswaNonAktif = Siswa::where('status_siswa', 'nonaktif')->count();
-        $siswaBlokir  = Siswa::where('status_siswa', 'blokir')->count();
-        $jenis_biaya  = Jenis_Biaya::orderBy('angkatan', 'desc')->get();
+        $siswa         = Siswa::all();
+        $siswaCount    = Siswa::count();
+        $siswaAktif    = Siswa::aktif()->count();
+        $siswaNonAktif = Siswa::nonAktif()->count();
+        $siswaBlokir   = Siswa::blokir()->count();
+        $jenis_biaya   = Jenis_Biaya::orderBy('angkatan', 'desc')->get();
 
         $pemasukanHariIni = (float) Transaksi::whereDate('tanggal_transaksi', $today)
             ->where('rekening_debit', 'like', '1.1.01.%')
@@ -33,13 +32,13 @@ class DashboardController extends Controller
             ->whereNull('deleted_at')
             ->sum('jumlah');
 
-        $tunggakan = Siswa::with(['getTransaksi' => function ($q) {
-            $q->where('rekening_debit', '1.1.03.01')
-                ->where('rekening_kredit', '4.1.01.01')
-                ->whereNull('deleted_at')
-                ->with('spp');
-        }])
-            ->where('status_siswa', 'aktif')
+        $tunggakan = Siswa::aktif()
+            ->with(['getTransaksi' => function ($q) {
+                $q->where('rekening_debit', '1.1.03.01')
+                    ->where('rekening_kredit', '4.1.01.01')
+                    ->whereNull('deleted_at')
+                    ->with('spp');
+            }])
             ->whereHas('getTransaksi', function ($q) {
                 $q->where('rekening_debit', '1.1.03.01')
                     ->where('rekening_kredit', '4.1.01.01')
@@ -93,22 +92,19 @@ class DashboardController extends Controller
 
     public function siswaAktifTable()
     {
-        $rows = Siswa::where('status_siswa', 'aktif')
-            ->orderBy('nama')
-            ->get();
-
+        $rows = Siswa::aktif()->orderBy('nama')->get();
         return view('dashboard.partials.siswa-aktif', ['rows' => $rows]);
     }
 
     public function siswaMenunggakTable()
     {
-        $rows = Siswa::with(['getTransaksi' => function ($q) {
-            $q->where('rekening_debit', '1.1.03.01')
-                ->where('rekening_kredit', '4.1.01.01')
-                ->whereNull('deleted_at')
-                ->with('spp');
-        }])
-            ->where('status_siswa', 'aktif')
+        $rows = Siswa::aktif()
+            ->with(['getTransaksi' => function ($q) {
+                $q->where('rekening_debit', '1.1.03.01')
+                    ->where('rekening_kredit', '4.1.01.01')
+                    ->whereNull('deleted_at')
+                    ->with('spp');
+            }])
             ->whereHas('getTransaksi', function ($q) {
                 $q->where('rekening_debit', '1.1.03.01')
                     ->where('rekening_kredit', '4.1.01.01')
