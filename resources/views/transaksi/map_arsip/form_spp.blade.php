@@ -56,7 +56,8 @@
                                             $nm = $nominalMap[$jb->id.'|'.$tahun_angkatan][0]->total_beban ?? '';
                                         @endphp
                                         <option value="{{ $jb->kode_akun }}" data-idjp="{{ $jb->id }}"
-                                            data-nominal="{{ $nm }}">{{ $jb->nama }}</option>
+                                            data-nominal="{{ $nm }}"
+                                            data-is-spp="{{ $jb->isSpp() ? 1 : 0 }}">{{ $jb->nama }}</option>
                                     @endforeach
                                 </select>
                             @endif
@@ -283,10 +284,11 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
 
         $('#jenis_biaya').on('change', function() {
 
-            const jenis = $(this).val();
+            const $opt = $('#jenis_biaya option:selected');
+            const isSpp = $opt.data('is-spp') == 1;
             const nama = $('#siswa_nama').val();
-            const namaAkun = $('#jenis_biaya option:selected').text();
-            const idjp = $('#jenis_biaya option:selected').data('idjp');
+            const namaAkun = $opt.text();
+            const idjp = $opt.data('idjp');
             const angkatan = $('#tahun_angkatan').val();
 
             $('.SPPsimpan')
@@ -296,7 +298,7 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
                     $(this).html($(this).data('original-html'));
             });
 
-            $('#bulanWrapper').toggle(jenis === '4.1.01.01');
+            $('#bulanWrapper').toggle(isSpp);
             $('.spp-checkbox').prop('checked', false).prop('disabled', false);
             $('#sppIDContainer').empty();
 
@@ -307,14 +309,12 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
                 $('#nominal').closest('.input-group').toggleClass('is-filled', v !== '');
             };
 
-            const isAutoFill = jenis === '4.1.01.01' || jenis === '1.1.03.01';
-
-            if (jenis === '4.1.01.01') {
+            if (isSpp) {
                 $('#nominal').prop('readonly', true).maskMoney('mask', 0);
                 syncNominalLabel();
                 $('#keterangan').val(`${namaAkun} an. ${nama}`);
                 $('#kuitansi, #CetakPadaKartu').addClass('d-none');
-            } else if (isAutoFill) {
+            } else if (defaultNominal > 0) {
                 $('#nominal').prop('readonly', false).maskMoney('mask', defaultNominal);
                 syncNominalLabel();
                 $('#kuitansi, #CetakPadaKartu').addClass('d-none');

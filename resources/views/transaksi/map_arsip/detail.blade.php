@@ -43,7 +43,7 @@
                                             class="btn btn-sm btn-info" title="Cetak Pada Kartu">
                                             <i class="material-symbols-rounded fs-6">print</i>
                                         </a>
-                                        <button type="submit" class="btn btn-sm btn-danger btnDelete"
+                                        <button type="button" class="btn btn-sm btn-danger btnDelete"
                                             data-id="{{ $item->id }}">
                                             <i class="material-symbols-rounded fs-6">delete</i>
                                         </button>

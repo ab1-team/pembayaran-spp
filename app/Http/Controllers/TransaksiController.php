@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use App\Models\Jenis_transaksi;
+use App\Models\JenisPembayaran;
 use App\Models\Profil;
 use App\Models\Siswa;
 use App\Models\Spp;
@@ -301,9 +302,16 @@ class TransaksiController extends Controller
             'sumber_dana' => 'required',
             'jenis_biaya' => 'required',
             'keterangan' => 'required',
-            'spp_id' => 'required_if:jenis_biaya,4.1.01.01|array|min:1',
-            'nominal_spp' => 'required_if:jenis_biaya,4.1.01.01|array',
         ]);
+
+        $jp = JenisPembayaran::byKodeAkun($request->jenis_biaya);
+        if (!$jp) {
+            return response()->json([
+                'success' => false,
+                'msg' => 'Jenis pembayaran tidak ditemukan di master.'
+            ], 422);
+        }
+        $isSpp = $jp->isSpp();
 
         $sppIds   = $request->input('spp_id', []);
         $nominals = $request->input('nominal_spp', []);
@@ -311,7 +319,11 @@ class TransaksiController extends Controller
         $transaksiList = [];
         $detailSpp = [];
 
-        if ($request->jenis_biaya === '4.1.01.01') {
+        if ($isSpp) {
+            $request->validate([
+                'spp_id' => 'required|array|min:1',
+                'nominal_spp' => 'required|array',
+            ]);
 
             if (count($sppIds) !== count($nominals)) {
                 return response()->json([
@@ -333,7 +345,7 @@ class TransaksiController extends Controller
                         ->update(['deleted_at' => now()]);
                 }
 
-                $rekeningKredit = $isTunggakan ? '1.1.03.01' : '4.1.01.01';
+                $rekeningKredit = $isTunggakan ? JenisPembayaran::KODE_PIUTANG_DEFAULT : $jp->kode_akun;
 
                 $transaksi = Transaksi::create([
                     'tanggal_transaksi' => $request->tanggal,
@@ -360,7 +372,7 @@ class TransaksiController extends Controller
                 'tanggal_transaksi' => $request->tanggal,
                 'invoice_id' => '0',
                 'rekening_debit' => $request->sumber_dana,
-                'rekening_kredit' => $request->jenis_biaya,
+                'rekening_kredit' => $jp->kode_akun,
                 'spp_id' => 0,
                 'siswa_id' => $request->siswa_id,
                 'jumlah' => (int) preg_replace('/[^0-9]/', '', $request->nominal),
@@ -517,14 +529,22 @@ class TransaksiController extends Controller
     public function pembayaranSPPDestroy(Transaksi $Transaksi)
     {
         $sppId = $Transaksi->spp_id;
-        if ($sppId && is_numeric($sppId)) {
-            Spp::where('id', $sppId)->batalLunas();
+        if (is_numeric($sppId) && (int) $sppId > 0) {
+            $spp = Spp::find($sppId);
+            $spp?->batalLunas();
+
+            // kembalikan tagihan tunggakan yang sebelumnya di-soft-delete saat pembayaran
+            Transaksi::where('spp_id', $sppId)
+                ->where('rekening_debit', JenisPembayaran::KODE_PIUTANG_DEFAULT)
+                ->whereNotNull('deleted_at')
+                ->update(['deleted_at' => null]);
         }
 
         $Transaksi->update(['deleted_at' => now()]);
+
         return response()->json([
             'success' => true,
-            'msg' => 'Transaksi pembayaran SPP berhasil dihapus.'
+            'msg' => 'Transaksi pembayaran SPP berhasil dibatalkan.'
         ]);
     }
 }

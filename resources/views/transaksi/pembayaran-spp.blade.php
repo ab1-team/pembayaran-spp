@@ -369,7 +369,7 @@
 
             Swal.fire({
                 title: "Apakah Anda yakin?",
-                text: "Transaksi akan dihapus secara permanen dari aplikasi dan tidak bisa dikembalikan!",
+                text: "Transaksi akan dibatalkan dan tagihan SPP dikembalikan ke belum lunas.",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Hapus",

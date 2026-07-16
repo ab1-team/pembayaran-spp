@@ -65,11 +65,16 @@ class SppController extends Controller
         $nominalMap = Jenis_Biaya::where('angkatan', (string) $tahun_angkatan)
             ->get()
             ->groupBy(fn($i) => $i->id_jp . '|' . $i->angkatan);
-        $kode_tunggakan = Transaksi::where('rekening_debit', '1.1.03.01')
-            ->where('rekening_kredit', '4.1.01.01')
-            ->where('siswa_id', $anggota_kelas->getSiswa->id)
-            ->orderBy('tanggal_transaksi')->where('deleted_at', null)
-            ->get();
+        $sppJP = $jenis_biaya->first(fn($jp) => $jp->isSpp());
+        $kodeAkunSpp = $sppJP->kode_akun ?? '';
+        $kodePiutangSpp = JenisPembayaran::KODE_PIUTANG_DEFAULT;
+        $kode_tunggakan = $kodeAkunSpp
+            ? Transaksi::where('rekening_debit', $kodePiutangSpp)
+                ->where('rekening_kredit', $kodeAkunSpp)
+                ->where('siswa_id', $anggota_kelas->getSiswa->id)
+                ->orderBy('tanggal_transaksi')->where('deleted_at', null)
+                ->get()
+            : collect();
 
         return response()->json([
             'success' => true,
@@ -85,6 +90,7 @@ class SppController extends Controller
                     'tahun_angkatan' => $tahun_angkatan,
                     'nominalMap'    => $nominalMap,
                     'kode_tunggakan' => $kode_tunggakan,
+                    'kode_piutang_spp' => $kodePiutangSpp,
                 ])
                 ->render(),
         ]);
