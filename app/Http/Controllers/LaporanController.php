@@ -719,7 +719,7 @@ class LaporanController extends Controller
     {
         return $this->laporanPembayaranNonSpp(
             $request,
-            '1.1.03.02',
+            '4.1.01.02',
             'Laporan Pembayaran Daftar Ulang',
             'laporan-daftar-ulang.pdf',
             fn($row) => (float) ($row->getSiswa->spp_nominal ?? 0)

@@ -137,7 +137,7 @@ class RekeningSeeder extends Seeder
             ['3.2.01.00', 3, 2, 1, 1, 1, '3.2.01.01', 'Laba Ditahan s/d Tahun lalu', 'kredit'],
             ['3.2.02.00', 3, 2, 2, 1, 1, '3.2.02.01', 'Laba/Rugi Tahun Berjalan', 'kredit'],
             ['4.1.01.00', 4, 1, 1, 1, 1, '4.1.01.01', 'Pasang Baru', 'kredit'],
-            ['4.1.01.00', 4, 1, 1, 1, 2, '4.1.01.02', 'Pendapatan Abodemen', 'kredit'],
+            ['4.1.01.00', 4, 1, 1, 1, 2, '4.1.01.02', 'Daftar Ulang', 'kredit'],
             ['4.1.01.00', 4, 1, 1, 1, 3, '4.1.01.03', 'Pendapatan Komisi SPS', 'kredit'],
             ['4.1.01.00', 4, 1, 1, 1, 4, '4.1.01.04', 'Denda', 'kredit'],
             ['4.1.01.00', 4, 1, 1, 1, 5, '4.1.01.05', 'Aktivasi Ulang', 'kredit'],
