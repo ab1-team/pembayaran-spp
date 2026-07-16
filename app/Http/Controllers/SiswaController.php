@@ -204,10 +204,7 @@ class SiswaController extends Controller
         $kelas          = Kelas::get();
         $ruang          = Ruangan::get();
         $tahunAkademmik = Tahun_akademik::get();
-
-        $nominalSpp = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-            ->where('angkatan', Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
-            ->value('total_beban') ?? 0;
+        $nominalSpp     = $this->nominalSppDefault();
 
         return view('siswa.create', compact('title', 'kelas', 'ruang', 'tahunAkademmik', 'nominalSpp'));
     }
@@ -220,13 +217,22 @@ class SiswaController extends Controller
         $data = $request->validated();
         $data['foto'] = $this->handleFoto($request);
 
-        $siswa = $this->service->createWithKelasDanSpp($data);
+        $defaultSpp = (int) ($this->nominalSppDefault() ?? 0);
+
+        $siswa = $this->service->createWithKelasDanSpp($data, $defaultSpp);
 
         return response()->json([
             'success' => true,
             'msg'     => 'Siswa berhasil disimpan',
             'data'    => $siswa,
         ]);
+    }
+
+    private function nominalSppDefault(): int
+    {
+        return (int) (Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
+            ->where('angkatan', Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
+            ->value('total_beban') ?? 0);
     }
 
     private function handleFoto(Request $request, ?string $existing = null): string
@@ -284,8 +290,9 @@ class SiswaController extends Controller
         $kelas          = Kelas::get();
         $ruang          = Ruangan::get();
         $tahunAkademmik = Tahun_akademik::get();
+        $nominalSpp     = $this->nominalSppDefault();
 
-        return view('siswa.edit', compact('title', 'kelas', 'siswa', 'ruang', 'tahunAkademmik'));
+        return view('siswa.edit', compact('title', 'kelas', 'siswa', 'ruang', 'tahunAkademmik', 'nominalSpp'));
     }
 
     /**
