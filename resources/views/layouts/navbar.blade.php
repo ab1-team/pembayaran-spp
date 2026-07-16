@@ -64,7 +64,7 @@
                         </a>
                     </li>
                     <li>
-                        <form id="formLogout" action="/app/logout" method="POST">
+                        <form id="formLogout" action="{{ route('logout') }}" method="POST">
                             @csrf
                             <button type="button"
                                 class="dropdown-item border-radius-md d-flex align-items-center btn-logout">

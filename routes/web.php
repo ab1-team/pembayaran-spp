@@ -117,7 +117,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::post('coa/{rekening}/nonaktifkan', [RekeningController::class, 'nonaktifkan'])->name('app.coa.nonaktifkan');
     Route::post('coa/{rekening}/aktifkan', [RekeningController::class, 'aktifkan'])->name('app.coa.aktifkan');
 
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 

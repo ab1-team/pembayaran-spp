@@ -47,6 +47,6 @@ class AuthController extends Controller
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
-        return redirect('/')->with('success', 'Anda telah berhasil keluar');
+        return redirect()->route('login')->with('success', 'Anda telah berhasil keluar');
     }
 }
