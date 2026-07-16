@@ -15,6 +15,7 @@ use App\Models\Kelas;
 use App\Models\Spp;
 use App\Models\Anggota_Kelas;
 use App\Models\SubLaporan;
+use App\Models\Jenis_Biaya;
 use App\Utils\Keuangan;
 use App\Utils\Tanggal;
 use Carbon\Carbon;
@@ -84,7 +85,7 @@ class LaporanController extends Controller
                 'type'       => 'textarea',
                 'keterangan' => $calk->catatan ?? ''
             ]);
-        } elseif (in_array($file, ['pembayaran_spp', 'daftar_ulang'], true)) {
+        } elseif (in_array($file, ['pembayaran_spp', 'daftar_ulang', 'pembangunan', 'ujian_semester', 'bantuan_yayasan'], true)) {
 
             $kelas = Anggota_Kelas::where('status', 'aktif')
                 ->select('kode_kelas')
@@ -154,8 +155,8 @@ class LaporanController extends Controller
             return $this->buku_besar($data);
         }
 
-        // ================= SPP / DAFTAR ULANG =================
-        if (in_array($laporan, ['pembayaran_spp', 'daftar_ulang'], true)) {
+        // ================= SPP / DAFTAR ULANG / BUILD =================
+        if (in_array($laporan, ['pembayaran_spp', 'daftar_ulang', 'pembangunan', 'ujian_semester', 'bantuan_yayasan'], true)) {
             return $this->{$laporan}($request);
         }
 
@@ -716,6 +717,55 @@ class LaporanController extends Controller
 
     public function daftar_ulang(Request $request)
     {
+        return $this->laporanPembayaranNonSpp(
+            $request,
+            '1.1.03.02',
+            'Laporan Pembayaran Daftar Ulang',
+            'laporan-daftar-ulang.pdf',
+            fn($row) => (float) ($row->getSiswa->spp_nominal ?? 0)
+        );
+    }
+
+    public function pembangunan(Request $request)
+    {
+        return $this->laporanPembayaranNonSpp(
+            $request,
+            '4.1.01.04',
+            'Laporan Pembayaran Pembangunan',
+            'laporan-pembangunan.pdf',
+            fn($row) => $this->nominalJenisBiaya($row, 3)
+        );
+    }
+
+    public function ujian_semester(Request $request)
+    {
+        return $this->laporanPembayaranNonSpp(
+            $request,
+            '4.1.01.03',
+            'Laporan Pembayaran Ujian Semester',
+            'laporan-ujian-semester.pdf',
+            fn($row) => $this->nominalJenisBiaya($row, 4)
+        );
+    }
+
+    public function bantuan_yayasan(Request $request)
+    {
+        return $this->laporanPembayaranNonSpp(
+            $request,
+            '4.1.01.05',
+            'Laporan Pembayaran Bantuan Yayasan',
+            'laporan-bantuan-yayasan.pdf',
+            fn($row) => $this->nominalJenisBiaya($row, 5)
+        );
+    }
+
+    private function laporanPembayaranNonSpp(
+        Request $request,
+        string $kodeAkun,
+        string $title,
+        string $filename,
+        \Closure $targetResolver
+    ) {
         $request->validate([
             'tgl_awal'          => 'required|date',
             'tgl_akhir'         => 'required|date',
@@ -728,7 +778,8 @@ class LaporanController extends Controller
             'tgl_akhir'         => $request->tgl_akhir,
             'tahun_akademik_id' => $request->tahun_akademik_id,
             'sub_laporan'       => $request->sub_laporan,
-            'title'             => 'Laporan Pembayaran Daftar Ulang',
+            'kode_akun'         => $kodeAkun,
+            'title'             => $title,
         ];
 
         $data['kelas'] = !empty($data['sub_laporan'])
@@ -755,12 +806,12 @@ class LaporanController extends Controller
             })
             ->orderBy('id')
             ->get()
-            ->map(function ($row) use ($tglAwal, $tglAkhir) {
+            ->map(function ($row) use ($tglAwal, $tglAkhir, $targetResolver, $kodeAkun) {
 
-                $row->target = $row->getSiswa->spp_nominal ?? 0;
+                $row->target = $targetResolver($row);
 
-                $row->realisasi = Transaksi::where('siswa_id', $row->getSiswa->id ?? 0)
-                    ->where('rekening_kredit', '1.1.03.02')
+                $row->realisasi = (float) Transaksi::where('siswa_id', $row->getSiswa->id ?? 0)
+                    ->where('rekening_kredit', $kodeAkun)
                     ->whereBetween('tanggal_transaksi', [$tglAwal, $tglAkhir])
                     ->sum('jumlah');
 
@@ -787,6 +838,20 @@ class LaporanController extends Controller
                 'enable-local-file-access' => true,
             ]);
 
-        return $pdf->stream('laporan-daftar-ulang.pdf');
+        return $pdf->stream($filename);
+    }
+
+    private function nominalJenisBiaya(Anggota_Kelas $row, int $idJp): float
+    {
+        $siswa = $row->getSiswa;
+        if (!$siswa) {
+            return 0;
+        }
+
+        $biaya = Jenis_Biaya::where('id_jp', $idJp)
+            ->where('angkatan', (string) $siswa->tahun_akademik)
+            ->first();
+
+        return (float) ($biaya->total_beban ?? 0);
     }
 }

@@ -22,6 +22,9 @@ class JenisLaporanSeeder extends Seeder
             ['nama' => 'Laporan CALK',                      'file' => 'calk',            'urut' => 8],
             ['nama' => 'Laporan Pembayaran SPP',            'file' => 'pembayaran_spp',  'urut' => 9],
             ['nama' => 'Laporan Pembayaran Daftar Ulang',   'file' => 'daftar_ulang',    'urut' => 10],
+            ['nama' => 'Laporan Pembayaran Pembangunan',    'file' => 'pembangunan',     'urut' => 11],
+            ['nama' => 'Laporan Pembayaran Ujian Semester', 'file' => 'ujian_semester',  'urut' => 12],
+            ['nama' => 'Laporan Pembayaran Bantuan Yayasan','file' => 'bantuan_yayasan', 'urut' => 13],
         ];
 
         foreach ($data as $row) {

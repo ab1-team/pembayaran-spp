@@ -125,7 +125,7 @@
             }
         });
 
-        const SPP_FILES = ['pembayaran_spp', 'daftar_ulang'];
+        const SPP_FILES = ['pembayaran_spp', 'daftar_ulang', 'pembangunan', 'ujian_semester', 'bantuan_yayasan'];
 
         function adjustLayout(file) {
             const laporanCol = $('#colLaporan');
