@@ -73,8 +73,8 @@
 @section('modal')
     <div class="modal fade modal-fullscreen" id="formModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
+            <div class="modal-content" style="border-radius:1rem; overflow:hidden;">
+                <div class="modal-header" style="border-top-left-radius:1rem; border-top-right-radius:1rem;">
                     <h5 class="modal-title" id="formModalTitle">Form</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -82,6 +82,20 @@
             </div>
         </div>
     </div>
+    <style>
+        #formModal.modal-fullscreen .modal-content {
+            border-radius: 1rem !important;
+            overflow: hidden;
+        }
+        #formModal.modal-fullscreen .modal-header {
+            border-top-left-radius: 1rem !important;
+            border-top-right-radius: 1rem !important;
+        }
+        #formModal .modal-header,
+        #formModal .modal-footer {
+            border-radius: 0;
+        }
+    </style>
 @endsection
 
 @section('script')

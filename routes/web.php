@@ -79,6 +79,9 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
 
     Route::get('/laporan-keuangan', [LaporanController::class, 'index']);
 
+    Route::get('/dashboard/siswa-aktif', [DashboardController::class, 'siswaAktifTable']);
+    Route::get('/dashboard/siswa-menunggak', [DashboardController::class, 'siswaMenunggakTable']);
+
     Route::get('/pelaporan/preview', [LaporanController::class, 'preview']);
 
     Route::get('/pelaporan/sub_laporan/{file}', [LaporanController::class, 'subLaporan']);

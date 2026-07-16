@@ -1,146 +1,319 @@
 @php
     use App\Utils\Tanggal;
+    use Carbon\Carbon;
 @endphp
 @extends('layouts.base')
+
 @section('content')
 <style>
-.nav-pills .nav-link.active {
-    background-color: #198754 !important;
-    color: #fff !important;
-}
-.nav-pills .nav-link {
-    background-color: #f1f1f1;
-    color: #555;
-    margin: 0 4px;
-}
-.nav-pills .nav-link.active.text-danger {
-    background-color: #dc3545 !important;
-    color: #fff !important;
-}
+    .stat-card {
+        border-radius: 14px;
+        border: none;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, .06);
+        padding: 18px 20px;
+        height: 100%;
+        cursor: pointer;
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, .10);
+    }
+    .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #64748b; font-weight: 600; }
+    .stat-card .value { font-size: 30px; font-weight: 700; color: #0f172a; margin: 4px 0 0; line-height: 1.1; }
+    .stat-card .top { display:flex; justify-content:space-between; align-items:flex-start; }
+    .stat-card .icon {
+        width: 46px; height: 46px; border-radius: 12px;
+        display:flex; align-items:center; justify-content:center;
+        color: #fff;
+    }
+    .bg-grad-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .bg-grad-success { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .bg-grad-danger  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .bg-grad-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+    .panel-card {
+        border-radius: 14px;
+        border: none;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, .06);
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+    }
+    .panel-card .chart-box {
+        flex: 1 1 auto;
+        min-height: 0;
+        position: relative;
+        height: 100%;
+    }
+    .chart-box canvas {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .panel-card h6.title {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 12px;
+        color: #0f172a;
+        display:flex; align-items:center; gap:6px;
+    }
+    .panel-card h6.title .material-symbols-rounded { color: #198754; }
+
+    .recent-table th {
+        font-size: 11px; text-transform: uppercase;
+        color: #64748b; font-weight: 700;
+    }
+    .recent-table td { font-size: 13px; vertical-align: middle; }
+    .recent-table tbody tr:hover { background: #f8fafc; }
+    .badge-soft {
+        padding: 4px 10px; border-radius: 999px;
+        font-size: 11px; font-weight: 600;
+    }
+    .bg-soft-success { background: rgba(34,197,94,.12); color: #15803d; }
+
+    .pie-card {
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        border-radius: 12px;
+        padding: 10px;
+        display: flex; flex-direction: column; align-items: center;
+        height: 100%;
+    }
+    .pie-card-danger {
+        background: linear-gradient(135deg, #fef2f2, #fecaca);
+    }
+    .pie-wrap {
+        position: relative;
+        width: 70px; height: 70px;
+    }
+    .pie-wrap canvas { width: 100% !important; height: 100% !important; }
+    .pie-info {
+        text-align: center;
+        margin-top: 8px;
+    }
+    .pie-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .pie-value {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-top: 2px;
+    }
+    .pie-card-danger .pie-value { color: #b91c1c; }
+
+    .crypto-card {
+        border-radius: 16px;
+        padding: 20px 22px 8px;
+        color: #e5e7eb;
+        background: radial-gradient(120% 140% at 0% 0%, #1e293b 0%, #0f172a 55%, #020617 100%);
+        border: 1px solid rgba(148,163,184,.12);
+        box-shadow: 0 10px 30px rgba(2,6,23,.45);
+        position: relative;
+        overflow: hidden;
+    }
+    .crypto-card::after {
+        content: "";
+        position: absolute;
+        top: -40%; right: -10%;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(16,185,129,.22), transparent 70%);
+        pointer-events: none;
+    }
+    .crypto-head { display:flex; justify-content:space-between; align-items:center; }
+    .crypto-title {
+        display:flex; align-items:center; gap:6px;
+        font-size: 13px; font-weight: 600; color:#94a3b8;
+        text-transform: uppercase; letter-spacing:.4px;
+    }
+    .crypto-title .material-symbols-rounded { color:#34d399; font-size:20px; }
+    .crypto-trend {
+        font-size: 12px; font-weight: 700;
+        padding: 4px 10px; border-radius: 999px;
+        display:flex; align-items:center; gap:2px;
+    }
+    .crypto-trend.up   { background: rgba(16,185,129,.15); color:#34d399; }
+    .crypto-trend.down { background: rgba(239,68,68,.15);  color:#f87171; }
+    .crypto-total { font-size: 32px; font-weight: 800; color:#f8fafc; margin-top: 10px; line-height:1.1; letter-spacing:-.5px; }
+    .crypto-sub { font-size: 12px; color:#64748b; margin-top: 2px; }
+    .crypto-chart { position: relative; height: 180px; margin-top: 6px; }
+    .crypto-chart canvas { position:absolute; inset:0; width:100% !important; height:100% !important; }
+
+    @media (max-width: 575.98px) {
+        .stat-card { padding: 12px 14px; }
+        .stat-card .value { font-size: 22px; }
+        .stat-card .icon { width: 38px; height: 38px; }
+        .pie-wrap { width: 56px; height: 56px; }
+        .crypto-total { font-size: 24px; }
+        .crypto-chart { height: 140px; }
+        .crypto-title { font-size: 12px; }
+        .crypto-head { flex-wrap: wrap; gap: 6px; }
+        .panel-card { padding: 14px 14px; }
+    }
+
+    @media (max-width: 767.98px) {
+        .stat-card .value { font-size: 26px; }
+        .pie-card { padding: 8px; }
+        .pie-value { font-size: 12px; }
+    }
 </style>
 
-<div class="row mb-4 d-flex align-items-stretch">
-    <div class="col-xl-8 d-flex flex-column">
-            <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header p-2 ps-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <p class="text-sm mb-0 text-capitalize">Data Siswa</p>
-                                    <h4 class="mb-0 text-center">{{ $siswaCount }}</h4>
-                                </div>
-                                <div
-                                    class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow 
-                                        d-flex align-items-center justify-content-center border-radius-lg">
-                                    <span class="material-symbols-rounded text-white">leaderboard</span>
-                                </div>
-                            </div>
+<div class="row g-3 mb-3">
+    <div class="col-12 col-lg-6">
+        <div class="row g-3">
+            <div class="col-6">
+                <div class="stat-card" data-bs-toggle="modal" data-bs-target="#modalSiswaAktif">
+                    <div class="top">
+                        <div>
+                            <div class="label">Siswa Aktif</div>
+                            <div class="value text-success">{{ number_format($siswaAktif, 0, ',', '.') }}</div>
                         </div>
-                        <hr class="dark horizontal my-0">
-                        <div class="card-footer p-2 ps-3">
-                            <a href="#" class="mb-0 text-sm" data-bs-toggle="modal" data-bs-target="#Siswa">
-                                <span class="text-success font-weight-bolder">Cek Detail . . .</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-header p-2 ps-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <p class="text-sm mb-0 text-capitalize">Tunggakan</p>
-                                    <h4 class="mb-0 text-center">{{ $tunggakan->count() }}</h4>
-                                </div>
-                                <div
-                                    class="icon icon-md icon-shape bg-gradient-dark shadow-dark shadow 
-                                        d-flex align-items-center justify-content-center border-radius-lg">
-                                    <span class="material-symbols-rounded text-white">weekend</span>
-                                </div>
-                            </div>
-                        </div>
-                        <hr class="dark horizontal my-0">
-                        <div class="card-footer p-2 ps-3">
-                            <a href="/" class="mb-0 text-sm" data-bs-toggle="modal" data-bs-target="#Tunggakan"><span
-                                    class="text-danger font-weight-bolder">Cek Detail . . .</span></a>
-                        </div>
+                        <div class="icon bg-grad-success"><span class="material-symbols-rounded">verified_user</span></div>
                     </div>
                 </div>
             </div>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="card p-2 chart-wrapper">
-                        <canvas id="chart-line-tasks"></canvas>
+            <div class="col-6">
+                <div class="stat-card" data-bs-toggle="modal" data-bs-target="#modalSiswaMenunggak">
+                    <div class="top">
+                        <div>
+                            <div class="label">Tunggakan</div>
+                            <div class="value text-danger">{{ $tunggakan->count() }}</div>
+                        </div>
+                        <div class="icon bg-grad-danger"><span class="material-symbols-rounded">warning</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="crypto-card">
+                    <div class="crypto-head">
+                        <div class="crypto-title">
+                            <span class="material-symbols-rounded">payments</span>
+                            Pendapatan SPP
+                        </div>
+                        <span id="cryptoTrend" class="crypto-trend"></span>
+                    </div>
+                    <div class="crypto-chart">
+                        <canvas id="chartPendapatan"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 d-flex flex-column">
-            <div class="card flex-fill p-3 d-flex flex-column">
-                <div class="mb-3 flex-shrink-0">
-                    <h6 class="text-center mb-2">Nominal Spp Per Tahun</h6>
-                    <ul class="list-group list-group-flush overflow-auto" style="max-height: 200px;">
-                        @foreach ($jenis_biaya as $item)
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            {{ $item->angkatan }}
-                            <span class="badge bg-primary rounded-pill">Rp. {{ number_format($item->total_beban, 0, ',', '.') }}</span>
-                        </li>
-                        @endforeach
-                    </ul>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="panel-card h-100">
+            <h6 class="title">
+                <span class="material-symbols-rounded">receipt_long</span>
+                Ringkasan Keuangan
+            </h6>
+
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <div class="pie-card">
+                        <div class="pie-wrap"><canvas id="pieHariIni"></canvas></div>
+                        <div class="pie-info">
+                            <div class="pie-label">Hari Ini</div>
+                            <div class="pie-value">Rp {{ number_format($pemasukanHariIni, 0, ',', '.') }}</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3 flex-shrink-0" style="height: 150px;">
-                    <h6 class="text-center mb-1">Jumlah Siswa</h6>
-                    <canvas id="donutChart" style="height: 100%; width: 100%;"></canvas>
+                <div class="col-12 col-md-4">
+                    <div class="pie-card">
+                        <div class="pie-wrap"><canvas id="pieBulanIni"></canvas></div>
+                        <div class="pie-info">
+                            <div class="pie-label">Bulan Ini</div>
+                            <div class="pie-value">Rp {{ number_format($pemasukanBulanIni, 0, ',', '.') }}</div>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-12 col-md-4">
+                    <div class="pie-card pie-card-danger">
+                        <div class="pie-wrap"><canvas id="pieTunggakan"></canvas></div>
+                        <div class="pie-info">
+                            <div class="pie-label">Tunggakan</div>
+                            <div class="pie-value">Rp {{ number_format($totalTunggakan, 0, ',', '.') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-3">
+            <h6 class="title">
+                <span class="material-symbols-rounded">school</span>
+                Nominal SPP / Angkatan
+            </h6>
+            <ul class="list-group list-group-flush" style="max-height:150px; overflow-y:auto;">
+                @forelse($jenis_biaya as $b)
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                        <span>Angkatan {{ $b->angkatan }}</span>
+                        <span class="badge bg-soft-success">Rp {{ number_format($b->total_beban, 0, ',', '.') }}</span>
+                    </li>
+                @empty
+                    <li class="list-group-item px-0 text-muted">Belum ada data</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12">
+        <div class="panel-card">
+            <h6 class="title">
+                <span class="material-symbols-rounded">history</span>
+                Riwayat Transaksi
+            </h6>
+            <div class="table-responsive">
+                <table id="tblRecentTransaksi" class="table recent-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Siswa</th>
+                            <th>Keterangan</th>
+                            <th class="text-end">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentTransaksi as $t)
+                            <tr>
+                                <td>{{ Carbon::parse($t->tanggal_transaksi)->translatedFormat('d M Y') }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ $t->siswa->nama ?? 'Umum' }}</div>
+                                    <div style="font-size:11px; color:#94a3b8;">{{ $t->siswa->nisn ?? '-' }}</div>
+                                </td>
+                                <td style="color:#475569;">{{ \Illuminate\Support\Str::limit($t->keterangan, 70) }}</td>
+                                <td class="text-end">
+                                    <span class="badge-soft bg-soft-success">Rp {{ number_format($t->jumlah, 0, ',', '.') }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="text-center text-muted py-4">Belum ada transaksi</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 @endsection
-@section('modal')
-<!-- Modal Siswa -->
-<div class="modal fade modal-fullscreen" id="Siswa" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
 
+@section('modal')
+<div class="modal fade" id="modalSiswaAktif" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detail Siswa</h5>
+                <h5 class="modal-title">Daftar Siswa Aktif</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <ul class="nav nav-pills nav-fill mb-3" id="filterStatus">
-                    <li class="nav-item">
-                        <a class="nav-link active text-success" data-status="aktif">Siswa Aktif</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" data-status="nonaktif">Siswa Nonaktif</a>
-                    </li>
-                </ul>
-                <div class="table-responsive">
-                    <table id="siswaTable" class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>NISN</th>
-                                <th>Nama</th>
-                                <th>Kode Kelas</th>
-                                <th>Tahun Akademik</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($siswa as $s)
-                            <tr>
-                                <td>{{ $s->nisn }}</td>
-                                <td>{{ $s->nama }}</td>
-                                <td>{{ $s->kode_kelas }}</td>
-                                <td>{{ $s->tahun_akademik }}</td>
-                                <td>{{ strtolower($s->status_siswa) }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            <div class="modal-body" id="bodySiswaAktif">
+                <div class="text-center text-muted py-5">Memuat...</div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -149,64 +322,18 @@
     </div>
 </div>
 
-<!-- Modal Tunggakan -->
-<div class="modal fade modal-fullscreen" id="Tunggakan" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
+<div class="modal fade" id="modalSiswaMenunggak" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detail Tunggakan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Daftar Siswa Menunggak</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table id="tunggakanTable" class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>NISN</th>
-                                <th>Nama</th>
-                                <th>Kode Kelas</th>
-                                <th>total tagihan</th>
-                                <th>Bulan Tunggakan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($tunggakan as $t)
-                            @php
-                                $total_tagihan = $t->getTransaksi->sum('jumlah');
-                            @endphp
-                            <tr>
-                                <td>{{ $t->nisn }}</td>
-                                <td>{{ $t->nama }}</td>
-                                <td>{{ $t->kode_kelas }}</td>
-                                <td>Rp. {{ number_format($total_tagihan, 0, ',', '.') }}</td>
-                                <td class="text-nowrap">
-                                    @php
-                                        $bulanTunggakan = $t->getTransaksi
-                                            ->map(fn($trx) => Tanggal::namaBulan($trx->spp?->tanggal))
-                                            ->unique()
-                                            ->values();
-                                        $limit = 2;
-                                        $total = $bulanTunggakan->count();
-                                    @endphp
-                                    @foreach ($bulanTunggakan->take($limit) as $bulan)
-                                        <span class="badge bg-warning rounded-pill me-1">
-                                            {{ $bulan }}
-                                        </span>
-                                    @endforeach
-                                    @if ($total > $limit)
-                                        <span class="badge bg-secondary rounded-pill">
-                                            +{{ $total - $limit }}
-                                        </span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            <div class="modal-body" id="bodySiswaMenunggak">
+                <div class="text-center text-muted py-5">Memuat...</div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -215,96 +342,130 @@
 
 @section('script')
 <script>
-    const ctxLine = document.getElementById('chart-line-tasks').getContext('2d');
-    new Chart(ctxLine, {
-        type: 'line',
+const labelsBulanan     = @json($labelsBulanan);
+const pendapatanBulanan = @json($pendapatanBulanan);
+
+const ctx = document.getElementById('chartPendapatan').getContext('2d');
+const grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.clientHeight || 180);
+grad.addColorStop(0, 'rgba(52,211,153,.35)');
+grad.addColorStop(1, 'rgba(52,211,153,.02)');
+
+(function () {
+    const last = +pendapatanBulanan[pendapatanBulanan.length - 1] || 0;
+    const prev = +pendapatanBulanan[pendapatanBulanan.length - 2] || 0;
+    const el = document.getElementById('cryptoTrend');
+    if (prev > 0) {
+        const pct = ((last - prev) / prev) * 100;
+        const up = pct >= 0;
+        el.className = 'crypto-trend ' + (up ? 'up' : 'down');
+        el.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px">'
+            + (up ? 'trending_up' : 'trending_down') + '</span>'
+            + (up ? '+' : '') + pct.toFixed(1) + '%';
+    } else {
+        el.className = 'crypto-trend up';
+        el.textContent = '—';
+    }
+})();
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labelsBulanan,
+        datasets: [{
+            label: 'Pendapatan',
+            data: pendapatanBulanan,
+            borderColor: '#34d399',
+            backgroundColor: grad,
+            tension: 0.4,
+            fill: true,
+            borderWidth: 2.5,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#34d399',
+            pointBorderColor: '#0f172a',
+            pointBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: (c) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(c.parsed.y))
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: '#64748b', callback: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(v) },
+                grid: { color: 'rgba(148,163,184,.10)' }
+            },
+            x: { ticks: { color: '#64748b' }, grid: { display: false } }
+        }
+    }
+});
+
+const makePie = (id, value, max, color1, color2) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
             datasets: [{
-                label: 'Pendapatan',
-                data: [1200, 1900, 3000, 5000, 2300, 3200, 4100, 3800],
-                borderColor: '#4bc0c0',
-                backgroundColor: 'rgba(75,192,192,0.2)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4,
-                pointBackgroundColor: '#4bc0c0'
+                data: [pct, 100 - pct],
+                backgroundColor: [color1, '#e2e8f0'],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            cutout: '70%',
+            plugins: { legend: { display: false }, tooltip: { enabled: false } }
         }
     });
+};
 
-        const donutCtx = document.getElementById('donutChart').getContext('2d');
-        const siswaAktif = {{ $siswaAktif }};
-        const siswaNonaktif = {{ $siswaNonaktif }};
-        const siswaBlokir = {{ $siswaBlokir }};
+makePie('pieHariIni',   {{ (float) $pemasukanHariIni }}, Math.max({{ (float) $pemasukanBulanIni }}, 1), '#10b981', '#d1fae5');
+makePie('pieBulanIni',  {{ (float) $pemasukanBulanIni }}, Math.max({{ (float) $pemasukanBulanIni }}, 1), '#0ea5e9', '#bae6fd');
+makePie('pieTunggakan', {{ (float) $totalTunggakan }},   Math.max({{ (float) $totalTunggakan }}, 1),   '#ef4444', '#fecaca');
 
-        new Chart(donutCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Aktif', 'Nonaktif', 'Blokir'],
-                datasets: [{
-                    data: [siswaAktif, siswaNonaktif, siswaBlokir],
-                    backgroundColor: ['#4bc0c0', '#e9ecef', '#ff6a6a'],
-                    cutout: '70%'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+$(document).ready(function () {
+    const loadPartial = function (modalId, bodyId, url) {
+        const $modal = $(modalId);
+        $modal.on('shown.bs.modal', function () {
+            const $body = $(bodyId);
+            if ($body.data('loaded')) return;
+            $body.html('<div class="text-center text-muted py-5">Memuat...</div>');
+            $.get(url, function (html) {
+                $body.html(html).data('loaded', true);
+            }).fail(function () {
+                $body.html('<div class="text-center text-danger py-5">Gagal memuat data.</div>');
+            });
+        });
+    };
+
+    loadPartial('#modalSiswaAktif',    '#bodySiswaAktif',    '/app/dashboard/siswa-aktif');
+    loadPartial('#modalSiswaMenunggak', '#bodySiswaMenunggak', '/app/dashboard/siswa-menunggak');
+
+    if ($.fn.DataTable && !$('#tblRecentTransaksi').hasClass('dataTable')) {
+        $('#tblRecentTransaksi').DataTable({
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [[0, 'desc']],
+            columns: [{}, {}, {}, {}],
+            columnDefs: [{ targets: '_all', defaultContent: '' }],
+            language: {
+                lengthMenu: 'Tampilkan _MENU_ data',
+                info: 'Menampilkan _START_–_END_ dari _TOTAL_',
+                paginate: { previous: '‹', next: '›' }
             }
         });
-
-        let statusFilter = 'aktif';
-        let table;
-
-        $(document).ready(function () {
-            $.fn.dataTable.ext.search.push(function (settings, data) {
-                let status = data[4].toLowerCase();
-                return status === statusFilter;
-            });
-
-            table = $('#siswaTable').DataTable({
-                ordering: true,
-                paging: true,
-                info: true
-            });
-
-            $(document).on('click', '#filterStatus .nav-link', function (e) {
-                e.preventDefault();
-
-                statusFilter = $(this).data('status');
-
-                $('#filterStatus .nav-link').removeClass('active');
-                $(this).addClass('active');
-
-                table.draw();
-            });
-            $('#Siswa').on('shown.bs.modal', function () {
-
-            statusFilter = 'aktif';
-            $('#filterStatus .nav-link').removeClass('active');
-                $('#filterStatus .nav-link[data-status="aktif"]').addClass('active');
-                table.draw();
-            });
-        });
+    }
+});
 </script>
 @endsection
