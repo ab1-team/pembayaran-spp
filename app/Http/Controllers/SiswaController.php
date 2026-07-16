@@ -180,7 +180,7 @@ class SiswaController extends Controller
             ]);
 
             $nominal = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-                ->where('angkatan', date('Y'))
+                ->where('angkatan', Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
                 ->value('total_beban') ?? 0;
 
             $this->service->generateSppBulanan(
@@ -206,7 +206,7 @@ class SiswaController extends Controller
         $tahunAkademmik = Tahun_akademik::get();
 
         $nominalSpp = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-            ->where('angkatan', date('Y'))
+            ->where('angkatan', Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
             ->value('total_beban') ?? 0;
 
         return view('siswa.create', compact('title', 'kelas', 'ruang', 'tahunAkademmik', 'nominalSpp'));

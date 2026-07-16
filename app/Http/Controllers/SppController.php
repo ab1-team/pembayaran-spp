@@ -9,6 +9,7 @@ use App\Models\JenisPembayaran;
 use App\Models\Jenis_Biaya;
 use App\Models\Anggota_Kelas;
 use App\Models\Transaksi;
+use App\Models\Tahun_akademik;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Utils\Tanggal;
@@ -59,7 +60,7 @@ class SppController extends Controller
         $target_bulan = $anggota_kelas->getSpp->sum('nominal');
         $sd_bulan_ini = $anggota_kelas->getSpp->where('status', 'L')->sum('nominal');
         $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
-        $tahun_angkatan = date('Y');
+        $tahun_angkatan = Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y');
         $jenis_biaya = JenisPembayaran::orderBy('nama')->get();
         $nominalMap = Jenis_Biaya::where('angkatan', (string) $tahun_angkatan)
             ->get()

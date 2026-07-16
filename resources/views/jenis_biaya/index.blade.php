@@ -259,6 +259,10 @@
         $(document).on('submit', '#FormJenisBiaya', function(e) {
             e.preventDefault();
             var form = $(this);
+            var nominalInput = form.find('input[name="total_beban"]');
+            if (nominalInput.length && typeof nominalInput.maskMoney === 'function') {
+                nominalInput.val(nominalInput.maskMoney('unmasked')[0]);
+            }
             $.ajax({
                 type: form.attr('method'),
                 url: form.attr('action'),
@@ -270,7 +274,15 @@
                     });
                 },
                 error: function(xhr) {
-                    Swal.fire('Error', 'Cek kembali input yang anda masukkan', 'error');
+                    var msg = 'Cek kembali input yang anda masukkan';
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                        else if (xhr.responseJSON.errors) {
+                            var first = Object.values(xhr.responseJSON.errors)[0];
+                            if (first && first[0]) msg = first[0];
+                        }
+                    }
+                    Swal.fire('Error', msg, 'error');
                 }
             });
         });

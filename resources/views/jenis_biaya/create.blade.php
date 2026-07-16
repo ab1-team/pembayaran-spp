@@ -16,10 +16,14 @@
                         @csrf
                         <div class="row">
                             <div class="col-md-4">
-                                <label for="angkatan">Tahun Angkatan</label>
+                                <label for="angkatan">Tahun Akademik</label>
                                 <div class="input-group input-group-outline mb-3">
-                                    <label class="form-label">Masukkan tahun angkatan</label>
-                                    <input type="number" name="angkatan" class="form-control" required>
+                                    <select name="angkatan" id="angkatan" class="form-control select2" required>
+                                        <option value="">-- Pilih Tahun Akademik --</option>
+                                        @foreach ($tahunAkademiks ?? [] as $ta)
+                                            <option value="{{ $ta->nama_tahun }}">{{ $ta->nama_tahun }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -87,6 +91,10 @@
 
             var form = $('#FormJenisBiaya');
             var actionUrl = form.attr('action');
+            var nominalInput = form.find('input[name="total_beban"]');
+            if (nominalInput.length && typeof nominalInput.maskMoney === 'function') {
+                nominalInput.val(nominalInput.maskMoney('unmasked')[0]);
+            }
 
             $.ajax({
                 type: 'POST',

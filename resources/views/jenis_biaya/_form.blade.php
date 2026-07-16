@@ -7,10 +7,17 @@
 
     <div class="row">
         <div class="col-md-6">
-            <label>Tahun Angkatan</label>
+            <label>Tahun Akademik</label>
             <div class="input-group input-group-outline mb-3">
-                <input type="number" name="angkatan" class="form-control"
-                    value="{{ $jenis_biaya->angkatan ?? '' }}" required>
+                <select name="angkatan" id="angkatan" class="form-control select2" required>
+                    <option value="">-- Pilih Tahun Akademik --</option>
+                    @foreach ($tahunAkademiks ?? [] as $ta)
+                        <option value="{{ $ta->nama_tahun }}"
+                            {{ (isset($jenis_biaya) && $jenis_biaya->angkatan == $ta->nama_tahun) ? 'selected' : '' }}>
+                            {{ $ta->nama_tahun }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
         <div class="col-md-6">
