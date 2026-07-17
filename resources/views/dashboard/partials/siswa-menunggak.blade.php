@@ -16,7 +16,7 @@
         <tbody>
             @forelse($rows as $i => $s)
                 @php
-                    $total_tagihan = $s->getTransaksi->sum('jumlah');
+                    $total_tagihan = $s->getTransaksi->sum(fn($trx) => (float) $trx->getRawOriginal('jumlah'));
                     $bulanTunggakan = $s->getTransaksi
                         ->map(fn($trx) => Tanggal::namabulan($trx->spp?->tanggal))
                         ->unique()->values();

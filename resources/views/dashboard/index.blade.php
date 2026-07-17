@@ -253,7 +253,7 @@
                 @forelse($jenis_biaya as $b)
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
                         <span>Angkatan {{ $b->angkatan }}</span>
-                        <span class="badge bg-soft-success">Rp {{ number_format($b->total_beban, 0, ',', '.') }}</span>
+                        <span class="badge bg-soft-success">Rp {{ number_format((float) $b->total_beban, 0, ',', '.') }}</span>
                     </li>
                 @empty
                     <li class="list-group-item px-0 text-muted">Belum ada data</li>
@@ -290,7 +290,7 @@
                                 </td>
                                 <td style="color:#475569;">{{ \Illuminate\Support\Str::limit($t->keterangan, 70) }}</td>
                                 <td class="text-end">
-                                    <span class="badge-soft bg-soft-success">Rp {{ number_format($t->jumlah, 0, ',', '.') }}</span>
+                                    <span class="badge-soft bg-soft-success">Rp {{ number_format((float) $t->getRawOriginal('jumlah'), 0, ',', '.') }}</span>
                                 </td>
                             </tr>
                         @empty
