@@ -31,7 +31,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        Rp {{ number_format($item->jumlah, 0, ',', '.') }}
+                                        Rp {{ number_format((float) $item->getRawOriginal('jumlah'), 0, ',', '.') }}
                                     </td>
                                     <td>{{ $item->keterangan }}</td>
                                     <td class="text-nowrap">

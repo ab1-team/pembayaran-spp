@@ -89,9 +89,9 @@
                         <td align="center">{{ $index + 1 }}</td>
                         <td>{{ Tanggal::tglIndo($transaksi->tanggal) }}</td>
                         <td>{{ $transaksi->keterangan ?? '-' }}</td>
-                        <td align="right">{{ number_format($transaksi->jumlah, 2, ',', '.') }}</td>
+                        <td align="right">{{ number_format((float) $transaksi->getRawOriginal('jumlah'), 2, ',', '.') }}</td>
                     </tr>
-                    @php $total += $transaksi->jumlah; @endphp
+                    @php $total += (float) $transaksi->getRawOriginal('jumlah'); @endphp
                 @endforeach
             </tbody>
             <tfoot>

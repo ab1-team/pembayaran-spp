@@ -57,7 +57,7 @@
                 @endif
             </div>
             <div>{{ strtoupper($trx->keterangan) }}</div>
-            <div class="right">{{ number_format($trx->jumlah, 0, ',', '.') }}</div>
+            <div class="right">{{ number_format((float) $trx->getRawOriginal('jumlah'), 0, ',', '.') }}</div>
             <div class="right">{{ $trx->id }}</div>
         </div>
     @endforeach

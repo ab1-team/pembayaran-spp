@@ -81,7 +81,7 @@
             </div>
 
             @php
-                $total = $spps->isNotEmpty() ? $spps->sum('nominal') : $header->jumlah;
+                $total = $spps->isNotEmpty() ? $spps->sum('nominal') : (float) $header->getRawOriginal('jumlah');
             @endphp
 
             <table>
