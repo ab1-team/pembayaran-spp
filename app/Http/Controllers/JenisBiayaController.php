@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Jenis_Biaya;
 use App\Models\JenisPembayaran;
-use App\Models\Tahun_akademik;
+use App\Models\Tahun_Akademik;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -45,7 +45,7 @@ class JenisBiayaController extends Controller
     public function create()
     {
         $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
-        $tahunAkademiks  = Tahun_akademik::orderBy('nama_tahun', 'desc')->get();
+        $tahunAkademiks  = Tahun_Akademik::orderBy('nama_tahun', 'desc')->get();
         $title = 'Tambah Nominal Keuangan';
 
         return view('jenis_biaya.create', compact('title', 'jenisPembayaran', 'tahunAkademiks'));
@@ -54,7 +54,7 @@ class JenisBiayaController extends Controller
     public function createForm()
     {
         $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
-        $tahunAkademiks  = Tahun_akademik::orderBy('nama_tahun', 'desc')->get();
+        $tahunAkademiks  = Tahun_Akademik::orderBy('nama_tahun', 'desc')->get();
         return response()->json([
             'html' => view('jenis_biaya._form', [
                 'mode'            => 'create',
@@ -69,7 +69,7 @@ class JenisBiayaController extends Controller
     {
         $jenis_biaya->load('get_jenis_pembayaran');
         $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
-        $tahunAkademiks  = Tahun_akademik::orderBy('nama_tahun', 'desc')->get();
+        $tahunAkademiks  = Tahun_Akademik::orderBy('nama_tahun', 'desc')->get();
         return response()->json([
             'html' => view('jenis_biaya._form', [
                 'mode'            => 'edit',
@@ -106,7 +106,7 @@ class JenisBiayaController extends Controller
     {
         $jenis_biaya->load('get_jenis_pembayaran');
         $jenisPembayaran = JenisPembayaran::orderBy('nama')->get();
-        $tahunAkademiks  = Tahun_akademik::orderBy('nama_tahun', 'desc')->get();
+        $tahunAkademiks  = Tahun_Akademik::orderBy('nama_tahun', 'desc')->get();
         $title = 'Edit Nominal Keuangan';
 
         return view('jenis_biaya.edit', compact('title', 'jenisPembayaran', 'tahunAkademiks', 'jenis_biaya'));

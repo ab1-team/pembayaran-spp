@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tahun_akademik;
+use App\Models\Tahun_Akademik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -12,7 +12,7 @@ class TahunAkademikController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Tahun_akademik::query();
+            $data = Tahun_Akademik::query();
             return DataTables::eloquent($data)
                 ->addIndexColumn()
                 ->addColumn('badge', function ($row) {
@@ -57,15 +57,15 @@ class TahunAkademikController extends Controller
 
         DB::transaction(function () use ($data) {
             if ($data['status'] === 'aktif') {
-                Tahun_akademik::where('status', 'aktif')->update(['status' => 'nonaktif']);
+                Tahun_Akademik::where('status', 'aktif')->update(['status' => 'nonaktif']);
             }
-            Tahun_akademik::create($data);
+            Tahun_Akademik::create($data);
         });
 
         return response()->json(['success' => true, 'msg' => 'Tahun akademik berhasil ditambahkan']);
     }
 
-    public function edit(Tahun_akademik $tahun_akademik)
+    public function edit(Tahun_Akademik $tahun_akademik)
     {
         return view('tahun_akademik.edit', [
             'title' => 'Edit Tahun Akademik',
@@ -73,7 +73,7 @@ class TahunAkademikController extends Controller
         ]);
     }
 
-    public function update(Request $request, Tahun_akademik $tahun_akademik)
+    public function update(Request $request, Tahun_Akademik $tahun_akademik)
     {
         $data = $request->validate([
             'nama_tahun' => 'required|unique:tahun_akademik,nama_tahun,'.$tahun_akademik->id,
@@ -83,7 +83,7 @@ class TahunAkademikController extends Controller
 
         DB::transaction(function () use ($data, $tahun_akademik) {
             if ($data['status'] === 'aktif') {
-                Tahun_akademik::where('status', 'aktif')
+                Tahun_Akademik::where('status', 'aktif')
                     ->where('id', '!=', $tahun_akademik->id)
                     ->update(['status' => 'nonaktif']);
             }
@@ -93,16 +93,16 @@ class TahunAkademikController extends Controller
         return response()->json(['success' => true, 'msg' => 'Tahun akademik berhasil diupdate']);
     }
 
-    public function destroy(Tahun_akademik $tahun_akademik)
+    public function destroy(Tahun_Akademik $tahun_akademik)
     {
         $tahun_akademik->delete();
         return response()->json(['success' => true, 'msg' => 'Tahun akademik berhasil dihapus']);
     }
 
-    public function aktifkan(Tahun_akademik $tahun_akademik)
+    public function aktifkan(Tahun_Akademik $tahun_akademik)
     {
         DB::transaction(function () use ($tahun_akademik) {
-            Tahun_akademik::where('status', 'aktif')->update(['status' => 'nonaktif']);
+            Tahun_Akademik::where('status', 'aktif')->update(['status' => 'nonaktif']);
             $tahun_akademik->update(['status' => 'aktif']);
         });
 

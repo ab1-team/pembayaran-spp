@@ -166,7 +166,7 @@ class SiswaService
     public function resolveTahunAkademikNama(array $data): string
     {
         if (is_numeric($data['tahun_akademik'])) {
-            $ta = \App\Models\Tahun_akademik::find($data['tahun_akademik']);
+            $ta = \App\Models\Tahun_Akademik::find($data['tahun_akademik']);
             if ($ta) {
                 return $ta->nama_tahun;
             }

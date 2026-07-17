@@ -6,7 +6,7 @@ use App\Models\Siswa;
 use App\Models\Anggota_Kelas;
 use App\Models\Ruangan;
 use App\Models\Jenis_Biaya;
-use App\Models\Tahun_akademik;
+use App\Models\Tahun_Akademik;
 use App\Models\Kelas;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
@@ -77,7 +77,7 @@ class SiswaController extends Controller
     {
         $search = $request->get('q');
 
-        $query = Tahun_akademik::select('id', 'nama_tahun')
+        $query = Tahun_Akademik::select('id', 'nama_tahun')
             ->orderByDesc('nama_tahun');
         if ($search) {
             $query->where('nama_tahun', 'like', "%{$search}%");
@@ -180,7 +180,7 @@ class SiswaController extends Controller
             ]);
 
             $nominal = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-                ->where('angkatan', Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
+                ->where('angkatan', Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
                 ->value('total_beban') ?? 0;
 
             $this->service->generateSppBulanan(
@@ -203,7 +203,7 @@ class SiswaController extends Controller
         $title          = "Tambah Siswa";
         $kelas          = Kelas::get();
         $ruang          = Ruangan::get();
-        $tahunAkademmik = Tahun_akademik::get();
+        $tahunAkademmik = Tahun_Akademik::get();
         $nominalSpp     = $this->nominalSppDefault();
 
         return view('siswa.create', compact('title', 'kelas', 'ruang', 'tahunAkademmik', 'nominalSpp'));
@@ -231,7 +231,7 @@ class SiswaController extends Controller
     private function nominalSppDefault(): int
     {
         return (int) (Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-            ->where('angkatan', Tahun_akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
+            ->where('angkatan', Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
             ->value('total_beban') ?? 0);
     }
 
@@ -289,7 +289,7 @@ class SiswaController extends Controller
         $title          = "Edit Siswa";
         $kelas          = Kelas::get();
         $ruang          = Ruangan::get();
-        $tahunAkademmik = Tahun_akademik::get();
+        $tahunAkademmik = Tahun_Akademik::get();
         $nominalSpp     = $this->nominalSppDefault();
 
         return view('siswa.edit', compact('title', 'kelas', 'siswa', 'ruang', 'tahunAkademmik', 'nominalSpp'));
