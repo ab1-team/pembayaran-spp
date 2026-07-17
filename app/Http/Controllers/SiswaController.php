@@ -124,7 +124,7 @@ class SiswaController extends Controller
             'title' => $title,
             'siswa' => $siswa
         ];
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
@@ -270,7 +270,7 @@ class SiswaController extends Controller
             'siswa'   => $siswa,
         ];
 
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);

@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/apple-icon.png">
-    <link rel="icon" type="image/png" href="/assets/img/apple-icon.png">
-    <title>APP SAbit | Sistem Akademik</title>
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ \App\Models\Profil::logoUrl() }}">
+    <link rel="icon" type="image/png" href="{{ \App\Models\Profil::logoUrl() }}">
+    <title>{{ env('APP_NAME') }} | Sistem Akademik</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" />
     <link href="/assets/css/nucleo-icons.css" rel="stylesheet" />
     <link href="/assets/css/nucleo-svg.css" rel="stylesheet" />
@@ -28,8 +28,11 @@
                             <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                                 <div class="bg-gradient-dark shadow-dark border-radius-lg py-3 pe-1">
                                     <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">
-                                        SAbit | Sistem Akademik
+                                        {{ env('APP_NAME') }} | Sistem Akademik
                                     </h4>
+                                    <small class="d-block text-center text-white opacity-8 mb-2" style="font-size: 12px; letter-spacing: .03em;">
+                                        {{ \App\Models\Profil::namaLembaga() }}
+                                    </small>
                                 </div>
                             </div>
                             <div class="card-body">

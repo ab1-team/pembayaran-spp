@@ -129,7 +129,7 @@ class LaporanController extends Controller
         $data    = $request->all();
 
         // ================= LOGO =================
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
@@ -703,7 +703,7 @@ class LaporanController extends Controller
 
         $data['anggotaKelas'] = $anggotaKelas;
 
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
@@ -822,7 +822,7 @@ class LaporanController extends Controller
 
         $data['anggotaKelas'] = $anggotaKelas;
 
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);

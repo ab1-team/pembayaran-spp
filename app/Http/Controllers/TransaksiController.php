@@ -472,7 +472,7 @@ class TransaksiController extends Controller
             'transaksis'    => $transaksis,
             'nama_lembaga'  => $lembaga,
         ];
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
@@ -504,7 +504,7 @@ class TransaksiController extends Controller
             'transaksis'   => $transaksis,
             'nama_lembaga' => $lembaga,
         ];
-        $logoPath = public_path('assets/img/apple-icon.png');
+        $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
             $data['logo'] = base64_encode(file_get_contents($logoPath));
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);

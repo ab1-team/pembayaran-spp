@@ -10,10 +10,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ env('APP_NAME') }} | {{ $title ?? 'Dashboard' }}</title>
+    <title>{{ $appName }} | {{ $title ?? 'Dashboard' }}</title>
 
-    <link rel="icon" type="image/png" href="/assets/img/apple-icon.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/apple-icon.png">
+    <link rel="icon" type="image/png" href="{{ $appLogoUrl }}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ $appLogoUrl }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900">
@@ -383,8 +383,8 @@
             <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-xl-none"
                 id="iconSidenav"></i>
             <a class="navbar-brand px-4 py-3 m-0" href="/" target="_blank">
-                <img src="/assets/img/apple-icon.png" width="35" height="35">
-                <span class="ms-1 text-sm text-dark">Sistem Akademik</span>
+                <img src="{{ $appLogoUrl }}" width="35" height="35">
+                <span class="ms-1 text-sm text-dark">{{ $appName }}</span>
             </a>
         </div>
         <hr class="horizontal dark mt-0 mb-2">
