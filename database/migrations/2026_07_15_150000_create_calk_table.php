@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,7 +14,6 @@ return new class extends Migration
             $table->date('tanggal');
             $table->longText('catatan')->nullable();
             $table->timestamps();
-
             $table->unique('tanggal');
         });
     }
