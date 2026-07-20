@@ -1,3 +1,21 @@
+@if ($siswa->exists)
+<div class="row mt-2 mb-2">
+    <div class="col-12 ">
+        <div class="card m-0">
+            <div class="card-body py-2 px-2">
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-spp/{{ $siswa->id }}" target="_blank" class="btn btn-outline-primary w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Cetak Kartu SPP</a></div>
+                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts1" target="_blank" class="btn btn-outline-success w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu UTS I</a></div>
+                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas1" target="_blank" class="btn btn-outline-warning w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu PAS I</a></div>
+                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts2" target="_blank" class="btn btn-outline-info w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu UTS II</a></div>
+                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas2" target="_blank" class="btn btn-outline-danger w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu PAS II</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="row d-flex align-items-stretch">
     <div class="col-md-8 d-flex">
         <div class="card mt-1 mb-4 flex-fill">
@@ -217,12 +235,14 @@
                                 {{ ucfirst($siswa->status_siswa ?? '-') }}
                             </span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                            <span class="text-muted">SPP / Bulan</span>
-                            <span class="fw-semibold text-danger">
-                                Rp {{ number_format((int) ($siswa->spp_nominal ?? 0), 0, ',', '.') }}
-                            </span>
-                        </li>
+                        @if (($siswa->spp_nominal ?? 0) > 0)
+                            <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                                <span class="text-muted">SPP / Bulan</span>
+                                <span class="fw-semibold text-danger">
+                                    Rp {{ number_format((int) $siswa->spp_nominal, 0, ',', '.') }}
+                                </span>
+                            </li>
+                        @endif
                     </ul>
                     <button type="button" id="btnDetailSiswa"
                         class="btn btn-danger btn-sm w-100 mt-3"

@@ -28,8 +28,8 @@
 @section('modal')
     <div class="modal fade modal-fullscreen" id="detail" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content">
-                <div class="modal-header">
+            <div class="modal-content" style="border-radius:0">
+                <div class="modal-header" style="border-radius:0">
                     <h5 class="modal-title">
                         <i class="bi bi-person-lines-fill me-1"></i> Detail Transaksi Siswa
                     </h5>
@@ -46,7 +46,8 @@
                 <div class="modal-footer
                             flex-column flex-sm-row
                             justify-content-end gap-2
-                            position-sticky bottom-0 bg-white border-top">
+                            position-sticky bottom-0 bg-white border-top"
+                     style="border-radius:0">
                     <button type="button" class="btn btn-secondary w-100 w-sm-auto" id="btnPrintAllDetail">
                         <i class="bi bi-printer-fill me-1"></i> Cetak Semua
                     </button>
@@ -121,39 +122,34 @@
         }, {
             name: 'siswa',
             displayKey: 'name',
-            templates: {
-                empty: function(queryData) {
-                    const q = (queryData && queryData.query) || '';
-                    if (q.length < 2) return '';
-                    const safe = $('<div>').text(q).html();
-                    return `
-                        <div class="p-3 small lh-sm">
-                            <div class="fw-bold text-danger mb-1">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                Siswa tidak ditemukan
-                            </div>
-                            <div class="text-muted">Pencarian: <strong>&quot;${safe}&quot;</strong></div>
-                            <div class="text-muted mt-2">
-                                <strong>Kemungkinan penyebab:</strong>
-                                <ul class="ps-3 mb-1">
-                                    <li>Ejaan nama atau NISN salah.</li>
-                                    <li>Siswa belum punya <em>Anggota Kelas</em> ber-status Aktif.</li>
-                                    <li>Siswa berstatus blokir / nonaktif.</li>
-                                </ul>
-                            </div>
-                            <div class="text-muted">
-                                <strong>Solusi:</strong> periksa ejaan, atau daftarkan siswa
-                                via menu <em>Kelas &rarr; Anggota Kelas</em>.
-                            </div>
-                        </div>`;
-                }
-            },
             source: function(query, process) {
                 if (query.length < 2) return process([]);
                 $.get('/app/spp/CariSiswa', {
                     query: query
                 }, function(result) {
-                    if (!result || !result.length) return process([]);
+                    if (!result || !result.length) {
+                        const safe = $('<div>').text(query).html();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Siswa tidak ditemukan',
+                            html: `
+                                <div class="text-start small">
+                                    <div>Pencarian: <strong>&quot;${safe}&quot;</strong></div>
+                                    <div class="mt-2"><strong>Kemungkinan penyebab:</strong>
+                                        <ul class="ps-3 mb-1">
+                                            <li>Ejaan nama atau NISN salah.</li>
+                                            <li>Siswa belum punya <em>Anggota Kelas</em> ber-status Aktif.</li>
+                                            <li>Siswa berstatus blokir / nonaktif.</li>
+                                        </ul>
+                                    </div>
+                                    <div><strong>Solusi:</strong> periksa ejaan, atau daftarkan siswa
+                                        via menu <em>Kelas &rarr; Anggota Kelas</em>.</div>
+                                </div>`,
+                            confirmButtonText: 'Oke'
+                        });
+                        $('#pembayaranSPP').val('');
+                        return process([]);
+                    }
                     process($.map(result, function(item) {
                         let inisial = item.package_inisial ? ' - ' + item.package_inisial :
                             '';

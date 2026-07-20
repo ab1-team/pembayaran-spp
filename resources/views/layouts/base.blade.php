@@ -365,7 +365,7 @@
             white-space: nowrap;
         }
 
-        .modal-content {
+        .modal:not(.modal-fullscreen) .modal-content {
             border-radius: 1rem !important;
             overflow: hidden;
         }
@@ -381,13 +381,18 @@
             min-width: 0;
             line-height: 1.2;
         }
-        .modal-header {
+        .modal:not(.modal-fullscreen) .modal-header {
             border-top-left-radius: 1rem !important;
             border-top-right-radius: 1rem !important;
         }
-        .modal-footer {
+        .modal:not(.modal-fullscreen) .modal-footer {
             border-bottom-left-radius: 1rem !important;
             border-bottom-right-radius: 1rem !important;
+        }
+        .modal-fullscreen .modal-content,
+        .modal-fullscreen .modal-header,
+        .modal-fullscreen .modal-footer {
+            border-radius: 0 !important;
         }
     </style>
 

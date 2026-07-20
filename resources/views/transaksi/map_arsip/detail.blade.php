@@ -4,49 +4,52 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card my-4">
+        <div class="card m-0" style="border-radius:0">
             <div class="card-body">
                 <div class="table-responsive">
                     <table id="keuangan" class="table align-items-center table-striped">
                         <thead>
                             <tr>
-                                <th width="15%">Tanggal Trx</th>
-                                <th width="15%">Bulan SPP</th>
-                                <th width="15%">Nominal</th>
-                                <th width="40%">Keterangan</th>
-                                <th width="15%" style="padding-left:60px;">Aksi</th>
+                                <th width="6%">ID</th>
+                                <th width="12%">Tanggal Trx</th>
+                                <th width="14%">Kode Akun</th>
+                                <th width="36%">Keterangan</th>
+                                <th width="12%">Nominal</th>
+                                <th width="20%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($siswa->getTransaksi as $item)
-                                <tr>
+<tr>
+                                    <td>{{ $item->id }}</td>
                                     <td>
                                         {{ Tanggal::tglIndo($item->tanggal_transaksi) }}
                                     </td>
                                     <td>
-                                        @if ($item->spp)
-                                            {{ Tanggal::namabulan($item->spp->tanggal) }}
-                                        @else
-                                            Daftar Ulang
-                                        @endif
-                                    </td>
-                                    <td>
-                                        {{ \App\Utils\Angka::format($item->getRawOriginal('jumlah'), 0) }}
+                                        <div class="small">
+                                            <div>D: {{ $item->rekeningDebit->kode_akun ?? '-' }}</div>
+                                            <div>K: {{ $item->rekeningKredit->kode_akun ?? '-' }}</div>
+                                        </div>
                                     </td>
                                     <td>{{ $item->keterangan }}</td>
-                                    <td class="text-nowrap">
-                                        <a href="/app/transaksi/kwitansi-spp?ids={{ $item->id }}" target="_blank"
-                                            class="btn btn-sm btn-primary" title="Cetak Kwitansi">
-                                            <i class="material-symbols-rounded fs-6">print</i>
-                                        </a>
-                                        <a href="/app/transaksi/cetakPadaKartu?ids={{ $item->id }}" target="_blank"
-                                            class="btn btn-sm btn-info" title="Cetak Pada Kartu">
-                                            <i class="material-symbols-rounded fs-6">print</i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-danger btnDelete"
-                                            data-id="{{ $item->id }}">
-                                            <i class="material-symbols-rounded fs-6">delete</i>
-                                        </button>
+                                    <td class="text-end">
+                                        {{ \App\Utils\Angka::format($item->getRawOriginal('jumlah'), 0) }}
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="/app/transaksi/kwitansi-spp?ids={{ $item->id }}" target="_blank"
+                                                class="btn btn-secondary btn-compact" title="Cetak Kwitansi">
+                                                <i class="material-symbols-rounded">print</i>
+                                            </a>
+                                            <a href="/app/transaksi/cetakPadaKartu?ids={{ $item->id }}" target="_blank"
+                                                class="btn btn-secondary btn-compact" title="Cetak Pada Kartu">
+                                                <i class="material-symbols-rounded">print</i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger btn-compact btnDelete"
+                                                data-id="{{ $item->id }}">
+                                                <i class="material-symbols-rounded">delete</i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -57,6 +60,15 @@
                                 </tr>
                             @endforelse
                         </tbody>
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td colspan="4" class="text-end">Jumlah</td>
+                                <td class="text-end">
+                                    {{ \App\Utils\Angka::format($siswa->getTransaksi->sum(fn($t) => $t->getRawOriginal('jumlah')), 0) }}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>

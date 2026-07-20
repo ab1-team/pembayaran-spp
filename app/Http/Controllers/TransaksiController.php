@@ -408,7 +408,7 @@ class TransaksiController extends Controller
             'getTransaksi' => function ($q) {
                 $q->whereNull('deleted_at')
                     ->orderByDesc('id')
-                    ->with('spp');
+                    ->with(['spp', 'rekeningDebit', 'rekeningKredit']);
             }
         ])->findOrFail($id);
 
@@ -524,6 +524,83 @@ class TransaksiController extends Controller
         return view('transaksi.map_arsip.view.cetakPadaKartu', [
             'transaksis' => $transaksis
         ]);
+    }
+
+    public function cetakKartuSpp($id)
+    {
+        $siswa = Siswa::with('tahunAkademik')->findOrFail($id);
+        $profil = Profil::first();
+        $tahun_pel = $siswa->tahunAkademik->nama_tahun
+            ?? \App\Models\Tahun_Akademik::where('status', 'aktif')->value('nama_tahun')
+            ?? date('Y');
+
+        $data = [
+            'siswa'        => $siswa,
+            'profil'       => $profil,
+            'tahun_pel'    => $tahun_pel,
+            'spp_perbulan' => $siswa->spp_nominal ?? 0,
+        ];
+
+        $logoPath = \App\Models\Profil::logoPath();
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
+        }
+
+        $pdf = Pdf::loadView('transaksi.map_arsip.view.cetak_kartu_spp', $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->stream('kartu-spp-'.$siswa->nama.'.pdf');
+    }
+
+    public function cetakKartuUjian($id, $jenis)
+    {
+        $allowed = ['uts1', 'pas1', 'uts2', 'pas2'];
+        if (!in_array($jenis, $allowed, true)) {
+            abort(404, 'Jenis kartu tidak dikenal.');
+        }
+
+        [$kat, $periode] = $this->splitJenisKartu($jenis);
+
+        $siswa = Siswa::findOrFail($id);
+        $profil = Profil::first();
+
+        $subjudulMap = [
+            'uts' => 'UJIAN TENGAH SEMESTER',
+            'pas' => 'PENILAIAN AKHIR SEMESTER',
+        ];
+        $periodeRoman = ($periode == '1') ? 'I' : 'II';
+
+        $no_peserta = trim(($siswa->nipd ?? '').' - '.$siswa->nisn, ' -');
+        $lokasi = $profil->alamat ? trim(explode(',', $profil->alamat)[0]) : null;
+
+        $data = [
+            'siswa'         => $siswa,
+            'profil'        => $profil,
+            'periode'       => $periode,
+            'no_peserta'    => $no_peserta,
+            'jenis_ujian'   => $subjudulMap[$kat].' '.$periodeRoman,
+            'lokasi'        => $lokasi,
+        ];
+
+        $logoPath = \App\Models\Profil::logoPath();
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
+        }
+
+        $pdf = Pdf::loadView('transaksi.map_arsip.view.cetak_kartu_'.$kat, $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->stream('kartu-'.$jenis.'-'.$siswa->nama.'.pdf');
+    }
+
+    private function splitJenisKartu(string $jenis): array
+    {
+        return [
+            substr($jenis, 0, 3),
+            substr($jenis, 3, 1),
+        ];
     }
 
     /**

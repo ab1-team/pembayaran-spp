@@ -18,6 +18,7 @@ class SppController extends Controller
         $params = $request->input('query');
 
         $results = Siswa::query()
+            ->Aktif()
             ->where(function ($q) use ($params) {
                 $q->where('nama', 'LIKE', "%{$params}%")
                     ->orWhere('nisn', 'LIKE', "%{$params}%");

@@ -51,6 +51,9 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::get('/transaksi/pembayaran/printAll/{id}', [TransaksiController::class, 'pembayaranSPPPrintAll']);
     Route::get('/transaksi/pembayaranSPPDetail/{id}', [TransaksiController::class, 'pembayaranSPPDetail']);
     Route::get('/transaksi/cetakPadaKartu', [TransaksiController::class, 'CetakPadaKartu']);
+    Route::get('/transaksi/cetak-kartu-spp/{id}', [TransaksiController::class, 'cetakKartuSpp']);
+    Route::get('/transaksi/cetak-kartu-ujian/{id}/{jenis}', [TransaksiController::class, 'cetakKartuUjian'])
+        ->where('jenis', 'uts1|uts2|pas1|pas2');
     Route::delete('/transaksi/pembayaranSPPDestroy/{Transaksi}', [TransaksiController::class, 'pembayaranSPPDestroy']);
     Route::resource('/Transaksi', TransaksiController::class);
 
