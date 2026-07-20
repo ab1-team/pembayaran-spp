@@ -57,12 +57,12 @@
 
                     {{-- Target --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->target ?? 0, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->target ?? 0, 2) }}
                     </td>
 
                     {{-- Realisasi --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->realisasi ?? 0, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->realisasi ?? 0, 2) }}
                     </td>
 
                     {{-- Keterangan --}}
@@ -71,7 +71,7 @@
                 color: {{ ($row->sisa ?? 0) > 0 ? 'red' : 'black' }};">
 
                         @if (($row->sisa ?? 0) > 0)
-                            ({{ number_format($row->sisa, 2, ',', '.') }})
+                            ({{ \App\Utils\Angka::format($row->sisa, 2) }})
                         @else
                             Lunas
                         @endif

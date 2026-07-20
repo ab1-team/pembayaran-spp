@@ -62,8 +62,8 @@
                     <td align="center">{{ $trx->id }}</td>
                     <td align="center">{{ $trx->rekeningDebit->kode_akun ?? '' }}</td>
                     <td>{{ $trx->rekeningDebit->nama_akun ?? $trx->keterangan }}</td>
-                    <td align="right">{{ number_format($trx->jumlah, 2, ',', '.') }}</td>
-                    <td align="right">{{ number_format(0, 2, ',', '.') }}</td>
+                    <td align="right">{{ \App\Utils\Angka::format($trx->jumlah, 2) }}</td>
+                    <td align="right">{{ \App\Utils\Angka::format(0, 2) }}</td>
                 </tr>
 
                 {{-- Baris KREDIT --}}
@@ -73,8 +73,8 @@
                     <td align="center">{{ $i + 1 }}</td>
                     <td align="center">{{ $trx->rekeningKredit->kode_akun ?? '' }}</td>
                     <td>{{ $trx->rekeningKredit->nama_akun ?? $trx->keterangan }}</td>
-                    <td align="right">{{ number_format(0, 2, ',', '.') }}</td>
-                    <td align="right">{{ number_format($trx->jumlah, 2, ',', '.') }}</td>
+                    <td align="right">{{ \App\Utils\Angka::format(0, 2) }}</td>
+                    <td align="right">{{ \App\Utils\Angka::format($trx->jumlah, 2) }}</td>
                 </tr>
 
                 @php
@@ -86,8 +86,8 @@
             {{-- Total --}}
             <tr style="background-color: #d3d3d3; font-weight: bold;">
                 <td colspan="5" align="center"><strong>Total</strong></td>
-                <td align="right">{{ number_format($totalDebit, 2, ',', '.') }}</td>
-                <td align="right">{{ number_format($totalKredit, 2, ',', '.') }}</td>
+                <td align="right">{{ \App\Utils\Angka::format($totalDebit, 2) }}</td>
+                <td align="right">{{ \App\Utils\Angka::format($totalKredit, 2) }}</td>
             </tr>
         </tbody>
     </table>

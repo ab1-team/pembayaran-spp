@@ -290,7 +290,7 @@
                                     <div class="input-group input-group-outline mb-3 is-filled">
                                         <label class="form-label">Nominal SPP / Bulan</label>
                                         <input type="text" name="spp_nominal" id="spp_nominal" class="form-control nominal"
-                                            value="{{ number_format($nominalSpp ?? 0, 0, ',', '.') }}"
+                                            value="{{ \App\Utils\Angka::format($nominalSpp ?? 0, 0) }}"
                                             placeholder="0">
                                     </div>
                                 </div>
@@ -571,9 +571,8 @@
 
         // Mask nominal SPP
         $(".nominal").maskMoney({
-            prefix: 'Rp ',
-            thousands: '.',
-            decimal: ',',
+            thousands: ',',
+            decimal: '.',
             allowZero: true,
             allowNegative: false
         });

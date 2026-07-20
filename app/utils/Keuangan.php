@@ -35,7 +35,7 @@ class Keuangan
 
     public static function formatSaldo($nilai)
     {
-        $formatted = number_format(abs($nilai), 2, ',', '.');
+        $formatted = Angka::format(abs($nilai), 2);
         return $nilai < 0 ? '(' . $formatted . ')' : $formatted;
     }
 
@@ -207,7 +207,7 @@ class Keuangan
 
     public static function formatSaldoCALK($nilai)
     {
-        $formatted = number_format(abs($nilai), 2, ',', '.');
+        $formatted = Angka::format(abs($nilai), 2);
         return $nilai < 0 ? '(' . $formatted . ')' : $formatted;
     }
 

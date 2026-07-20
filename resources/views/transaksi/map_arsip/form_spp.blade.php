@@ -1,15 +1,6 @@
-<br>
 <div class="row d-flex align-items-stretch">
     <div class="col-md-8 d-flex">
-        <div class="card my-4 flex-fill">
-            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                <div
-                    class="bg-gradient-secondary shadow-secondary border-radius-lg pt-3 pb-1 d-flex justify-content-between align-items-center">
-                    <h6 class="text-white text-capitalize ps-3">
-                        Rekap - tahun ajaran {{ $siswa->tahun_akademik }}
-                    </h6>
-                </div>
-            </div>
+        <div class="card mt-1 mb-4 flex-fill">
             <div class="card-body">
                 <form method="POST" action="/app/transaksi/ProsesPembayaran" id="FormPembayaranSPP">
                     @csrf
@@ -44,7 +35,11 @@
                             </select>
                         </div>
                         <div class="col-md-12 mb-2">
-                            @if ($jenis_biaya->isEmpty())
+                            @if (!$siswa->exists)
+                                <select name="jenis_biaya" id="jenis_biaya" class="form-control select2" disabled>
+                                    <option value="0">Pilih Jenis Pembayaran</option>
+                                </select>
+                            @elseif ($jenis_biaya->isEmpty())
                                 <div class="alert alert-warning mb-0">
                                     Tidak ada jenis pembayaran untuk tahun angkatan {{ $tahun_angkatan }}.
                                 </div>
@@ -79,7 +74,7 @@
 
                                     @if ($bulan > 6)
                                         <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox"
-                                            data-id="{{ $item->id }}" data-nominal="{{ $item->nominal }}"
+                                            data-kode="{{ $item->kode }}" data-nominal="{{ $item->nominal }}"
                                             id="tgl_{{ $item->id }}" value="{{ $item->tanggal }}"
                                             data-spp_ke="{{ $item->spp_ke }}"
                                             {{ $item->status == 'L' ? 'checked disabled' : '' }}>
@@ -105,7 +100,7 @@
 
                                     @if ($bulan <= 6)
                                         <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox"
-                                            data-id="{{ $item->id }}" data-spp_ke="{{ $item->spp_ke }}"
+                                            data-kode="{{ $item->kode }}" data-spp_ke="{{ $item->spp_ke }}"
                                             data-nominal="{{ $item->nominal }}" id="tgl_{{ $item->id }}"
                                             value="{{ $item->tanggal }}"
                                             {{ $item->status == 'L' ? 'checked disabled' : '' }}>
@@ -159,12 +154,14 @@
                     </button>
                     <button type="submit" id="Tunai"
                         data-sumber="1.1.01.01"
-                        class="btn btn-warning w-100 w-md-auto SPPsimpan">
+                        class="btn btn-warning w-100 w-md-auto SPPsimpan"
+                        @disabled(!$siswa->exists)>
                         Tunai
                     </button>
                     <button type="submit" id="TransferBank"
                         data-sumber="1.1.01.03"
-                        class="btn btn-info w-100 w-md-auto SPPsimpan">
+                        class="btn btn-info w-100 w-md-auto SPPsimpan"
+                        @disabled(!$siswa->exists)>
                         Transfer Bank
                     </button>
                 </div>
@@ -173,15 +170,66 @@
         </div>
     </div>
     <div class="col-md-4 d-flex">
-        <div class="card my-4 flex-fill">
+        <div class="card mt-1 mb-4 flex-fill">
             <div class="card-header bg-gradient-white text-dark">
-                <h6 class="mb-0 text-bold">Grafik SPP</h6>
+                <h6 class="mb-0 text-bold">Detail Siswa</h6>
             </div>
             <hr class="horizontal dark my-1">
-            <div class="card-body text-center pt-0">
-                <div style="position:relative; max-height:320px;">
-                    <canvas id="pie"></canvas>
-                </div>
+            <div class="card-body pt-2">
+                @if(!$siswa->exists)
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-person fs-1"></i>
+                        <p class="mt-2 mb-0 small">Belum ada siswa dipilih</p>
+                    </div>
+                @else
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2"
+                            style="width:48px;height:48px;font-weight:600;">
+                            {{ strtoupper(mb_substr($siswa->nama ?? '?', 0, 1)) }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-dark lh-sm">{{ $siswa->nama }}</div>
+                            <small class="text-muted">{{ $siswa->kode_kelas }} · {{ $siswa->ruang }}</small>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush small mb-0">
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="text-muted">NISN</span>
+                            <span class="fw-semibold">{{ $siswa->nisn ?: '-' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="text-muted">NIPD</span>
+                            <span class="fw-semibold">{{ $siswa->nipd ?: '-' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="text-muted">TTL</span>
+                            <span class="fw-semibold text-end">
+                                {{ $siswa->tempat_lahir ?: '-' }}{{ $siswa->tanggal_lahir ? ', '.$siswa->tanggal_lahir->format('d-m-Y') : '' }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="text-muted">Jenis Kelamin</span>
+                            <span class="fw-semibold">{{ $siswa->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="text-muted">Status</span>
+                            <span class="badge bg-{{ $siswa->status_siswa == 'aktif' ? 'success' : 'secondary' }}">
+                                {{ ucfirst($siswa->status_siswa ?? '-') }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
+                            <span class="text-muted">SPP / Bulan</span>
+                            <span class="fw-semibold text-danger">
+                                Rp {{ number_format((int) ($siswa->spp_nominal ?? 0), 0, ',', '.') }}
+                            </span>
+                        </li>
+                    </ul>
+                    <button type="button" id="btnDetailSiswa"
+                        class="btn btn-danger btn-sm w-100 mt-3"
+                        @disabled(!$siswa->exists)>
+                        <i class="bi bi-receipt-cutoff me-1"></i> Detail Pembayaran
+                    </button>
+                @endif
             </div>
         </div>
     </div>
@@ -224,48 +272,6 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
 </script>
 
 <script>
-    var pieColors = ["#ff6384", "#36a2eb", "#ffcd56"];
-    var sppPerBulan = {{ $spp_perbulan ?? 0 }};
-    var targetBulan = {{ $target_bulan ?? 0 }};
-    var sdBulanIni = {{ $sd_bulan_ini ?? 0 }};
-    new Chart(document.getElementById("pie"), {
-        type: "pie",
-        data: {
-            labels: ["SPP Per Bulan", "Target Bulan", "SD Bulan Ini"],
-            datasets: [{
-                data: [sppPerBulan, targetBulan, sdBulanIni],
-                backgroundColor: pieColors,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: "bottom",
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: "circle",
-                        padding: 5,
-                        boxWidth: 12,
-                        font: {
-                            size: 10
-                        }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: c =>
-                            `${c.label}: ${c.raw.toLocaleString("id-ID",{style:"currency",currency:"IDR"})}`
-                    }
-                }
-            }
-        }
-    });
-</script>
-<script>
     $('#keterangan').val('-').trigger('focus').trigger('blur');
 
     $(document).ready(function() {
@@ -276,8 +282,8 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             dateFormat: 'Y-m-d'
         });
         $('.nominal').maskMoney({
-            thousands: '.',
-            decimal: ',',
+            thousands: ',',
+            decimal: '.',
             precision: 2,
             allowZero: true
         });
@@ -339,13 +345,13 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             $('#sppIDContainer').empty();
 
             $('.spp-checkbox:checked:not(:disabled)').each(function() {
-                const id = $(this).data('id');
+                const kode = $(this).data('kode');
                 const nominal = parseInt($(this).data('nominal'));
 
                 total += nominal;
 
                 $('#sppIDContainer').append(`
-            <input type="hidden" name="spp_id[]" value="${id}">
+            <input type="hidden" name="kode_spp[]" value="${kode}">
             <input type="hidden" name="nominal_spp[]" value="${nominal}">
         `);
             });

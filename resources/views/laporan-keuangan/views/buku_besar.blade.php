@@ -6,7 +6,7 @@
 
         function fmt($val)
         {
-            return $val < 0 ? '(' . number_format(abs($val), 2) . ')' : number_format($val, 2);
+            return $val < 0 ? '(' . \App\Utils\Angka::format(abs($val), 2) . ')' : \App\Utils\Angka::format($val, 2);
         }
     @endphp
 

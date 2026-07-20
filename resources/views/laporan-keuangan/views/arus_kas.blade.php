@@ -8,7 +8,7 @@
 
     function formatKas($jumlah)
     {
-        return $jumlah < 0 ? '(' . number_format(abs($jumlah), 2) . ')' : number_format($jumlah, 2);
+        return $jumlah < 0 ? '(' . \App\Utils\Angka::format(abs($jumlah), 2) . ')' : \App\Utils\Angka::format($jumlah, 2);
     }
 @endphp
 

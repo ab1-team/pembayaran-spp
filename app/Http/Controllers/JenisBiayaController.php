@@ -23,7 +23,7 @@ class JenisBiayaController extends Controller
                     return $row->get_jenis_pembayaran->kode_akun ?? '-';
                 })
                 ->editColumn('total_beban', function ($row) {
-                    return number_format((float) $row->total_beban, 2, '.', ',');
+                    return \App\Utils\Angka::format($row->total_beban, 2);
                 })
                 ->addColumn('action', function ($row) {
                     return '
@@ -145,7 +145,6 @@ class JenisBiayaController extends Controller
 
     private function normalizeNominal($value): int
     {
-        $value = preg_replace('/[^0-9]/', '', (string) $value);
-        return (int) $value;
+        return \App\Utils\Angka::parseInt($value);
     }
 }

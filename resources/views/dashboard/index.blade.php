@@ -1,5 +1,4 @@
 @php
-    use App\Utils\Tanggal;
     use Carbon\Carbon;
 @endphp
 @extends('layouts.base')
@@ -15,14 +14,16 @@
         height: 100%;
         cursor: pointer;
         transition: transform .15s ease, box-shadow .15s ease;
+        min-width: 0;
     }
     .stat-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(15, 23, 42, .10);
     }
     .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #64748b; font-weight: 600; }
-    .stat-card .value { font-size: 30px; font-weight: 700; color: #0f172a; margin: 4px 0 0; line-height: 1.1; }
-    .stat-card .top { display:flex; justify-content:space-between; align-items:flex-start; }
+    .stat-card .value { font-size: 30px; font-weight: 700; color: #0f172a; margin: 4px 0 0; line-height: 1.1; min-width: 0; word-break: break-word; }
+    .stat-card .top { display:flex; justify-content:space-between; align-items:flex-start; gap: 10px; }
+    .stat-card .top > div:first-child { min-width: 0; flex: 1 1 auto; }
     .stat-card .icon {
         width: 46px; height: 46px; border-radius: 12px;
         display:flex; align-items:center; justify-content:center;
@@ -64,12 +65,63 @@
     }
     .panel-card h6.title .material-symbols-rounded { color: #198754; }
 
-    .recent-table th {
-        font-size: 11px; text-transform: uppercase;
-        color: #64748b; font-weight: 700;
+    .recent-accordion .accordion-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px !important;
+        margin-bottom: 8px;
+        overflow: hidden;
     }
-    .recent-table td { font-size: 13px; vertical-align: middle; }
-    .recent-table tbody tr:hover { background: #f8fafc; }
+    .recent-accordion .accordion-button {
+        background: #e2e8f0;
+        font-size: 13px;
+        padding: 6px 16px;
+        box-shadow: none !important;
+        white-space: normal !important;
+    }
+    .recent-accordion .accordion-button:not(.collapsed) {
+        background: #94a3b8;
+        color: #0f172a;
+    }
+    .recent-accordion .accordion-body {
+        background: #ffffff;
+    }
+    .recent-accordion .accordion-button .acc-chevron {
+        transition: transform .2s ease;
+        color: #475569;
+    }
+    .recent-accordion .accordion-button:not(.collapsed) .acc-chevron {
+        transform: rotate(180deg);
+        color: #0f172a;
+    }
+    .recent-accordion .acc-date {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+        letter-spacing: .4px;
+        min-width: 90px;
+    }
+    .recent-accordion .acc-name { font-weight: 600; color: #0f172a; }
+    .recent-accordion .acc-nisn { font-size: 11px; color: #94a3b8; }
+    .recent-accordion .acc-amt {
+        font-weight: 700;
+        color: #15803d;
+        background: rgba(34,197,94,.12);
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .recent-accordion .accordion-body {
+        font-size: 13px;
+        color: #475569;
+        padding: 12px 16px;
+        background: #fafbfc;
+    }
+    .recent-accordion .table-responsive {
+        max-height: 360px;
+        overflow-y: auto;
+    }
     .badge-soft {
         padding: 4px 10px; border-radius: 999px;
         font-size: 11px; font-weight: 600;
@@ -82,7 +134,9 @@
         padding: 10px;
         display: flex; flex-direction: column; align-items: center;
         height: 100%;
+        min-width: 0;
     }
+    .pie-card .pie-value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
     .pie-card-danger {
         background: linear-gradient(135deg, #fef2f2, #fecaca);
     }
@@ -144,7 +198,7 @@
     .crypto-trend.down { background: rgba(239,68,68,.15);  color:#f87171; }
     .crypto-total { font-size: 32px; font-weight: 800; color:#f8fafc; margin-top: 10px; line-height:1.1; letter-spacing:-.5px; }
     .crypto-sub { font-size: 12px; color:#64748b; margin-top: 2px; }
-    .crypto-chart { position: relative; height: 180px; margin-top: 6px; }
+    .crypto-chart { position: relative; height: 260px; margin-top: 6px; }
     .crypto-chart canvas { position:absolute; inset:0; width:100% !important; height:100% !important; }
 
     @media (max-width: 575.98px) {
@@ -153,10 +207,15 @@
         .stat-card .icon { width: 38px; height: 38px; }
         .pie-wrap { width: 56px; height: 56px; }
         .crypto-total { font-size: 24px; }
-        .crypto-chart { height: 140px; }
+        .crypto-chart { height: 170px; }
         .crypto-title { font-size: 12px; }
         .crypto-head { flex-wrap: wrap; gap: 6px; }
         .panel-card { padding: 14px 14px; }
+        .recent-accordion .acc-date { min-width: 0; font-size: 10px; }
+        .recent-accordion .acc-name { font-size: 13px; }
+        .recent-accordion .acc-amt { font-size: 11px; padding: 3px 8px; }
+        .recent-accordion .accordion-button { padding: 10px 12px; }
+        .pie-value { font-size: 11px; }
     }
 
     @media (max-width: 767.98px) {
@@ -174,7 +233,7 @@
                     <div class="top">
                         <div>
                             <div class="label">Siswa Aktif</div>
-                            <div class="value text-success">{{ number_format($siswaAktif, 0, ',', '.') }}</div>
+                            <div class="value text-success">{{ \App\Utils\Angka::format($siswaAktif, 0) }}</div>
                         </div>
                         <div class="icon bg-grad-success"><span class="material-symbols-rounded">verified_user</span></div>
                     </div>
@@ -215,30 +274,30 @@
             </h6>
 
             <div class="row g-2">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-sm-4">
                     <div class="pie-card">
                         <div class="pie-wrap"><canvas id="pieHariIni"></canvas></div>
                         <div class="pie-info">
                             <div class="pie-label">Hari Ini</div>
-                            <div class="pie-value">Rp {{ number_format($pemasukanHariIni, 0, ',', '.') }}</div>
+                            <div class="pie-value">{{ \App\Utils\Angka::format($pemasukanHariIni, 2) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-sm-4">
                     <div class="pie-card">
                         <div class="pie-wrap"><canvas id="pieBulanIni"></canvas></div>
                         <div class="pie-info">
                             <div class="pie-label">Bulan Ini</div>
-                            <div class="pie-value">Rp {{ number_format($pemasukanBulanIni, 0, ',', '.') }}</div>
+                            <div class="pie-value">{{ \App\Utils\Angka::format($pemasukanBulanIni, 2) }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-sm-4">
                     <div class="pie-card pie-card-danger">
                         <div class="pie-wrap"><canvas id="pieTunggakan"></canvas></div>
                         <div class="pie-info">
                             <div class="pie-label">Tunggakan</div>
-                            <div class="pie-value">Rp {{ number_format($totalTunggakan, 0, ',', '.') }}</div>
+                            <div class="pie-value">{{ \App\Utils\Angka::format($totalTunggakan, 2) }}</div>
                         </div>
                     </div>
                 </div>
@@ -253,7 +312,7 @@
                 @forelse($jenis_biaya as $b)
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
                         <span>Angkatan {{ $b->angkatan }}</span>
-                        <span class="badge bg-soft-success">Rp {{ number_format((float) $b->total_beban, 0, ',', '.') }}</span>
+                        <span class="badge bg-soft-success">{{ \App\Utils\Angka::format($b->total_beban, 2) }}</span>
                     </li>
                 @empty
                     <li class="list-group-item px-0 text-muted">Belum ada data</li>
@@ -265,39 +324,57 @@
 
 <div class="row g-3">
     <div class="col-12">
-        <div class="panel-card">
-            <h6 class="title">
-                <span class="material-symbols-rounded">history</span>
-                Riwayat Transaksi
-            </h6>
-            <div class="table-responsive">
-                <table id="tblRecentTransaksi" class="table recent-table align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Siswa</th>
-                            <th>Keterangan</th>
-                            <th class="text-end">Jumlah</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentTransaksi as $t)
-                            <tr>
-                                <td>{{ Carbon::parse($t->tanggal_transaksi)->translatedFormat('d M Y') }}</td>
-                                <td>
-                                    <div class="fw-semibold">{{ $t->siswa->nama ?? 'Umum' }}</div>
-                                    <div style="font-size:11px; color:#94a3b8;">{{ $t->siswa->nisn ?? '-' }}</div>
-                                </td>
-                                <td style="color:#475569;">{{ \Illuminate\Support\Str::limit($t->keterangan, 70) }}</td>
-                                <td class="text-end">
-                                    <span class="badge-soft bg-soft-success">Rp {{ number_format((float) $t->getRawOriginal('jumlah'), 0, ',', '.') }}</span>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="4" class="text-center text-muted py-4">Belum ada transaksi</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <div class="accordion accordion-flush" id="accRiwayatCard">
+            <div class="accordion-item">
+                <div class="panel-card p-2">
+                    <h2 class="accordion-header" id="accHeadRiwayat">
+                        <button class="accordion-button {{ request('search') ? '' : 'collapsed' }} d-flex align-items-center gap-2" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#accBodyRiwayat"
+                                aria-expanded="{{ request('search') ? 'true' : 'false' }}" aria-controls="accBodyRiwayat">
+                            <span class="material-symbols-rounded">history</span>
+                            <span class="fw-semibold flex-grow-1">Riwayat Transaksi Terbaru</span>
+                            <i class="material-icons acc-chevron ms-auto">expand_more</i>
+                        </button>
+                    </h2>
+                    <div id="accBodyRiwayat" class="accordion-collapse collapse {{ request('search') ? 'show' : '' }}"
+                         aria-labelledby="accHeadRiwayat" data-bs-parent="#accRiwayatCard">
+                        <div class="accordion-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-striped align-items-center mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tanggal</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Nama / NISN</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Keterangan</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-end">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($recentTransaksi as $t)
+                                            <tr>
+                                                <td>
+                                                    <p class="text-xs font-weight-bold mb-0">{{ Carbon::parse($t->tanggal_transaksi)->translatedFormat('d M Y') }}</p>
+                                                </td>
+                                                <td>
+                                                    <p class="text-xs font-weight-bold mb-0 text-truncate" style="max-width:220px;">{{ $t->siswa?->nama ?? 'Umum' }}</p>
+                                                    <p class="text-xs text-secondary mb-0">NISN: {{ $t->siswa?->nisn ?? '-' }}</p>
+                                                </td>
+                                                <td class="text-wrap" style="max-width:280px;">
+                                                    <p class="text-xs mb-0">{{ $t->keterangan ?: '—' }}</p>
+                                                </td>
+                                                <td class="text-end">
+                                                    <p class="text-xs font-weight-bold mb-0">{{ \App\Utils\Angka::format($t->getRawOriginal('jumlah'), 2) }}</p>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="4" class="text-center text-muted py-4">Belum ada transaksi</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -306,7 +383,7 @@
 
 @section('modal')
 <div class="modal fade" id="modalSiswaAktif" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Daftar Siswa Aktif</h5>
@@ -323,7 +400,7 @@
 </div>
 
 <div class="modal fade" id="modalSiswaMenunggak" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Daftar Siswa Menunggak</h5>
@@ -346,9 +423,6 @@ const labelsBulanan     = @json($labelsBulanan);
 const pendapatanBulanan = @json($pendapatanBulanan);
 
 const ctx = document.getElementById('chartPendapatan').getContext('2d');
-const grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.clientHeight || 180);
-grad.addColorStop(0, 'rgba(52,211,153,.35)');
-grad.addColorStop(1, 'rgba(52,211,153,.02)');
 
 (function () {
     const last = +pendapatanBulanan[pendapatanBulanan.length - 1] || 0;
@@ -375,7 +449,7 @@ new Chart(ctx, {
             label: 'Pendapatan',
             data: pendapatanBulanan,
             borderColor: '#34d399',
-            backgroundColor: grad,
+            backgroundColor: 'rgba(52,211,153,.15)',
             tension: 0.4,
             fill: true,
             borderWidth: 2.5,
@@ -393,14 +467,14 @@ new Chart(ctx, {
             legend: { display: false },
             tooltip: {
                 callbacks: {
-                    label: (c) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(c.parsed.y))
+                    label: (c) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.round(c.parsed.y))
                 }
             }
         },
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { color: '#64748b', callback: (v) => 'Rp ' + new Intl.NumberFormat('id-ID').format(v) },
+                ticks: { color: '#64748b', callback: (v) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) },
                 grid: { color: 'rgba(148,163,184,.10)' }
             },
             x: { ticks: { color: '#64748b' }, grid: { display: false } }
@@ -451,21 +525,6 @@ $(document).ready(function () {
 
     loadPartial('#modalSiswaAktif',    '#bodySiswaAktif',    '/app/dashboard/siswa-aktif');
     loadPartial('#modalSiswaMenunggak', '#bodySiswaMenunggak', '/app/dashboard/siswa-menunggak');
-
-    if ($.fn.DataTable && !$('#tblRecentTransaksi').hasClass('dataTable')) {
-        $('#tblRecentTransaksi').DataTable({
-            pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            order: [[0, 'desc']],
-            columns: [{}, {}, {}, {}],
-            columnDefs: [{ targets: '_all', defaultContent: '' }],
-            language: {
-                lengthMenu: 'Tampilkan _MENU_ data',
-                info: 'Menampilkan _START_–_END_ dari _TOTAL_',
-                paginate: { previous: '‹', next: '›' }
-            }
-        });
-    }
 });
 </script>
 @endsection

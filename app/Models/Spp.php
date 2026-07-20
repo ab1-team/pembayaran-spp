@@ -29,7 +29,7 @@ class Spp extends Model
 
     public function transaksi()
     {
-        return $this->hasMany(Transaksi::class, 'spp_id');
+        return $this->hasMany(Transaksi::class, 'kode_spp', 'kode');
     }
 
     public function anggotaKelas()

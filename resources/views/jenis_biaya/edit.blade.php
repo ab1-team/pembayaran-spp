@@ -57,7 +57,7 @@
                                 <label class="form-label">Total Beban</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <input type="text" name="total_beban" class="form-control nominal"
-                                        value="{{ number_format($jenis_biaya->total_beban, 2) }}" required>
+                                        value="{{ \App\Utils\Angka::format($jenis_biaya->total_beban, 2) }}" required>
                                 </div>
                             </div>
                         </div>

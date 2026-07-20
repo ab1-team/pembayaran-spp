@@ -38,7 +38,7 @@ use App\Utils\Tanggal;
                                     Daftar Ulang
                                     @endif
                                 </td>
-                                <td>Rp {{ number_format((float) $item->getRawOriginal('jumlah'), 0, ',', '.') }}</td>
+                                <td>{{ \App\Utils\Angka::format($item->getRawOriginal('jumlah'), 0) }}</td>
                                 <td>{{ $item->keterangan }}</td>
                             </tr>
                             @empty

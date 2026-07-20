@@ -75,7 +75,7 @@
             {{-- JUDUL --}}
             <div class="judul">KWITANSI</div>
             <div class="subjudul">
-                Nomor : {{ $header->spp_id ?? '-' }}
+                Nomor : {{ $header->kode_spp ?? '-' }}
                 &nbsp; Tanggal :
                 {{ \App\Utils\Tanggal::tglKwitansi($header->tanggal_transaksi) }}
             </div>
@@ -132,7 +132,7 @@
             padding:8px 0;
             box-sizing:border-box;
         ">
-                            Rp. {{ number_format($total, 0, ',', '.') }},-
+                            {{ \App\Utils\Angka::format($total, 0) }}
                         </div>
                     </td>
 

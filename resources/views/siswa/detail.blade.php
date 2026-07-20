@@ -378,7 +378,7 @@
                                                            {{ $item->spp ? Tanggal::namabulan($item->spp->tanggal) : 'Daftar Ulang' }}
                                                         </td>
                                                         <td width="60%" class="text-wrap">{{ $item->keterangan }}</td>
-                                                        <td width="10%" class="text-end">{{ number_format($item->jumlah,2) }}</td>
+                                                        <td width="10%" class="text-end">{{ \App\Utils\Angka::format($item->jumlah, 2) }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

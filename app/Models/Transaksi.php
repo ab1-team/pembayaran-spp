@@ -30,7 +30,7 @@ class Transaksi extends Model
 
     public function spp()
     {
-        return $this->belongsTo(Spp::class, 'spp_id');
+        return $this->belongsTo(Spp::class, 'kode_spp', 'kode');
     }
 
     public function rekeningDebit()

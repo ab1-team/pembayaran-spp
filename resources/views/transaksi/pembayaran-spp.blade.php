@@ -3,32 +3,19 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-body py-2 px-2">
+                <div class="card-body pt-2 pb-2 px-2">
                     <div class="row g-2 align-items-end">
-                        <div class="col-md-9 col-12">
+                        <div class="col-12">
                             <input type="text" id="pembayaranSPP" placeholder="Cari NISN / Nama Siswa ...."
                                 class="form-control form-search" autocomplete="off">
-                        </div>
-                        <div class="col-md-3 col-12 mt-2 mt-md-2">
-                            <button type="button" id="btnDetailSiswaTop" class="btn btn-danger w-100">
-                                <i class="bi bi-receipt-cutoff me-1"></i> Detail Pembayaran
-                            </button>
                         </div>
                 </div>
             </div>
         </div>
         <div id="accordion" class="col-12">
-            <div class="mt-4">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-person-search text-danger fs-1 mb-2"></i>
-                    <div class="mb-3">
-                        <img src="/assets/img/siswa.png" class="img-fluid" style="max-height:220px;">
-                    </div>
-                    <h6 class="fw-bold mb-1">Data Siswa Tidak Ditemukan</h6>
-                    <p class="text-muted small mb-0">
-                        Silakan lakukan pencarian atau periksa kembali NISN / Nama siswa.
-                    </p>
-                </div>
+            <div class="text-center text-muted py-5">
+                <div class="spinner-border text-danger"></div>
+                <p class="mt-2">Memuat form pembayaran...</p>
             </div>
         </div>
     </div>
@@ -105,10 +92,23 @@
 @section('script')
     <script>
         let lastTransaksiIds = null;
+        let formTagihanRequest = null;
         var numFormat = new Intl.NumberFormat('id-ID');
         var dataCustomer;
 
+        function notifAlert({ icon = 'exclamation-triangle', title, why, solution, cls = 'alert-danger' }) {
+            return `<div class="alert ${cls} text-start mb-0">
+                <div class="fw-bold mb-1"><i class="bi bi-${icon} me-1"></i>${title}</div>
+                <div class="small"><strong>Penyebab:</strong> ${why}</div>
+                <div class="small mt-1"><strong>Solusi:</strong> ${solution}</div>
+            </div>`;
+        }
+
         //search
+        $(function() {
+            formTagihanBulanan();
+        });
+
         $(document).on('click', '#closeRiwayat', function() {
             $('#riwayat-transaksi').addClass('d-none');
             $('#list-riwayat').empty();
@@ -121,6 +121,33 @@
         }, {
             name: 'siswa',
             displayKey: 'name',
+            templates: {
+                empty: function(queryData) {
+                    const q = (queryData && queryData.query) || '';
+                    if (q.length < 2) return '';
+                    const safe = $('<div>').text(q).html();
+                    return `
+                        <div class="p-3 small lh-sm">
+                            <div class="fw-bold text-danger mb-1">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Siswa tidak ditemukan
+                            </div>
+                            <div class="text-muted">Pencarian: <strong>&quot;${safe}&quot;</strong></div>
+                            <div class="text-muted mt-2">
+                                <strong>Kemungkinan penyebab:</strong>
+                                <ul class="ps-3 mb-1">
+                                    <li>Ejaan nama atau NISN salah.</li>
+                                    <li>Siswa belum punya <em>Anggota Kelas</em> ber-status Aktif.</li>
+                                    <li>Siswa berstatus blokir / nonaktif.</li>
+                                </ul>
+                            </div>
+                            <div class="text-muted">
+                                <strong>Solusi:</strong> periksa ejaan, atau daftarkan siswa
+                                via menu <em>Kelas &rarr; Anggota Kelas</em>.
+                            </div>
+                        </div>`;
+                }
+            },
             source: function(query, process) {
                 if (query.length < 2) return process([]);
                 $.get('/app/spp/CariSiswa', {
@@ -142,14 +169,26 @@
             formTagihanBulanan(data.item);
         });
 
-        function formTagihanBulanan(siswa) {
-            $.get('/app/spp/Pembayaran-spp/' + siswa.id_siswa, function(result) {
+        function formTagihanBulanan(siswa = null) {
+            let idSiswa = siswa?.id_siswa ?? 0;
+
+            formTagihanRequest?.abort();
+            dataCustomer = null;
+            formTagihanRequest = $.get('/app/spp/Pembayaran-spp/' + idSiswa, function(result) {
                 $('#accordion').html(result.view ?? '');
-                dataCustomer = {
+                dataCustomer = siswa ? {
                     item: siswa,
                     rek_debit: result.rek_debit ?? null,
                     rek_kredit: result.rek_kredit ?? null
-                };
+                } : null;
+            }).fail(function(xhr, status) {
+                if (status !== 'abort') {
+                    $('#accordion').html(notifAlert({
+                        title: 'Form pembayaran gagal dimuat',
+                        why: 'koneksi terputus, server sibuk, atau data siswa sudah dihapus.',
+                        solution: 'coba lagi beberapa saat. Bila gagal terus, pilih ulang siswa atau muat ulang halaman.'
+                    }));
+                }
             });
         }
 
@@ -181,7 +220,11 @@
                         $(content).html(res);
                     })
                     .fail(function() {
-                        $(content).html(`<div class="alert alert-danger">Gagal memuat data</div>`);
+                        $(content).html(notifAlert({
+                            title: 'Detail transaksi gagal dimuat',
+                            why: 'siswa sudah dihapus / tidak ditemukan, atau terjadi gangguan jaringan.',
+                            solution: 'tutup modal, pilih ulang siswa melalui pencarian, lalu buka kembali.'
+                        }));
                     });
             }
 
@@ -200,7 +243,11 @@
                         $(content).html(res);
                     })
                     .fail(function() {
-                        $(content).html(`<div class="alert alert-danger">Gagal memuat data</div>`);
+                        $(content).html(notifAlert({
+                            title: 'Daftar cetak gagal dimuat',
+                            why: 'siswa sudah dihapus / tidak ditemukan, atau terjadi gangguan jaringan.',
+                            solution: 'tutup modal, pilih ulang siswa melalui pencarian, lalu buka kembali.'
+                        }));
                     });
             }
         }
@@ -276,7 +323,19 @@
                         contentType: false,
                         processData: false,
                         success: function (result) {
-                            if (!result.success) return;
+                            if (!result.success) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: result.msg || 'Transaksi ditolak',
+                                    html: `
+                                        <div class="small text-muted text-start mt-2">
+                                            <div><strong>Penyebab:</strong> ${result.msg ? 'lihat pesan di atas.' : 'data tidak valid atau ditolak oleh sistem.'}</div>
+                                            <div class="mt-1"><strong>Solusi:</strong> periksa kembali input (tanggal, jenis biaya, bulan SPP yang dicentang), lalu coba lagi.</div>
+                                        </div>`,
+                                    confirmButtonText: 'Oke'
+                                });
+                                return;
+                            }
                             lastTransaksiIds = Array.isArray(result.id_transaksi)
                                 ? result.id_transaksi.join(',')
                                 : result.id_transaksi;

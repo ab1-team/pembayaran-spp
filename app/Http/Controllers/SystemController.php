@@ -62,9 +62,10 @@ class SystemController extends Controller
                     Transaksi::create([
                         'tanggal_transaksi' => now()->format('Y-m-d'),
                         'idtp' => null,
+                        'invoice' => 0,
                         'rekening_debit' => '1.1.03.01',
                         'rekening_kredit' => '4.1.01.01',
-                        'spp_id' => $spp->id,
+                        'kode_spp' => $spp->kode,
                         'siswa_id' => $value->id,
                         'jumlah' => $spp->nominal,
                         'keterangan' => 'Tagihan spp bulan '

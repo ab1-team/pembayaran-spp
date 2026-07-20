@@ -238,7 +238,7 @@
 
             <div style="color: #f44335">
                 Ada selisih antara Jumlah Aset dan Jumlah Liabilitas + Ekuitas sebesar
-                <b>Rp. ......</b>
+                <b>......</b>
             </div>
         </li>
         <li style="margin-top: 12px;">
@@ -251,13 +251,13 @@
             </div>
             <ol>
                 <li>
-                    Total Laba bersih Rp. .....................
+                    Total Laba bersih .....................
                 </li>
                 <li>
-                    Alokasi penambahan modal {{ $profil->nama }} Rp. .................
+                    Alokasi penambahan modal {{ $profil->nama }} .................
                 </li>
                 <li>
-                    Alokasi PADes {{ $profil->nama }} Rp. .................
+                    Alokasi PADes {{ $profil->nama }} .................
                 </li>
             </ol>
         </li>

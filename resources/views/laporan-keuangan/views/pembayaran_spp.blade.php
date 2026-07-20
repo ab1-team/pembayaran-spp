@@ -66,27 +66,27 @@
 
                     {{-- Target per bulan --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->per_bulan, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->per_bulan, 2) }}
                     </td>
 
                     {{-- Target s.d saat ini --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->target_sd_saat_ini, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->target_sd_saat_ini, 2) }}
                     </td>
 
                     {{-- Realisasi s.d periode lalu --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->sd_periode_lalu, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->sd_periode_lalu, 2) }}
                     </td>
 
                     {{-- Realisasi periode ini --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->periode_ini, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->periode_ini, 2) }}
                     </td>
 
                     {{-- Realisasi s.d periode ini --}}
                     <td style="border:1px solid #000; text-align:right;">
-                        {{ number_format($row->sd_periode_ini, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($row->sd_periode_ini, 2) }}
                     </td>
 
                     {{-- Keterangan --}}
@@ -94,7 +94,7 @@
                         style="border:1px solid #000; text-align:center;
                  color: {{ $row->sisa > 0 ? 'red' : 'black' }};">
                         @if ($row->sisa > 0)
-                            ({{ number_format($row->sisa, 2, ',', '.') }})
+                            ({{ \App\Utils\Angka::format($row->sisa, 2) }})
                         @else
                             Lunas
                         @endif

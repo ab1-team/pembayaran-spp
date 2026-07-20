@@ -106,7 +106,7 @@
                             @endif
                         </td>
                         <td>{{ $item->keterangan }}</td>
-                        <td class="text-end">{{ number_format($item->jumlah, 2) }}</td>
+                        <td class="text-end">{{ \App\Utils\Angka::format($item->jumlah, 2) }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -116,7 +116,7 @@
 
                 <tr>
                     <th colspan="3" class="text-end">Total Bayar</th>
-                    <th class="text-end">{{ number_format($riwayat->sum('jumlah'), 2) }}</th>
+                    <th class="text-end">{{ \App\Utils\Angka::format($riwayat->sum('jumlah'), 2) }}</th>
                 </tr>
             </tbody>
         </table>

@@ -153,7 +153,7 @@ class DummyDataSeeder extends Seeder
                 'updated_at' => now(),
             ]);
 
-            DB::table('anggota_kelas')->insert([
+            $idAk = DB::table('anggota_kelas')->insertGetId([
                 'id_siswa' => $idSiswa,
                 'tahun_akademik' => $tahunSekarang,
                 'tingkat' => $tingkat,
@@ -164,15 +164,17 @@ class DummyDataSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            $idSiswaAk = (int) DB::table('anggota_kelas')->where('id', $idAk)->value('id_siswa');
 
             foreach ($bulanSPP as $ke => $tgl) {
 
                 DB::table('spp')->insert([
-                    'tanggal' => $tgl,
-                    'anggota_kelas' => (string)$idSiswa,
-                    'nominal' => '300000',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'kode'          => date('ym', strtotime($tgl)) . $idSiswaAk,
+                    'tanggal'       => $tgl,
+                    'anggota_kelas' => (string) $idAk,
+                    'nominal'       => '300000',
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
                 ]);
             }
         }

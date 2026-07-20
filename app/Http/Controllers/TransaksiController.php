@@ -10,6 +10,7 @@ use App\Models\Siswa;
 use App\Models\Spp;
 use App\Models\Inventaris;
 use App\Utils\Inventaris as UtilsInventaris;
+use App\Utils\Angka;
 use App\Utils\Tanggal;
 use App\Models\Rekening;
 use Illuminate\Http\Request;
@@ -105,7 +106,7 @@ class TransaksiController extends Controller
                 'rekening_debit' => $data['disimpan_ke'],
                 'rekening_kredit' => $data['sumber_dana'],
                 'keterangan' => $form['keterangan'],
-                'jumlah' => (int) preg_replace('/[^0-9]/', '', $form['nominal']),
+                'jumlah' => Angka::parseInt($form['nominal']),
             ]);
         }
 
@@ -113,7 +114,7 @@ class TransaksiController extends Controller
             $jenis_inventaris = $form['jenis_inventaris'];
             $kategori_inventaris = $form['kategori_inventaris'];
             $nama_barang = $form['nama_barang'];
-            $harga_satuan = (int) preg_replace('/[^0-9]/', '', $form['harga_satuan']);
+            $harga_satuan = Angka::parseInt($form['harga_satuan']);
             $umur_ekonomis = $form['umur_ekonomis'];
             $jumlah_unit = $form['jumlah_unit'];
             $harga_perolehan = $harga_satuan * $jumlah_unit;
@@ -147,8 +148,8 @@ class TransaksiController extends Controller
             $jumlah_barang = $nama_barang[1];
             $status = $form['alasan'];
             $jumlah_unit = $form['jumlah_unit_inventaris'];
-            $nilai_buku = (int) preg_replace('/[^0-9]/', '', $form['nilai_buku']);
-            $harga_jual = (int) preg_replace('/[^0-9]/', '', $form['harga_jual']);
+            $nilai_buku = Angka::parseInt($form['nilai_buku']);
+            $harga_jual = Angka::parseInt($form['harga_jual']);
 
             $inv = Inventaris::where('id', $id_inv)->first();
 
@@ -220,7 +221,7 @@ class TransaksiController extends Controller
             }
 
             if ($status == 'revaluasi') {
-                $harga_jual = (int) preg_replace('/[^0-9]/', '', $request->harga_jual);
+                $harga_jual = Angka::parseInt($request->harga_jual);
 
                 $insert_inventaris_baru = [
                     'nama' => $barang,
@@ -313,7 +314,7 @@ class TransaksiController extends Controller
         }
         $isSpp = $jp->isSpp();
 
-        $sppIds   = $request->input('spp_id', []);
+        $kodeSpp  = $request->input('kode_spp', []);
         $nominals = $request->input('nominal_spp', []);
 
         $transaksiList = [];
@@ -322,26 +323,26 @@ class TransaksiController extends Controller
 
         if ($isSpp) {
             $request->validate([
-                'spp_id' => 'required|array|min:1',
+                'kode_spp' => 'required|array|min:1',
                 'nominal_spp' => 'required|array',
             ]);
 
-            if (count($sppIds) !== count($nominals)) {
+            if (count($kodeSpp) !== count($nominals)) {
                 return response()->json([
                     'success' => false,
                     'msg' => 'Data SPP tidak sinkron'
                 ], 422);
             }
-            foreach ($sppIds as $i => $sppId) {
+            foreach ($kodeSpp as $i => $kode) {
 
-                $nilai = (int) preg_replace('/[^0-9]/', '', $nominals[$i]);
-                $spp   = Spp::findOrFail($sppId);
+                $nilai = Angka::parseInt($nominals[$i]);
+                $spp   = Spp::where('kode', $kode)->firstOrFail();
 
                 $isTunggakan = Carbon::parse($spp->tanggal)
                     ->lt(Carbon::parse($request->tanggal)->startOfMonth());
 
                 if ($isTunggakan) {
-                    Transaksi::where('spp_id', $sppId)
+                    Transaksi::where('kode_spp', $kode)
                         ->whereNull('deleted_at')
                         ->update(['deleted_at' => now()]);
                 }
@@ -351,9 +352,10 @@ class TransaksiController extends Controller
                 $transaksi = Transaksi::create([
                     'tanggal_transaksi' => $request->tanggal,
                     'idtp' => $idtp,
+                    'invoice' => 0,
                     'rekening_debit' => $request->sumber_dana,
                     'rekening_kredit' => $rekeningKredit,
-                    'spp_id' => $sppId,
+                    'kode_spp' => $spp->kode,
                     'siswa_id' => $request->siswa_id,
                     'jumlah' => $nilai,
                     'keterangan' => $request->keterangan . '(' .
@@ -372,11 +374,12 @@ class TransaksiController extends Controller
             $transaksi = Transaksi::create([
                 'tanggal_transaksi' => $request->tanggal,
                 'idtp' => $idtp,
+                'invoice' => 0,
                 'rekening_debit' => $request->sumber_dana,
                 'rekening_kredit' => $jp->kode_akun,
-                'spp_id' => 0,
+                'kode_spp' => null,
                 'siswa_id' => $request->siswa_id,
-                'jumlah' => (int) preg_replace('/[^0-9]/', '', $request->nominal),
+                'jumlah' => Angka::parseInt($request->nominal),
                 'keterangan' => $request->keterangan,
                 'user_id' => auth()->user()->id,
                 'urutan' => '0',
@@ -451,17 +454,9 @@ class TransaksiController extends Controller
         $allSpps = collect();
 
         foreach ($transaksis as $transaksi) {
-            $rawSpp = $transaksi->spp_id;
-            if (is_string($rawSpp)) {
-                $decoded = json_decode($rawSpp, true);
-                $sppIds = is_array($decoded) ? $decoded : [$rawSpp];
-            } elseif (is_numeric($rawSpp)) {
-                $sppIds = [$rawSpp];
-            } else {
-                $sppIds = [];
-            }
+            $sppKodes = array_values(array_filter((array) $transaksi->kode_spp, fn ($v) => $v !== null && $v !== ''));
 
-            $spps = Spp::whereIn('id', $sppIds)->get();
+            $spps = $sppKodes ? Spp::whereIn('kode', $sppKodes)->get() : collect();
             $allSpps = $allSpps->merge($spps);
         }
 
@@ -536,13 +531,13 @@ class TransaksiController extends Controller
      */
     public function pembayaranSPPDestroy(Transaksi $Transaksi)
     {
-        $sppId = $Transaksi->spp_id;
-        if (is_numeric($sppId) && (int) $sppId > 0) {
-            $spp = Spp::find($sppId);
+        $kodeSpp = $Transaksi->kode_spp;
+        if ($kodeSpp) {
+            $spp = Spp::where('kode', $kodeSpp)->first();
             $spp?->batalLunas();
 
             // kembalikan tagihan tunggakan yang sebelumnya di-soft-delete saat pembayaran
-            Transaksi::where('spp_id', $sppId)
+            Transaksi::where('kode_spp', $kodeSpp)
                 ->where('rekening_debit', JenisPembayaran::KODE_PIUTANG_DEFAULT)
                 ->whereNotNull('deleted_at')
                 ->update(['deleted_at' => null]);

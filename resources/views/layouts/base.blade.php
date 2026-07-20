@@ -362,6 +362,18 @@
             border-radius: 1rem !important;
             overflow: hidden;
         }
+
+        .sidenav-header .navbar-brand {
+            display: flex !important;
+            align-items: center;
+            gap: 6px;
+        }
+        .sidenav-header .navbar-brand img { flex-shrink: 0; }
+        .sidenav-header .navbar-brand > span {
+            flex: 1 1 auto;
+            min-width: 0;
+            line-height: 1.2;
+        }
         .modal-header {
             border-top-left-radius: 1rem !important;
             border-top-right-radius: 1rem !important;
@@ -384,7 +396,17 @@
                 id="iconSidenav"></i>
             <a class="navbar-brand px-4 py-3 m-0" href="/" target="_blank">
                 <img src="{{ $appLogoUrl }}" width="35" height="35">
-                <span class="ms-1 text-sm text-dark">{{ $appName }}</span>
+                <span class="ms-1 text-sm text-dark">
+                    @php
+                        $__words = preg_split('/\s+/', trim($appName));
+                        $__first = true;
+                        foreach ($__words as $__w) {
+                            if (!$__first) echo '<wbr>';
+                            echo e($__w);
+                            $__first = false;
+                        }
+                    @endphp
+                </span>
             </a>
         </div>
         <hr class="horizontal dark mt-0 mb-2">

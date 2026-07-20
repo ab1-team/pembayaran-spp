@@ -6,10 +6,11 @@ use App\Models\Jenis_Biaya;
 use App\Models\Siswa;
 use App\Models\Transaksi;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $today       = Carbon::today();
         $bulanAwal   = Carbon::now()->startOfMonth();
@@ -65,9 +66,20 @@ class DashboardController extends Controller
 
         $recentTransaksi = Transaksi::with(['siswa', 'user'])
             ->whereNull('deleted_at')
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $term = '%' . $request->search . '%';
+                $q->where(function ($w) use ($term) {
+                    $w->where('keterangan', 'like', $term)
+                      ->orWhereHas('siswa', function ($s) use ($term) {
+                          $s->where('nama', 'like', $term)
+                            ->orWhere('nisn', 'like', $term);
+                      });
+                });
+            })
             ->orderByDesc('tanggal_transaksi')
+            ->orderByDesc('created_at')
             ->orderByDesc('id')
-            ->limit(100)
+            ->limit(10)
             ->get();
 
         $title = 'Dashboard';

@@ -15,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Http\Requests\SiswaRequest;
 use App\Services\SiswaService;
+use Illuminate\Support\Facades\DB;
 
 
 class SiswaController extends Controller
@@ -318,6 +319,9 @@ class SiswaController extends Controller
         $data['tgl_masuk'] = $data['tanggal_masuk'] ?? null;
         $data['hp'] = $data['hp'] ?? $data['telepon'] ?? '-';
 
+        $oldSppNominal = (string) ($siswa->spp_nominal ?? '0');
+        $newSppNominal = (string) $this->service->normalizeNominal($data['spp_nominal'] ?? 0);
+
         unset($data['kelas'], $data['ruangan'], $data['transportasi'],
               $data['no_telp_ayah'], $data['no_telp_ibu'], $data['no_telp_wali'],
               $data['tanggal_masuk'], $data['tingkat'], $data['spp_nominal'],
@@ -333,6 +337,14 @@ class SiswaController extends Controller
                 'tingkat'        => $tingkat,
                 'tahun_akademik' => $data['tahun_akademik'] ?? $anggota->tahun_akademik,
             ]);
+        }
+
+        if ($newSppNominal !== $oldSppNominal && (int) $newSppNominal > 0) {
+            DB::table('spp as s')
+                ->join('anggota_kelas as ak', 'ak.id', '=', 's.anggota_kelas')
+                ->where('ak.id_siswa', $siswa->id)
+                ->where('s.status', 'B')
+                ->update(['s.nominal' => $newSppNominal]);
         }
 
         return response()->json([

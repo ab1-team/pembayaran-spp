@@ -89,7 +89,7 @@
                         <td align="center">{{ $index + 1 }}</td>
                         <td>{{ Tanggal::tglIndo($transaksi->tanggal) }}</td>
                         <td>{{ $transaksi->keterangan ?? '-' }}</td>
-                        <td align="right">{{ number_format((float) $transaksi->getRawOriginal('jumlah'), 2, ',', '.') }}</td>
+                        <td align="right">{{ \App\Utils\Angka::format($transaksi->getRawOriginal('jumlah'), 2) }}</td>
                     </tr>
                     @php $total += (float) $transaksi->getRawOriginal('jumlah'); @endphp
                 @endforeach
@@ -98,7 +98,7 @@
                 <tr>
                     <th colspan="3">TOTAL</th>
                     <th align="right">
-                        {{ number_format($total, 2, ',', '.') }}
+                        {{ \App\Utils\Angka::format($total, 2) }}
                     </th>
                 </tr>
             </tfoot>

@@ -8,14 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('profil', function (Blueprint $table) {
-            $table->dropColumn([
-                'status_pembayaran',
-                'toleransi_tunggakan',
-                'pesan_tagihan',
-                'pesan_pembayaran',
-            ]);
-        });
+        $cols = ['status_pembayaran', 'toleransi_tunggakan', 'pesan_tagihan', 'pesan_pembayaran'];
+        $existing = array_intersect($cols, \Illuminate\Support\Facades\Schema::getColumnListing('profil'));
+        if ($existing) {
+            Schema::table('profil', fn (Blueprint $t) => $t->dropColumn($existing));
+        }
     }
 
     public function down(): void

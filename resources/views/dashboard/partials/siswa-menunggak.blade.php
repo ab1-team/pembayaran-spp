@@ -18,7 +18,7 @@
                 @php
                     $total_tagihan = $s->getTransaksi->sum(fn($trx) => (float) $trx->getRawOriginal('jumlah'));
                     $bulanTunggakan = $s->getTransaksi
-                        ->map(fn($trx) => Tanggal::namabulan($trx->spp?->tanggal))
+                        ->map(fn($trx) => Tanggal::namaBulan($trx->spp?->tanggal))
                         ->unique()->values();
                 @endphp
                 <tr>
@@ -27,7 +27,7 @@
                     <td>{{ $s->nama }}</td>
                     <td class="text-center">{{ $s->kode_kelas }}</td>
                     <td class="text-end fw-semibold text-danger">
-                        Rp {{ number_format($total_tagihan, 0, ',', '.') }}
+                        {{ \App\Utils\Angka::format($total_tagihan, 2) }}
                     </td>
                     <td>
                         @foreach ($bulanTunggakan->take(3) as $bulan)

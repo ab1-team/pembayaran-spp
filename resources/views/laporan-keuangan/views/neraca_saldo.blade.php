@@ -6,11 +6,10 @@
             return '';
         }
 
-        // tampilkan kurung jika negatif
         if ($angka < 0) {
-            return '(' . number_format(abs($angka), 2, ',', '.') . ')';
+            return '(' . \App\Utils\Angka::format(abs($angka), 2) . ')';
         }
-        return number_format($angka, 2, ',', '.');
+        return \App\Utils\Angka::format($angka, 2);
     }
 
     $total_ns_debit = $total_ns_kredit = 0;

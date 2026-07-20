@@ -144,6 +144,7 @@ class SiswaService
 
         while ($mulai->lte($akhir)) {
             Spp::create([
+                'kode'          => $mulai->format('ym') . $anggota->id_siswa,
                 'tanggal'       => $mulai->format('Y-m-d'),
                 'anggota_kelas' => $anggota->id,
                 'nominal'       => (string) $nominal,
@@ -159,8 +160,7 @@ class SiswaService
 
     public function normalizeNominal($value): int
     {
-        $value = preg_replace('/[^0-9]/', '', (string) $value);
-        return (int) $value;
+        return \App\Utils\Angka::parseInt($value);
     }
 
     public function resolveTahunAkademikNama(array $data): string
