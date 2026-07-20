@@ -66,7 +66,8 @@
                                     <option value="0">Pilih Jenis Pembayaran</option>
                                     @foreach ($jenis_biaya as $jb)
                                         @php
-                                            $nm = $nominalMap[$jb->id.'|'.$tahun_angkatan][0]->total_beban ?? '';
+                                            $arr = $nominalMap[$jb->id.'|'.$tahun_angkatan] ?? null;
+                                            $nm = ($arr && isset($arr[0])) ? $arr[0]->total_beban : '';
                                         @endphp
                                         <option value="{{ $jb->kode_akun }}" data-idjp="{{ $jb->id }}"
                                             data-nominal="{{ $nm }}"
