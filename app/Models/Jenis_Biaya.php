@@ -9,7 +9,7 @@ class Jenis_Biaya extends Model
 {
     use HasFactory;
     protected $table = 'jenis_biaya';
-    protected $guarded = ['id'];
+    protected $fillable = ['id_jp', 'angkatan', 'total_beban'];
 
     public function get_jenis_pembayaran()
     {

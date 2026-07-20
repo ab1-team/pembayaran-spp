@@ -129,6 +129,13 @@
         .table .btn {
             margin: 0
         }
+        .btn-compact {
+            padding: 4px 8px !important;
+            line-height: 1.2 !important;
+        }
+        .btn-compact i {
+            font-size: 16px !important;
+        }
 
         @media(max-width:576px) {
             #preview-img-box {

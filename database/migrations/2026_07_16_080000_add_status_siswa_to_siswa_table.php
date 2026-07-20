@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -10,10 +11,12 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('siswa', 'status_siswa')) {
             Schema::table('siswa', function (Blueprint $table) {
-                $table->enum('status_siswa', ['aktif', 'nonaktif', 'blokir'])
-                    ->default('aktif')
-                    ->after('status_awal');
+                $table->string('status_siswa')->after('status_awal');
             });
+        }
+
+        if (DB::getDriverName() === 'mysql' && Schema::hasColumn('siswa', 'status_siswa')) {
+            DB::statement("ALTER TABLE `siswa` MODIFY `status_siswa` VARCHAR(255) NOT NULL");
         }
     }
 

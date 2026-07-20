@@ -21,7 +21,9 @@ class DashboardController extends Controller
         $siswaAktif    = Siswa::aktif()->count();
         $siswaNonAktif = Siswa::nonAktif()->count();
         $siswaBlokir   = Siswa::blokir()->count();
-        $jenis_biaya   = Jenis_Biaya::orderBy('angkatan', 'desc')->get();
+        $jenis_biaya   = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('nama', 'like', '%SPP%'))
+            ->orderBy('angkatan', 'desc')
+            ->get();
 
         $pemasukanHariIni = (float) Transaksi::whereDate('tanggal_transaksi', $today)
             ->where('rekening_debit', 'like', '1.1.01.%')

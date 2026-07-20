@@ -283,11 +283,6 @@
                                             {{ old('status_siswa', $siswa->status_siswa) == 'nonaktif' ? 'checked' : '' }}>
                                         <label class="btn btn-outline-primary flex-fill"
                                             for="status_nonaktif">Nonaktif</label>
-                                        <input type="radio" class="btn-check" name="status_siswa"
-                                            id="status_blokir" value="blokir" autocomplete="off"
-                                            {{ old('status_siswa', $siswa->status_siswa) == 'blokir' ? 'checked' : '' }}>
-                                        <label class="btn btn-outline-primary flex-fill"
-                                            for="status_blokir">Blokir</label>
                                     </div>
                                 </div>
                             </div>
@@ -354,16 +349,8 @@
                                     </div>
                                 </div>
                             </div>
-                            {{-- Baris 9: Spp Nominal, Tahun Ajaran, Kelas, Ruangan (3+3+3+3) --}}
+                            {{-- Baris 9: Tahun Ajaran(3), Kelas(3), Ruangan(3), Spp Nominal(3) = 12 --}}
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="input-group input-group-outline mb-3 is-filled">
-                                        <label class="form-label">Nominal SPP / Bulan</label>
-                                        <input type="text" name="spp_nominal" id="spp_nominal"
-                                            class="form-control nominal"
-                                            value="{{ old('spp_nominal', isset($siswa->spp_nominal) ? \App\Utils\Angka::format($siswa->spp_nominal, 0) : '0') }}">
-                                    </div>
-                                </div>
                                 <div class="col-md-3">
                                     <div class="input-group input-group-outline mb-3">
                                         <select name="tahun_akademik" id="tahun_akademik"
@@ -407,6 +394,14 @@
                                                 </option>
                                             @endforeach
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="input-group input-group-outline mb-3 is-filled">
+                                        <label class="form-label">Nominal SPP / Bulan (ribu)</label>
+                                        <input type="text" name="spp_nominal" id="spp_nominal"
+                                            class="form-control nominal text-end"
+                                            value="{{ old('spp_nominal', isset($siswa->spp_nominal) ? \App\Utils\Angka::format($siswa->spp_nominal, 0) : '0') }}">
                                     </div>
                                 </div>
                             </div>
@@ -686,6 +681,24 @@
             decimal: '.',
             allowZero: true,
             allowNegative: false
+        });
+
+        // Auto-fill nominal SPP ketika tahun ajaran diganti
+        function fetchNominalSpp(tahun) {
+            if (!tahun) return;
+            $.ajax({
+                url: '/app/siswa/nominal-spp',
+                data: { tahun_akademik: tahun },
+                success: function(res) {
+                    var nominal = parseInt(res.nominal || 0, 10);
+                    $('#spp_nominal').val(nominal).maskMoney('mask');
+                    $('#spp_nominal').closest('.input-group').addClass('is-filled');
+                }
+            });
+        }
+
+        $('#tahun_akademik').on('change', function() {
+            fetchNominalSpp($(this).val());
         });
 
         $(document).on('click', '#simpan', function(e) {

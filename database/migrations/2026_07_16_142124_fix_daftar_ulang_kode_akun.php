@@ -2,11 +2,16 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasColumn('transaksi', 'spp_id')) {
+            return;
+        }
+
         DB::table('jenis_pembayaran')
             ->where('nama', 'Daftar Ulang')
             ->where('kode_akun', '1.1.03.01')
@@ -24,6 +29,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasColumn('transaksi', 'spp_id')) {
+            return;
+        }
+
         DB::table('transaksi')
             ->where('rekening_kredit', '4.1.01.02')
             ->where('spp_id', 0)

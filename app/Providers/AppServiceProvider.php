@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Profil;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,7 +19,14 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
-        $profil = Profil::first();
+        $profil = null;
+        if (Schema::hasTable('profil')) {
+            try {
+                $profil = Profil::first();
+            } catch (\Throwable $e) {
+                $profil = null;
+            }
+        }
 
         View::share('appLogoUrl', $profil && $profil->logo
             ? asset('storage/logo/' . $profil->logo)

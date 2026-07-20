@@ -284,16 +284,8 @@
                                     </div>
                                 </div>
                             </div>
-                            {{-- Baris 9: SppNominal(3), Tahun Ajaran(3), Kelas(3), Ruangan(3) = 12 --}}
+                            {{-- Baris 9: Tahun Ajaran(3), Kelas(3), Ruangan(3), SppNominal(3) = 12 --}}
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="input-group input-group-outline mb-3 is-filled">
-                                        <label class="form-label">Nominal SPP / Bulan</label>
-                                        <input type="text" name="spp_nominal" id="spp_nominal" class="form-control nominal"
-                                            value="{{ \App\Utils\Angka::format($nominalSpp ?? 0, 0) }}"
-                                            placeholder="0">
-                                    </div>
-                                </div>
                                 <div class="col-md-3">
                                     <div class="input-group input-group-outline mb-3">
                                         <select name="tahun_akademik" id="tahun_akademik"
@@ -330,6 +322,15 @@
                                                 </option>
                                             @endforeach
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="input-group input-group-outline mb-3 is-filled">
+                                        <label class="form-label">Nominal SPP / Bulan (ribu)</label>
+                                        <input type="text" name="spp_nominal" id="spp_nominal"
+                                            class="form-control nominal text-end"
+                                            value="{{ \App\Utils\Angka::format(($nominalSpp ?? 0) * 100, 0) }}"
+                                            placeholder="0">
                                     </div>
                                 </div>
                             </div>
@@ -576,6 +577,29 @@
             allowZero: true,
             allowNegative: false
         });
+
+        // Auto-fill nominal SPP ketika tahun ajaran diganti
+        function fetchNominalSpp(tahun) {
+            if (!tahun) return;
+            $.ajax({
+                url: '/app/siswa/nominal-spp',
+                data: { tahun_akademik: tahun },
+                success: function(res) {
+                    var nominal = parseInt(res.nominal || 0, 10) * 100;
+                    $('#spp_nominal').val(nominal).maskMoney('mask');
+                    $('#spp_nominal').closest('.input-group').addClass('is-filled');
+                }
+            });
+        }
+
+        $('#tahun_akademik').on('change', function() {
+            fetchNominalSpp($(this).val());
+        });
+
+        // Trigger awal jika sudah ada nilai tahun ajaran (mis. default selected)
+        if ($('#tahun_akademik').val()) {
+            fetchNominalSpp($('#tahun_akademik').val());
+        }
 
         // Tandai is-filled saat user mengetik
         $('#FormSiswa input, #FormSiswa textarea').on('input', function() {

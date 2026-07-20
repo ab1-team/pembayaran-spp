@@ -73,6 +73,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::get('/siswa/listTahun', [SiswaController::class, 'listTahun']);
     Route::get('/siswa/listKelas', [SiswaController::class, 'listKelas']);
     Route::get('/siswa/printSiswa', [SiswaController::class, 'printSiswa']);
+    Route::get('/siswa/nominal-spp', [SiswaController::class, 'getNominalSpp']);
     Route::post('/siswa/mutasi', [SiswaController::class, 'mutasi']);
     Route::get('/siswa/riwayatPembayaran/{id}', [SiswaController::class, 'riwayatPembayaran']);
     Route::resource('/siswa', SiswaController::class);

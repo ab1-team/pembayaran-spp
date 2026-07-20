@@ -13,7 +13,7 @@ class JenisBiayaController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Jenis_Biaya::with('get_jenis_pembayaran');
+            $data = Jenis_Biaya::with('get_jenis_pembayaran')->select('jenis_biaya.*');
             return DataTables::eloquent($data)
                 ->addIndexColumn()
                 ->addColumn('nama_jenis', function ($row) {
@@ -25,13 +25,21 @@ class JenisBiayaController extends Controller
                 ->editColumn('total_beban', function ($row) {
                     return \App\Utils\Angka::format($row->total_beban, 2);
                 })
+                ->orderColumn('nama_jenis', 'jenis_biaya.id_jp $1')
+                ->orderColumn('kode_akun', 'jenis_biaya.id_jp $1')
+                ->filterColumn('nama_jenis', function ($q, $kw) {
+                    $q->whereHas('get_jenis_pembayaran', fn($qq) => $qq->where('nama', 'like', "%{$kw}%"));
+                })
+                ->filterColumn('kode_akun', function ($q, $kw) {
+                    $q->whereHas('get_jenis_pembayaran', fn($qq) => $qq->where('kode_akun', 'like', "%{$kw}%"));
+                })
                 ->addColumn('action', function ($row) {
                     return '
                         <div class="d-inline-flex gap-1">
-                            <button class="btn btn-warning btnEdit" data-id="'.$row->id.'">
+                            <button class="btn btn-warning btn-compact btnEdit" data-id="'.$row->id.'">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button class="btn btn-danger btnDelete" data-id="'.$row->id.'">
+                            <button class="btn btn-danger btn-compact btnDelete" data-id="'.$row->id.'">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -83,9 +91,9 @@ class JenisBiayaController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'total_beban' => 'required',
+            'total_beban' => 'required|numeric|min:0',
             'angkatan'    => 'required',
-            'id_jp'       => 'required|exists:jenis_pembayaran,id|unique:jenis_biaya,id_jp,NULL,id,angkatan,'.$request->input('angkatan'),
+            'id_jp'       => 'required|exists:jenis_pembayaran,id|unique:jenis_biaya,id_jp,NULL,id,angkatan,' . $request->input('angkatan'),
         ], [
             'id_jp.unique' => 'Pembayaran untuk tahun akademik ini sudah ada, edit saja nilainya.',
         ]);
@@ -115,9 +123,9 @@ class JenisBiayaController extends Controller
     public function update(Request $request, Jenis_Biaya $jenis_biaya)
     {
         $data = $request->validate([
-            'total_beban' => 'required',
+            'total_beban' => 'required|numeric|min:0',
             'angkatan'    => 'required',
-            'id_jp'       => 'required|exists:jenis_pembayaran,id|unique:jenis_biaya,id_jp,'.$jenis_biaya->id.',id,angkatan,'.$request->input('angkatan'),
+            'id_jp'       => 'required|exists:jenis_pembayaran,id|unique:jenis_biaya,id_jp,' . $jenis_biaya->id . ',id,angkatan,' . $request->input('angkatan'),
         ], [
             'id_jp.unique' => 'Pembayaran untuk tahun akademik ini sudah ada.',
         ]);

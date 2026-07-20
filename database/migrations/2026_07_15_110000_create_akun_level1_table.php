@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,10 +17,14 @@ return new class extends Migration
             $table->unsignedTinyInteger('lev4')->default(0);
             $table->string('kode_akun', 10);
             $table->string('nama_akun', 100);
-            $table->string('jenis_mutasi', 6)->default('Debet');
+            $table->enum('jenis_mutasi', ['debet', 'kredit'])->default('debet');
             $table->timestamps();
             $table->unique('kode_akun');
         });
+
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `akun_level1` MODIFY `jenis_mutasi` ENUM('debet','kredit') NOT NULL DEFAULT 'debet'");
+        }
     }
 
     public function down(): void

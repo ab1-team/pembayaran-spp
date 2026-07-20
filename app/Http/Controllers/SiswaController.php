@@ -231,9 +231,29 @@ class SiswaController extends Controller
 
     private function nominalSppDefault(): int
     {
+        return $this->nominalSppByTahun(null);
+    }
+
+    public function nominalSppByTahun(?string $tahun): int
+    {
+        if (!$tahun) {
+            $tahun = Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y');
+        }
+
         return (int) (Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-            ->where('angkatan', Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
+            ->where('angkatan', $tahun)
             ->value('total_beban') ?? 0);
+    }
+
+    public function getNominalSpp(Request $request)
+    {
+        $tahun = $request->get('tahun_akademik');
+
+        if (!$tahun) {
+            return response()->json(['nominal' => 0]);
+        }
+
+        return response()->json(['nominal' => $this->nominalSppByTahun($tahun)]);
     }
 
     private function handleFoto(Request $request, ?string $existing = null): string
