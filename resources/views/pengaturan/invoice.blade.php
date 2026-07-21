@@ -17,36 +17,7 @@
                                     <th class="text-center" style="width: 90px;">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @forelse ($invoices as $i => $row)
-                                    <tr class="row-invoice" style="cursor: pointer;" data-href="{{ route('app.pengaturan.invoice.print', $row->id) }}">
-                                        <td class="text-center text-muted">{{ $i + 1 }}</td>
-                                        <td class="fw-semibold">{{ $row->jenis_pembayaran ?? '—' }}</td>
-                                        <td class="text-nowrap">{{ $row->tgl_invoice?->format('d/m/Y') ?? '—' }}</td>
-                                        <td class="text-nowrap">{{ $row->tgl_lunas?->format('d/m/Y') ?? '—' }}</td>
-                                        <td>
-                                            @php
-                                                $badge = match ($row->status) {
-                                                    'paid'   => 'success',
-                                                    'unpaid' => 'warning',
-                                                    default  => 'secondary',
-                                                };
-                                            @endphp
-                                            <span class="badge bg-{{ $badge }}">{{ ucfirst($row->status ?? '—') }}</span>
-                                        </td>
-                                        <td class="text-end fw-semibold text-nowrap">Rp {{ number_format((float) $row->jumlah, 0, ',', '.') }}</td>
-                                        <td class="text-center td-action">
-                                            <a href="{{ route('app.pengaturan.invoice.print', $row->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                                <i class="material-icons align-middle" style="font-size:18px;">picture_as_pdf</i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center text-muted py-4">Belum ada invoice.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -58,6 +29,9 @@
     <script>
         $(document).ready(function() {
             $('#invoices').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('app.pengaturan.invoice.data') }}',
                 paging: true,
                 pageLength: 10,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
@@ -74,15 +48,15 @@
                     zeroRecords: 'Data tidak ditemukan',
                     paginate: { previous: 'Sebelumnya', next: 'Berikutnya' }
                 },
-                columnDefs: [
-                    { orderable: false, searchable: false, targets: [0, 6] }
+                columns: [
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center text-muted' },
+                    { data: 'jenis_pembayaran', name: 'jenis_pembayaran', className: 'fw-semibold' },
+                    { data: 'tgl_invoice_fmt', name: 'tgl_invoice', className: 'text-nowrap' },
+                    { data: 'tgl_lunas_fmt', name: 'tgl_lunas', className: 'text-nowrap' },
+                    { data: 'status_badge', name: 'status', orderable: false, searchable: false },
+                    { data: 'jumlah_fmt', name: 'jumlah', className: 'text-end fw-semibold text-nowrap' },
+                    { data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center' },
                 ]
-            });
-
-            $('#invoices').on('click', 'tr.row-invoice', function (e) {
-                if ($(e.target).closest('a, .btn').length) return;
-                const href = $(this).data('href');
-                if (href) window.open(href, '_blank');
             });
         });
     </script>

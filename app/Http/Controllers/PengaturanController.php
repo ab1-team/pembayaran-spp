@@ -198,14 +198,35 @@ class PengaturanController extends Controller
         ]);
     }
 
-    public function invoice()
+    public function invoice(Request $request)
     {
         $title = 'Daftar Invoice';
-        $invoices = AdminInvoice::query()
-            ->latest('tgl_invoice')
-            ->get();
 
-        return view('pengaturan.invoice', compact('title', 'invoices'));
+        if ($request->ajax()) {
+            $data = AdminInvoice::query()->latest('tgl_invoice')->latest('id');
+            return \Yajra\DataTables\Facades\DataTables::eloquent($data)
+                ->addIndexColumn()
+                ->addColumn('tgl_invoice_fmt', fn ($row) => $row->tgl_invoice?->format('d/m/Y') ?? '—')
+                ->addColumn('tgl_lunas_fmt', fn ($row) => $row->tgl_lunas?->format('d/m/Y') ?? '—')
+                ->addColumn('status_badge', function ($row) {
+                    $badge = match ($row->status) {
+                        'paid'   => 'success',
+                        'unpaid' => 'warning',
+                        default  => 'secondary',
+                    };
+                    return '<span class="badge bg-'.$badge.'">'.ucfirst($row->status ?? '—').'</span>';
+                })
+                ->addColumn('jumlah_fmt', fn ($row) => 'Rp '.number_format((float) $row->jumlah, 0, ',', '.'))
+                ->addColumn('aksi', function ($row) {
+                    $url = route('app.pengaturan.invoice.print', $row->id);
+                    return '<a href="'.$url.'" target="_blank" class="btn btn-sm btn-outline-secondary">'
+                        .'<i class="material-icons align-middle" style="font-size:18px;">picture_as_pdf</i></a>';
+                })
+                ->rawColumns(['status_badge', 'aksi'])
+                ->toJson();
+        }
+
+        return view('pengaturan.invoice', compact('title'));
     }
 
     public function invoicePrint(AdminInvoice $invoice)

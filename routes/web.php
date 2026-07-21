@@ -90,6 +90,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::get('/pengaturan/coa', [PengaturanController::class, 'coa']);
     Route::get('/pengaturan/ttd-pelaporan', [PengaturanController::class, 'ttdPelaporan']);
     Route::get('/pengaturan/invoice', [PengaturanController::class, 'invoice'])->name('app.pengaturan.invoice');
+    Route::get('/pengaturan/invoice/data', [PengaturanController::class, 'invoice'])->name('app.pengaturan.invoice.data');
     Route::get('/pengaturan/invoice/{invoice}/print', [PengaturanController::class, 'invoicePrint'])->name('app.pengaturan.invoice.print');
     Route::post('/pengaturan/simpan/ttd-pelaporan', [PengaturanController::class, 'ttdPelaporanStore']);
     Route::put('/pengaturan/lembaga/{id}', [PengaturanController::class, 'lembaga']);
