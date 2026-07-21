@@ -21,6 +21,14 @@ class HakAksesController extends Controller
             ->orderBy('urutan')
             ->get();
 
+        $byId = $menus->keyBy('id');
+        $menus = $menus->map(function ($m) use ($byId) {
+            if (is_null($m->group) && $m->parent_id && isset($byId[$m->parent_id])) {
+                $m->group = $byId[$m->parent_id]->group;
+            }
+            return $m;
+        });
+
         $grouped = $menus->groupBy(fn ($m) => $m->group ?: 'Lainnya')->map(function ($items) {
             return [
                 'parents' => $items->whereNull('parent_id')->values(),

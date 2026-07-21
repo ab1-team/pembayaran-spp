@@ -5,15 +5,31 @@
 
     $menus = collect();
     if (!empty($hakAkses)) {
-        $menus = DB::table('menu')
+        $parents = DB::table('menu')
             ->whereIn('id', $hakAkses)
             ->where('status', 'aktif')
             ->orderBy('urutan')
             ->get();
+
+        $childIds = $parents->whereNotNull('parent_id')->pluck('id')->all();
+        $childIds = array_merge($childIds, DB::table('menu')
+            ->whereIn('parent_id', $parents->pluck('id')->all())
+            ->where('status', 'aktif')
+            ->pluck('id')->all());
+
+        $children = collect();
+        if (!empty($childIds)) {
+            $children = DB::table('menu')
+                ->whereIn('id', array_unique($childIds))
+                ->where('status', 'aktif')
+                ->orderBy('urutan')
+                ->get();
+        }
+
+        $menus = $parents->whereNull('parent_id')->merge($children)->values();
     }
 
     $beranda = $menus->firstWhere('nama_menu', 'Beranda');
-    $children = $menus->whereNotNull('parent_id')->groupBy('parent_id');
 
     $groupOrder = [
         'Pengaturan' => 'submenusettigs',
@@ -45,42 +61,44 @@
                 </p>
 
                 @foreach($items as $item)
-                    @php
-                        $itemChildren = $children->get($item->id, collect());
-                        $isDropdown = $itemChildren->isNotEmpty();
-                        $collapseId = $fixedCollapseId ?? ('submenu_' . $item->id);
-                    @endphp
+                    @if(is_null($item->parent_id))
+                        @php
+                            $itemChildren = $menus->where('parent_id', $item->id)->sortBy('urutan')->values();
+                            $isDropdown = $itemChildren->isNotEmpty();
+                            $collapseId = $fixedCollapseId ?? ('submenu_' . $item->id);
+                        @endphp
 
-                    @if($isDropdown)
-                        <li class="nav-item">
-                            <a data-bs-toggle="collapse" href="#{{ $collapseId }}" class="nav-link text-dark py-2 my-1"
-                                aria-controls="{{ $collapseId }}" role="button" aria-expanded="false">
-                                @if($item->icon)
-                                    <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
-                                @endif
-                                <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
-                            </a>
-                            <div class="collapse" id="{{ $collapseId }}">
-                                <ul class="nav ms-4">
-                                    @foreach($itemChildren as $child)
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark py-2" href="{{ url($child->route) }}">
-                                                <span class="sidenav-normal">{{ $child->nama_menu }}</span>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </li>
-                    @else
-                        <li class="nav-item">
-                            <a class="nav-link text-dark py-2 my-1" href="{{ url($item->route) }}">
-                                @if($item->icon)
-                                    <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
-                                @endif
-                                <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
-                            </a>
-                        </li>
+                        @if($isDropdown)
+                            <li class="nav-item">
+                                <a data-bs-toggle="collapse" href="#{{ $collapseId }}" class="nav-link text-dark py-2 my-1"
+                                    aria-controls="{{ $collapseId }}" role="button" aria-expanded="false">
+                                    @if($item->icon)
+                                        <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
+                                    @endif
+                                    <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
+                                </a>
+                                <div class="collapse" id="{{ $collapseId }}">
+                                    <ul class="nav ms-4">
+                                        @foreach($itemChildren as $child)
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark py-2" href="{{ url($child->route) }}">
+                                                    <span class="sidenav-normal">{{ $child->nama_menu }}</span>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                        @else
+                            <li class="nav-item">
+                                <a class="nav-link text-dark py-2 my-1" href="{{ url($item->route) }}">
+                                    @if($item->icon)
+                                        <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
+                                    @endif
+                                    <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
+                                </a>
+                            </li>
+                        @endif
                     @endif
                 @endforeach
             @endif
