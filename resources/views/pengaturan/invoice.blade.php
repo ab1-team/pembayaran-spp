@@ -56,7 +56,17 @@
                     { data: 'status_badge', name: 'status', orderable: false, searchable: false },
                     { data: 'jumlah_fmt', name: 'jumlah', className: 'text-end fw-semibold text-nowrap' },
                     { data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center' },
-                ]
+                    { data: 'print_url', name: 'print_url', visible: false },
+                ],
+                rowCallback: function (row, data) {
+                    $(row).addClass('row-invoice').attr('data-href', data.print_url).css('cursor', 'pointer');
+                }
+            });
+
+            $('#invoices').on('click', 'tr.row-invoice', function (e) {
+                if ($(e.target).closest('a, .btn').length) return;
+                const href = $(this).data('href');
+                if (href) window.open(href, '_blank');
             });
         });
     </script>

@@ -222,6 +222,7 @@ class PengaturanController extends Controller
                     return '<a href="'.$url.'" target="_blank" class="btn btn-sm btn-outline-secondary">'
                         .'<i class="material-icons align-middle" style="font-size:18px;">picture_as_pdf</i></a>';
                 })
+                ->addColumn('print_url', fn ($row) => route('app.pengaturan.invoice.print', $row->id))
                 ->rawColumns(['status_badge', 'aksi'])
                 ->toJson();
         }
