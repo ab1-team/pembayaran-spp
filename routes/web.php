@@ -42,7 +42,7 @@ Route::get('/master', [MasterAuthController::class, 'index'])->name('master.logi
 Route::post('/master/login', [MasterAuthController::class, 'login'])->name('master.auth');
 Route::post('/master/logout', [MasterAuthController::class, 'logout'])->name('master.logout');
 
-Route::group(['middleware' => ['auth:admin'], 'prefix' => 'master'], function () {
+Route::group(['middleware' => ['auth:master'], 'prefix' => 'master'], function () {
     Route::get('/dashboard', [MasterDashboardController::class, 'index'])->name('master.dashboard');
     Route::view('/hak-akses', 'master.hak-akses')->name('master.hak-akses');
     Route::get('/invoice/data', [AdminInvoiceController::class, 'data'])->name('master.invoice.data');

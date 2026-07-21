@@ -4,7 +4,7 @@
         ['route' => 'master.hak-akses', 'match' => 'master.hak-akses*', 'label' => 'Access Rights', 'icon' => 'shield'],
         ['route' => 'master.invoice.index', 'match' => 'master.invoice.*', 'label' => 'Invoices', 'icon' => 'doc'],
     ];
-    $admin = Auth::guard('admin')->user();
+    $admin = Auth::guard('master')->user();
 @endphp
 
 <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">

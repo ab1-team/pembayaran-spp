@@ -28,6 +28,13 @@ class MasterAuthController extends Controller
             return redirect()->intended(route('master.dashboard'));
         }
 
+        $user = \App\Models\MasterUser::where('email', $request->email)->first();
+        \Log::info('Master login failed', [
+            'email' => $request->email,
+            'user_found' => (bool) $user,
+            'password_check' => $user ? \Hash::check($request->password, $user->password) : null,
+        ]);
+
         return back()->withErrors(['email' => 'Email atau password salah.'])->withInput();
     }
 

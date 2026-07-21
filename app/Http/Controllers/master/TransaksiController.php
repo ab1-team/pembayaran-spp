@@ -72,7 +72,7 @@ class TransaksiController extends Controller
             'keterangan_transaksi' => $request->keterangan ?? $invoice->jenis_pembayaran,
             'jumlah'               => $request->jumlah,
             'urutan'               => AdminTransaksi::max('urutan') + 1,
-            'id_user'              => auth('admin')->id(),
+            'id_user'              => auth('master')->id(),
         ]);
 
         if ($request->boolean('mark_paid')) {

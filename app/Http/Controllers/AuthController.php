@@ -32,12 +32,13 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+        $request->session()->regenerate();
         $profil = Profil::first();
         session()->put('profil', $profil);
 
         return redirect('/app/dashboard')->with([
             'icon' => 'success',
-            'msg'  => 'Selamat datang ' . ($user->name ?? 'Pengguna'),
+            'msg'  => 'Selamat datang ' . ($user->nama ?? $user->username ?? 'Pengguna'),
         ]);
     }
 
