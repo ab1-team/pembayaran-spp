@@ -21,6 +21,7 @@ use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\Master\MasterAuthController;
 use App\Http\Controllers\Master\MasterDashboardController;
 use App\Http\Controllers\Master\AdminInvoiceController;
+use App\Http\Controllers\Master\HakAksesController;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
@@ -44,7 +45,9 @@ Route::post('/master/logout', [MasterAuthController::class, 'logout'])->name('ma
 
 Route::group(['middleware' => ['auth:master'], 'prefix' => 'master'], function () {
     Route::get('/dashboard', [MasterDashboardController::class, 'index'])->name('master.dashboard');
-    Route::view('/hak-akses', 'master.hak-akses')->name('master.hak-akses');
+    Route::get('/hak-akses', [HakAksesController::class, 'index'])->name('master.hak-akses');
+    Route::post('/hak-akses', [HakAksesController::class, 'store'])->name('master.hak-akses.store');
+    Route::put('/hak-akses/{user}', [HakAksesController::class, 'update'])->name('master.hak-akses.update');
     Route::get('/invoice/data', [AdminInvoiceController::class, 'data'])->name('master.invoice.data');
     Route::get('/invoice/{invoice}/print', [AdminInvoiceController::class, 'print'])->name('master.invoice.print');
 
