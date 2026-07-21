@@ -1,94 +1,89 @@
+@php
+    use Illuminate\Support\Facades\DB;
+    $hakAkses = auth()->check() ? (auth()->user()->hak_akses ?? []) : [];
+    $hakAkses = is_array($hakAkses) ? $hakAkses : [];
+
+    $menus = collect();
+    if (!empty($hakAkses)) {
+        $menus = DB::table('menu')
+            ->whereIn('id', $hakAkses)
+            ->where('status', 'aktif')
+            ->orderBy('urutan')
+            ->get();
+    }
+
+    $beranda = $menus->firstWhere('nama_menu', 'Beranda');
+    $children = $menus->whereNotNull('parent_id')->groupBy('parent_id');
+
+    $groupOrder = [
+        'Pengaturan' => 'submenusettigs',
+        'Master Data' => null,
+        'Transaksi' => null,
+        'Pelaporan' => null,
+    ];
+@endphp
+
 <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
     <ul class="navbar-nav">
-        <li class="nav-item">
-            <a class="nav-link active bg-gradient-dark text-white" href="/app/dashboard">
-                <span class="material-symbols-rounded opacity-5">dashboard</span>
-                <span class="nav-link-text ms-1">Beranda</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#submenusettigs" class="nav-link text-dark py-2 my-1"
-                aria-controls="submenusettigs" role="button" aria-expanded="false">
-                <span class="material-symbols-rounded opacity-5">settings</span>
-                <span class="sidenav-normal ms-1">Pengaturan</span>
-            </a>
-            <div class="collapse" id="submenusettigs">
-                <ul class="nav ms-4">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/pengaturan/sop">
-                            <span class="sidenav-normal">Personalisasi SOP</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/pengaturan/coa">
-                            <span class="sidenav-normal">Bagan Akun (CoA)</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/jenis-biaya">
-                            <span class="sidenav-normal">Jenis Pembayaran</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/pengaturan/ttd-pelaporan">
-                            <span class="sidenav-normal">Tanda Tangan Pelaporan</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/pengaturan/invoice">
-                            <span class="sidenav-normal">Invoice</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-        <p class="text-uppercase text-muted ms-3 mb-1 mt-3" style="font-size: 12px;">
-            Master Data
-        </p>
-        <li class="nav-item">
-            <a class="nav-link text-dark py-2 my-1" href="/app/siswa/create">
-                <span class="material-symbols-rounded opacity-5">person_add</span>
-                <span class="sidenav-normal ms-1">Tambah Siswa</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-dark py-2 my-1" href="/app/siswa">
-                <span class="material-symbols-rounded opacity-5">school</span>
-                <span class="sidenav-normal ms-1">Data Siswa</span>
-            </a>
-        </li>
-        <p class="text-uppercase text-muted ms-3 mb-1 mt-3" style="font-size: 12px;">
-            Transaksi
-        </p>
-        <li class="nav-item">
-            <a data-bs-toggle="collapse" href="#submenuTransaksi" class="nav-link text-dark py-2 my-1"
-                aria-controls="submenuTransaksi" role="button" aria-expanded="false">
-                <span class="material-symbols-rounded opacity-5">paid</span>
-                <span class="sidenav-normal ms-1">Transaksi</span>
-            </a>
-            <div class="collapse" id="submenuTransaksi">
-                <ul class="nav ms-4">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/Transaksi/pembayaran-spp">
-                            <span class="sidenav-normal">Tagihan Siswa</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark py-2" href="/app/Transaksi">
-                            <span class="sidenav-normal">Jurnal Umum</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-        <p class="text-uppercase text-muted ms-3 mb-1 mt-3" style="font-size: 12px;">
-            Pelaporan
-        </p>
-        <li class="nav-item">
-            <a class="nav-link text-dark my-1" href="/app/laporan-keuangan">
-                <span class="material-symbols-rounded opacity-5">receipt_long</span>
-                <span class="nav-link-text ms-1">Laporan Keuangan</span>
-            </a>
-        </li>
+        @if($beranda)
+            <li class="nav-item">
+                <a class="nav-link active bg-gradient-dark text-white" href="{{ url($beranda->route) }}">
+                    <span class="material-symbols-rounded opacity-5">{{ $beranda->icon }}</span>
+                    <span class="nav-link-text ms-1">{{ $beranda->nama_menu }}</span>
+                </a>
+            </li>
+        @endif
+
+        @foreach($groupOrder as $groupName => $fixedCollapseId)
+            @php
+                $items = $menus->where('group', $groupName);
+            @endphp
+
+            @if($items->isNotEmpty())
+                <p class="text-uppercase text-muted ms-3 mb-1 mt-3" style="font-size: 12px;">
+                    {{ $groupName }}
+                </p>
+
+                @foreach($items as $item)
+                    @php
+                        $itemChildren = $children->get($item->id, collect());
+                        $isDropdown = $itemChildren->isNotEmpty();
+                        $collapseId = $fixedCollapseId ?? ('submenu_' . $item->id);
+                    @endphp
+
+                    @if($isDropdown)
+                        <li class="nav-item">
+                            <a data-bs-toggle="collapse" href="#{{ $collapseId }}" class="nav-link text-dark py-2 my-1"
+                                aria-controls="{{ $collapseId }}" role="button" aria-expanded="false">
+                                @if($item->icon)
+                                    <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
+                                @endif
+                                <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
+                            </a>
+                            <div class="collapse" id="{{ $collapseId }}">
+                                <ul class="nav ms-4">
+                                    @foreach($itemChildren as $child)
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark py-2" href="{{ url($child->route) }}">
+                                                <span class="sidenav-normal">{{ $child->nama_menu }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link text-dark py-2 my-1" href="{{ url($item->route) }}">
+                                @if($item->icon)
+                                    <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
+                                @endif
+                                <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
+                            </a>
+                        </li>
+                    @endif
+                @endforeach
+            @endif
+        @endforeach
     </ul>
 </div>
