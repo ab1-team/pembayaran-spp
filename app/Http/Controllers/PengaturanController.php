@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminInvoice;
 use App\Models\AkunLevel1;
-use App\Models\AkunLevel2;
-use App\Models\AkunLevel3;
-use App\Models\Rekening;
 use App\Models\Profil;
-use App\Models\Kelas;
 use App\Models\Tanda_tangan;
-use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PengaturanController extends Controller
 {
@@ -18,17 +16,18 @@ class PengaturanController extends Controller
     {
         $profil = Profil::first();
 
-        $title = "Personalisasi SOP";
-        return view('pengaturan.index', compact('title', 'profil',));
+        $title = 'Personalisasi SOP';
+
+        return view('pengaturan.index', compact('title', 'profil'));
     }
 
     public function coa()
     {
-        $title = "Chart Of Account (CoA)";
+        $title = 'Chart Of Account (CoA)';
         $akun1 = AkunLevel1::with([
             'akun2',
             'akun2.akun3',
-            'akun2.akun3.rek'
+            'akun2.akun3.rek',
         ])->get();
 
         return view('pengaturan.coa')->with(compact('title', 'akun1'));
@@ -36,9 +35,9 @@ class PengaturanController extends Controller
 
     public function ttdPelaporan()
     {
-        $title = "Pengaturan Tanda Tangan Pelaporan";
+        $title = 'Pengaturan Tanda Tangan Pelaporan';
 
-        if (!Tanda_tangan::first()) {
+        if (! Tanda_tangan::first()) {
             Tanda_tangan::create([
                 'tanda_tangan' => '<table class="p0" border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 11px;">
 <tbody>
@@ -137,7 +136,6 @@ class PengaturanController extends Controller
         ]);
     }
 
-
     public function lembaga(Request $request, $id)
     {
         $request->validate([
@@ -150,7 +148,7 @@ class PengaturanController extends Controller
 
         return response()->json([
             'success' => true,
-            'msg' => "Update Lembaga berhasil diproses!"
+            'msg' => 'Update Lembaga berhasil diproses!',
 
         ]);
     }
@@ -161,15 +159,15 @@ class PengaturanController extends Controller
             'logo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ], [
             'logo.required' => 'Pilih file logo terlebih dahulu.',
-            'logo.image'    => 'File harus berupa gambar.',
-            'logo.mimes'    => 'Format logo harus JPG, JPEG, atau PNG.',
-            'logo.max'      => 'Ukuran logo maksimal 2MB.',
+            'logo.image' => 'File harus berupa gambar.',
+            'logo.mimes' => 'Format logo harus JPG, JPEG, atau PNG.',
+            'logo.max' => 'Ukuran logo maksimal 2MB.',
         ]);
 
         $profil = Profil::findOrFail($id);
 
-        if ($profil->logo && Storage::disk('public')->exists('logo/' . $profil->logo)) {
-            Storage::disk('public')->delete('logo/' . $profil->logo);
+        if ($profil->logo && Storage::disk('public')->exists('logo/'.$profil->logo)) {
+            Storage::disk('public')->delete('logo/'.$profil->logo);
         }
 
         $file = $request->file('logo');
@@ -177,13 +175,13 @@ class PengaturanController extends Controller
         $file->storeAs('logo', $name, 'public');
 
         $profil->update([
-            'logo' => $name
+            'logo' => $name,
         ]);
 
         return response()->json([
             'success' => true,
             'msg' => 'Logo berhasil diperbarui',
-            'logo' => asset('storage/logo/' . $name),
+            'logo' => asset('storage/logo/'.$name),
         ]);
     }
 
@@ -196,7 +194,32 @@ class PengaturanController extends Controller
 
         return response()->json([
             'success' => true,
-            'msg' => "Update Jatuh Tempo berhasil diproses!"
+            'msg' => 'Update Jatuh Tempo berhasil diproses!',
         ]);
+    }
+
+    public function invoice()
+    {
+        $title = 'Daftar Invoice';
+        $invoices = AdminInvoice::query()
+            ->latest('tgl_invoice')
+            ->get();
+
+        return view('pengaturan.invoice', compact('title', 'invoices'));
+    }
+
+    public function invoicePrint(AdminInvoice $invoice)
+    {
+        $invoice->load('user');
+        $logoPath = public_path('assets/logo/abt_logo.png');
+        $data = ['invoice' => $invoice];
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = 'png';
+        }
+        $pdf = Pdf::loadView('master.invoice.print', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('invoice-'.$invoice->id.'.pdf');
     }
 }

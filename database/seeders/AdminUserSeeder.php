@@ -13,16 +13,33 @@ class AdminUserSeeder extends Seeder
         $now = now();
 
         $admins = [
-            ['name' => 'Administrator', 'username' => 'admin', 'email' => 'admin@local'],
+            [
+                'nama_lengkap' => 'Administrator',
+                'email' => 'admin@gmail.com',
+                'password' => Hash::make('password'),
+                'akses' => 'master',
+            ],
         ];
 
         foreach ($admins as $a) {
-            if (DB::table('users')->where('username', $a['username'])->exists()) continue;
-            DB::table('users')->insert([
-                'name' => $a['name'],
+            $existing = DB::table('admin_user')->where('email', $a['email'])->first();
+
+            if ($existing) {
+                if (! str_starts_with($existing->password, '$2y$') && ! str_starts_with($existing->password, '$2a$')) {
+                    DB::table('admin_user')->where('id', $existing->id)->update([
+                        'password' => $a['password'],
+                        'updated_at' => $now,
+                    ]);
+                }
+
+                continue;
+            }
+
+            DB::table('admin_user')->insert([
+                'nama_lengkap' => $a['nama_lengkap'],
                 'email' => $a['email'],
-                'username' => $a['username'],
-                'password' => Hash::make('password'),
+                'password' => $a['password'],
+                'akses' => $a['akses'],
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

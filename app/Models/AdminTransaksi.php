@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class AdminTransaksi extends Model
+{
+    use HasFactory;
+    protected $table = 'admin_transaksi';
+    protected $guarded = ['idt'];
+
+    protected $primaryKey = 'idt';
+    public $timestamps = false;
+
+    protected $casts = [
+        'tgl_transaksi' => 'date',
+        'jumlah'       => 'decimal:2',
+    ];
+
+    public function invoice()
+    {
+        return $this->belongsTo(AdminInvoice::class, 'idv');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(AdminUser::class, 'id_user');
+    }
+
+    public function rekeningDebit()
+    {
+        return $this->belongsTo(AdminRekening::class, 'rekening_debit', 'kd_rekening');
+    }
+
+    public function rekeningKredit()
+    {
+        return $this->belongsTo(AdminRekening::class, 'rekening_kredit', 'kd_rekening');
+    }
+}

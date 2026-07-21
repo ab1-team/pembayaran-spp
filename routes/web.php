@@ -18,6 +18,9 @@ use App\Http\Controllers\RuanganController;
 use App\Http\Controllers\TahunAkademikController;
 use App\Http\Controllers\JenisPembayaranController;
 use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\Master\MasterAuthController;
+use App\Http\Controllers\Master\MasterDashboardController;
+use App\Http\Controllers\Master\AdminInvoiceController;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
@@ -33,6 +36,25 @@ Route::get('/link', function () {
     } catch (\Exception $e) {
         return response()->json("Failed to create symlink: " . $e->getMessage());
     }
+});
+
+Route::get('/master', [MasterAuthController::class, 'index'])->name('master.login');
+Route::post('/master/login', [MasterAuthController::class, 'login'])->name('master.auth');
+Route::post('/master/logout', [MasterAuthController::class, 'logout'])->name('master.logout');
+
+Route::group(['middleware' => ['auth:admin'], 'prefix' => 'master'], function () {
+    Route::get('/dashboard', [MasterDashboardController::class, 'index'])->name('master.dashboard');
+    Route::view('/hak-akses', 'master.hak-akses')->name('master.hak-akses');
+    Route::get('/invoice/data', [AdminInvoiceController::class, 'data'])->name('master.invoice.data');
+    Route::get('/invoice/{invoice}/print', [AdminInvoiceController::class, 'print'])->name('master.invoice.print');
+
+    Route::get('/transaksi', [\App\Http\Controllers\Master\TransaksiController::class, 'index'])->name('master.transaksi.index');
+    Route::get('/transaksi/data', [\App\Http\Controllers\Master\TransaksiController::class, 'index'])->name('master.transaksi.data');
+    Route::get('/transaksi/{invoice}/payment', [\App\Http\Controllers\Master\TransaksiController::class, 'paymentForm'])->name('master.transaksi.paymentForm');
+    Route::post('/transaksi', [\App\Http\Controllers\Master\TransaksiController::class, 'store'])->name('master.transaksi.store');
+    Route::resource('invoice', AdminInvoiceController::class)
+        ->only(['index', 'store', 'destroy'])
+        ->names('master.invoice');
 });
 
 Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
@@ -67,6 +89,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::get('/pengaturan/sop', [PengaturanController::class, 'sop']);
     Route::get('/pengaturan/coa', [PengaturanController::class, 'coa']);
     Route::get('/pengaturan/ttd-pelaporan', [PengaturanController::class, 'ttdPelaporan']);
+    Route::get('/pengaturan/invoice', [PengaturanController::class, 'invoice'])->name('app.pengaturan.invoice');
+    Route::get('/pengaturan/invoice/{invoice}/print', [PengaturanController::class, 'invoicePrint'])->name('app.pengaturan.invoice.print');
     Route::post('/pengaturan/simpan/ttd-pelaporan', [PengaturanController::class, 'ttdPelaporanStore']);
     Route::put('/pengaturan/lembaga/{id}', [PengaturanController::class, 'lembaga']);
     Route::put('/pengaturan/logo/{id}', [PengaturanController::class, 'logo']);

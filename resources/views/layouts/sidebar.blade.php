@@ -34,6 +34,11 @@
                             <span class="sidenav-normal">Tanda Tangan Pelaporan</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark py-2" href="/app/pengaturan/invoice">
+                            <span class="sidenav-normal">Invoice</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </li>
