@@ -4,85 +4,127 @@ namespace App\Http\Controllers;
 
 use App\Models\Spp;
 use App\Models\Siswa;
-use App\Models\Rekening;
 use App\Models\Transaksi;
-use App\Models\Jenis_Biaya;
 use App\Models\Anggota_Kelas;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Utils\Tanggal;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class SystemController extends Controller
 {
-    public function GenerateTunggakan($waktu)
+    public function GenerateTunggakan(Request $request)
     {
-        $dateNow = Carbon::createFromTimestamp($waktu);
-        $bulanSekarang = (int) $dateNow->format('m');
-        $tahunSekarang = (int) $dateNow->format('Y');
+        $jobId = (string) $request->query('job', uniqid('gen_', true));
 
-        Transaksi::where('rekening_debit', '1.1.03.01')
-            ->where('rekening_kredit', '4.1.01.01')
+        $now = Carbon::now();
+        $bulanLalu = $now->copy()->subMonthNoOverflow();
+        $bulanTarget = (int) $bulanLalu->format('m');
+        $tahunTarget = (int) $bulanLalu->format('Y');
+
+        $sppBelumLunas = Spp::where('status', 'B')
+            ->whereYear('tanggal', $tahunTarget)
+            ->whereMonth('tanggal', $bulanTarget)
+            ->orderBy('tanggal', 'asc')
+            ->get()
+            ->groupBy('anggota_kelas');
+
+        if ($sppBelumLunas->isEmpty()) {
+            cache()->put('piutang_done:' . $jobId, [
+                'inserted' => 0,
+                'skipped' => 0,
+                'bulan' => \App\Utils\Tanggal::namaBulanNew($bulanTarget) . ' ' . $tahunTarget,
+            ], now()->addHour());
+
+            return response()->json(['ok' => true, 'inserted' => 0, 'skipped' => 0]);
+        }
+
+        $akIds = $sppBelumLunas->keys()->all();
+        $akMap = Anggota_Kelas::whereIn('id', $akIds)
+            ->where('status', 'aktif')
+            ->get()
+            ->keyBy('id');
+
+        $siswaIds = $akMap->pluck('id_siswa')->unique()->all();
+
+        $existing = Transaksi::whereIn('siswa_id', $siswaIds)
+            ->whereIn('kode_spp', $sppBelumLunas->flatten()->pluck('kode'))
+            ->where('rekening_debit', '1.1.03.01')
+            ->where('rekening_kredit', '1.1.04.01')
             ->whereNull('deleted_at')
-            ->delete();
+            ->get()
+            ->mapWithKeys(fn($t) => [$t->siswa_id . '|' . $t->kode_spp => true])
+            ->all();
 
-        $siswa = Siswa::whereHas('getAnggotaKelas', function ($q) {
-            $q->where('status', 'aktif');
-        })
-            ->with([
-                'getAnggotaKelas' => function ($q) {
-                    $q->where('status', 'aktif');
-                },
-                'getAnggotaKelas.getSpp'
-            ])
-            ->get();
+        $inserted = 0;
+        $skipped = 0;
+        $bulanLabel = \App\Utils\Tanggal::namaBulanNew($bulanTarget) . ' ' . $tahunTarget;
+        $nowDate = $now->format('Y-m-d');
+        $userId = auth()->user()->id ?? null;
 
-        foreach ($siswa as $value) {
-            foreach ($value->getAnggotaKelas as $anggotaKelas) {
-
-                if ($anggotaKelas->status !== 'aktif') continue;
-
-                $anggotaKelasId = $anggotaKelas->id;
-
-                // Ambil semua SPP yang statusnya B dan tanggal < bulan sekarang
-                $spps = Spp::where('anggota_kelas', $anggotaKelasId)
-                    ->where('status', 'B')
-                    ->where(function ($q) use ($tahunSekarang, $bulanSekarang) {
-                        $q->whereYear('tanggal', '<', $tahunSekarang)
-                            ->orWhere(function ($q2) use ($tahunSekarang, $bulanSekarang) {
-                                $q2->whereYear('tanggal', $tahunSekarang)
-                                    ->whereMonth('tanggal', '<', $bulanSekarang);
-                            });
-                    })
-                    ->orderBy('tanggal', 'asc') // supaya dari bulan terlama
-                    ->get();
-
+        DB::transaction(function () use ($sppBelumLunas, $akMap, $existing, $bulanLabel, $bulanTarget, $tahunTarget, $nowDate, $userId, &$inserted, &$skipped) {
+            $rows = [];
+            foreach ($sppBelumLunas as $akId => $spps) {
+                $ak = $akMap->get($akId);
+                if (!$ak) continue;
+                $siswaId = $ak->id_siswa;
                 foreach ($spps as $spp) {
-                    // langsung create karena transaksi lama sudah dihapus
-                    Transaksi::create([
-                        'tanggal_transaksi' => now()->format('Y-m-d'),
+                    if (isset($existing[$siswaId . '|' . $spp->kode])) {
+                        $skipped++;
+                        continue;
+                    }
+                    $rows[] = [
+                        'tanggal_transaksi' => $nowDate,
                         'idtp' => null,
                         'invoice' => 0,
                         'rekening_debit' => '1.1.03.01',
-                        'rekening_kredit' => '4.1.01.01',
+                        'rekening_kredit' => '1.1.04.01',
                         'kode_spp' => $spp->kode,
-                        'siswa_id' => $value->id,
+                        'siswa_id' => $siswaId,
                         'jumlah' => $spp->nominal,
-                        'keterangan' => 'Tagihan spp bulan '
-                            . \App\Utils\Tanggal::namaBulanNew(
-                                (int) \Carbon\Carbon::parse($spp->tanggal)->format('m')
-                            )
-                            . ' '
-                            . \Carbon\Carbon::parse($spp->tanggal)->format('Y'),
-                        'urutan' => null,
-                        'deleted_at' => null,
-                        'user_id' => auth()->user()->id,
-                    ]);
+                        'keterangan' => 'Tagihan SPP bulan ' . $bulanLabel,
+                        'urutan' => '0',
+                        'user_id' => $userId,
+                        'created_at' => $nowDate,
+                        'updated_at' => $nowDate,
+                    ];
+                    $inserted++;
                 }
             }
+            if ($rows) {
+                DB::table('transaksi')->insert($rows);
+            }
+        });
+
+        cache()->put('piutang_done:' . $jobId, [
+            'inserted' => $inserted,
+            'skipped' => $skipped,
+            'bulan' => $bulanLabel,
+        ], now()->addHour());
+
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'inserted' => $inserted,
+                'skipped' => $skipped,
+            ]);
         }
 
-        echo '<script>window.close()</script>';
-        exit;
+        return "<!doctype html><meta charset=utf-8><title>Generate Selesai</title>
+<style>body{font-family:system-ui;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+.box{background:#1e293b;padding:24px 28px;border-radius:12px;text-align:center;min-width:280px}
+.ok{color:#22c55e;font-size:36px}</style>
+<div class=box><div class=ok>&#10003;</div><h3>Generate Selesai</h3><p>Dibuat: <b>{$inserted}</b> &middot; Dilewati: <b>{$skipped}</b></p><p style=color:#94a3b8;font-size:13px>Tab ini akan tertutup otomatis...</p>
+<script>setTimeout(()=>window.close(),1500);</script>";
+    }
+
+    public function piutangStatus(Request $request)
+    {
+        $jobId = (string) $request->query('job', '');
+        $data = cache()->get('piutang_done:' . $jobId);
+
+        return response()->json([
+            'done' => (bool) $data,
+            'data' => $data,
+        ]);
     }
 }

@@ -243,8 +243,8 @@
                 <div class="stat-card" data-bs-toggle="modal" data-bs-target="#modalSiswaMenunggak">
                     <div class="top">
                         <div>
-                            <div class="label">Tunggakan</div>
-                            <div class="value text-danger">{{ $tunggakan->count() }}</div>
+                            <div class="label">Tunggakan SPP</div>
+                            <div class="value text-danger">{{ $jumlahSiswaMenunggak }}</div>
                         </div>
                         <div class="icon bg-grad-danger"><span class="material-symbols-rounded">warning</span></div>
                     </div>
@@ -296,8 +296,8 @@
                     <div class="pie-card pie-card-danger">
                         <div class="pie-wrap"><canvas id="pieTunggakan"></canvas></div>
                         <div class="pie-info">
-                            <div class="pie-label">Tunggakan</div>
-                            <div class="pie-value">{{ \App\Utils\Angka::format($totalTunggakan, 2) }}</div>
+                            <div class="pie-label">Tunggakan SPP</div>
+                            <div class="pie-value">{{ \App\Utils\Angka::format($totalTunggakanSpp, 2) }}</div>
                         </div>
                     </div>
                 </div>
@@ -400,10 +400,10 @@
 </div>
 
 <div class="modal fade" id="modalSiswaMenunggak" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-fullscreen-sm-down modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-fullscreen-md-down modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Daftar Siswa Menunggak</h5>
+                <h5 class="modal-title">Daftar Siswa Menunggak SPP</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="bodySiswaMenunggak">
@@ -506,7 +506,7 @@ const makePie = (id, value, max, color1, color2) => {
 
 makePie('pieHariIni',   {{ (float) $pemasukanHariIni }}, Math.max({{ (float) $pemasukanBulanIni }}, 1), '#10b981', '#d1fae5');
 makePie('pieBulanIni',  {{ (float) $pemasukanBulanIni }}, Math.max({{ (float) $pemasukanBulanIni }}, 1), '#0ea5e9', '#bae6fd');
-makePie('pieTunggakan', {{ (float) $totalTunggakan }},   Math.max({{ (float) $totalTunggakan }}, 1),   '#ef4444', '#fecaca');
+makePie('pieTunggakan', {{ (float) $totalTunggakanSpp }},   Math.max({{ (float) $totalTunggakanSpp }}, 1),   '#ef4444', '#fecaca');
 
 $(document).ready(function () {
     const loadPartial = function (modalId, bodyId, url) {
@@ -527,4 +527,70 @@ $(document).ready(function () {
     loadPartial('#modalSiswaMenunggak', '#bodySiswaMenunggak', '/app/dashboard/siswa-menunggak');
 });
 </script>
+
+<div id="piutangOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:99999; backdrop-filter:blur(2px);">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:28px 32px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.2); min-width:320px; text-align:center;">
+        <div class="spinner-border text-success mb-3" role="status" style="width:3rem; height:3rem;"></div>
+        <div style="font-weight:600; color:#0f172a;">Generate Piutang SPP</div>
+        <div style="color:#64748b; font-size:13px; margin-top:6px;" id="piutangOverlayMsg">Sedang memproses, jangan tutup halaman...</div>
+    </div>
+</div>
+
+@if(request('gen_piutang') == '1' && request('job'))
+<script>
+(function () {
+    const overlay = document.getElementById('piutangOverlay');
+    const msg = document.getElementById('piutangOverlayMsg');
+    const job = @json(request('job'));
+    overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    fetch('/app/system/generate-tunggakan?job=' + encodeURIComponent(job), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            msg.textContent = 'Generate selesai. Memuat hasil...';
+            let tries = 0;
+            const poll = setInterval(() => {
+                tries++;
+                fetch('/app/system/piutang-status?job=' + encodeURIComponent(job))
+                    .then(r => r.json())
+                    .then(s => {
+                        if (s.done) {
+                            clearInterval(poll);
+                            const inserted = s.data?.inserted ?? 0;
+                            const skipped  = s.data?.skipped ?? 0;
+                            const bulan    = s.data?.bulan ?? '';
+                            overlay.style.display = 'none';
+                            document.body.style.overflow = '';
+                            const url = window.location.pathname;
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Generate Piutang Selesai',
+                                html: `Bulan: <strong>${bulan}</strong>`,
+                                confirmButtonText: 'OK',
+                                allowOutsideClick: false,
+                            }).then(() => { window.location.href = url; });
+                        } else if (tries > 60) {
+                            clearInterval(poll);
+                            overlay.style.display = 'none';
+                            document.body.style.overflow = '';
+                            Swal.fire({ icon: 'warning', title: 'Timeout', text: 'Cek log server.' });
+                        }
+                    });
+            }, 1000);
+        } else {
+            throw new Error('Gagal');
+        }
+    })
+    .catch(() => {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        Swal.fire({ icon: 'error', title: 'Generate gagal', text: 'Terjadi kesalahan server.' });
+    });
+})();
+</script>
+@endif
 @endsection

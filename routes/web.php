@@ -66,7 +66,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::put('/profile/update/{id}', [ProfilController::class, 'update']);
     Route::get('/profile', [ProfilController::class, 'index']);
 
-    Route::get('/system/generate-tunggakan/{time}', [SystemController::class, 'GenerateTunggakan']);
+    Route::get('/system/generate-tunggakan', [SystemController::class, 'GenerateTunggakan']);
+    Route::get('/system/piutang-status', [SystemController::class, 'piutangStatus']);
 
     Route::get('/Transaksi/pembayaran-spp', [TransaksiController::class, 'pembayaranSPP']);
     Route::get('/transaksi/daftar-inventaris', [TransaksiController::class, 'daftarInventaris']);

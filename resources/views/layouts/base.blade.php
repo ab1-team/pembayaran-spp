@@ -51,9 +51,6 @@
         .modal-backdrop {
             z-index: 11999 !important;
         }
-        body.modal-open .sidenav {
-            visibility: hidden;
-        }
 
         body:not(.modal-open) .card {
             border: none !important;
@@ -557,17 +554,19 @@
         window.addEventListener('pageshow', function (e) { if (e.persisted) NProgress.remove(); else NProgress.done(true); });
     </script>
     <script>
-        const sideBar = document.querySelector('.sidenav'); 
-        const modals = document.querySelectorAll('.modal-fullscreen');
-
-        modals.forEach(modal => {
-            modal.addEventListener('show.bs.modal', () => {
-                sideBar.style.display = 'none'; // sembunyikan sidebar
+        const dimTargets = () => [
+            document.querySelector('.sidenav'),
+            document.querySelector('.main-content'),
+            document.querySelector('.navbar-main'),
+        ].filter(Boolean);
+        const setDimmed = (on) => {
+            dimTargets().forEach(el => {
+                el.style.opacity = on ? '0.5' : '';
+                el.style.filter = on ? 'grayscale(1) brightness(0.4)' : '';
             });
-            modal.addEventListener('hidden.bs.modal', () => {
-                sideBar.style.display = ''; // tampilkan lagi
-            });
-        });
+        };
+        document.addEventListener('show.bs.modal', () => setDimmed(true));
+        document.addEventListener('hidden.bs.modal', () => setDimmed(false));
     </script>
     <script>
         if (navigator.platform.includes('Win') && document.querySelector('#sidenav-scrollbar')) {
@@ -597,43 +596,44 @@
 
         });
     </script>
-    @if(session('msg') && $jatuhTempo)
+    @php $pp = session('piutang_prompt'); @endphp
+    @if(is_array($pp))
+        @php session()->forget('piutang_prompt'); @endphp
         <script>
         (function () {
-            const today = new Date();
-            const day = today.getDate();
-            const jatuhTempo = {{ (int) $jatuhTempo }};
-
-            if (day === jatuhTempo) {
-                Swal.fire({
-                    icon: 'warning',
-                    html: `
-                        <strong>Waktunya Membuat Tunggakan</strong><br>
-                        {{ Tanggal::NamaBulan(now()) }} {{ Tanggal::tahun(now()) }}
-                    `,
-                    text: "{{ session('msg') }}",
-                    showCancelButton: true,
-                    confirmButtonText: 'Buat Sekarang',
-                    cancelButtonText: 'Nanti'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.open(
-                            '/app/system/generate-tunggakan/{{ time() }}',
-                            '_blank'
-                        );
-                    }
-                });
-            } else {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'info',
-                    title: "{{ session('msg') }}",
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            }
+            const pp = @json($pp);
+            const job = pp.job;
+            Swal.fire({
+                icon: 'warning',
+                title: 'Waktunya Generate Piutang SPP',
+                html: '<strong>Bulan: ' + pp.bulan + '</strong><br>Tekan tombol untuk memproses di tab baru.',
+                showCancelButton: true,
+                confirmButtonText: 'Generate',
+                cancelButtonText: 'Nanti',
+                allowOutsideClick: false,
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    window.open(
+                        "{{ url('/app/system/generate-tunggakan') }}?job=" + encodeURIComponent(job),
+                        '_blank'
+                    );
+                    window.location.href = "{{ route('app.dashboard') }}?gen_piutang=1&job=" + encodeURIComponent(job);
+                }
+            });
         })();
+        </script>
+    @endif
+
+    @if(session('msg') && !session('piutang_prompt'))
+        <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: @json(session('msg')),
+            showConfirmButton: false,
+            timer: 3000
+        });
         </script>
     @endif
 
