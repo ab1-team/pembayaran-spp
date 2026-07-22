@@ -17,17 +17,15 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900"></noscript>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"></noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
     <link rel="stylesheet" href="/assets/css/nucleo-icons.css">
     <link rel="stylesheet" href="/assets/css/nucleo-svg.css">
     <link rel="stylesheet" href="/assets/css/material-dashboard.css?v=3.2.0">
+    <link rel="stylesheet" href="https://unpkg.com/nprogress@0.2.0/nprogress.css">
+    <style>#nprogress .bar { background: #37d17c !important; height: 3px !important; } #nprogress .peg { box-shadow: 0 0 10px #37d17c, 0 0 5px #37d17c !important; } #nprogress .spinner-icon { border-top-color: #37d17c !important; border-left-color: #37d17c !important; }</style>
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
@@ -367,6 +365,18 @@
             line-height: 1;
             display: inline-flex;
             vertical-align: middle;
+            overflow: hidden;
+            width: 1em;
+            height: 1em;
+        }
+        .material-symbols-rounded:empty { display: none; }
+        .material-icons {
+            font-family: 'Material Icons' !important;
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            display: inline-block;
             white-space: nowrap;
         }
 
@@ -530,6 +540,22 @@
     <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
     <script src="/assets/js/plugins/chartjs.min.js"></script>
     <script src="/assets/js/material-dashboard.min.js?v=3.2.0"></script>
+    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+    <script>
+        NProgress.configure({ showSpinner: false, trickleSpeed: 120, minimum: 0.2 });
+        NProgress.configure({ template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>' });
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest && e.target.closest('a');
+            if (!a) return;
+            var href = a.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || a.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            if (a.hasAttribute('data-no-progress') || a.hasAttribute('data-bs-toggle') || a.hasAttribute('data-toggle')) return;
+            if (a.origin && a.origin !== window.location.origin) return;
+            NProgress.start();
+        });
+        window.addEventListener('beforeunload', function () { NProgress.set(0.9); });
+        window.addEventListener('pageshow', function (e) { if (e.persisted) NProgress.remove(); else NProgress.done(true); });
+    </script>
     <script>
         const sideBar = document.querySelector('.sidenav'); 
         const modals = document.querySelectorAll('.modal-fullscreen');

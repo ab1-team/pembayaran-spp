@@ -6,6 +6,8 @@
     ];
     $admin = Auth::guard('master')->user();
 @endphp
+<link rel="stylesheet" href="https://unpkg.com/nprogress@0.2.0/nprogress.css">
+<style>#nprogress .bar { background: #37d17c !important; height: 3px !important; } #nprogress .peg { box-shadow: 0 0 10px #37d17c, 0 0 5px #37d17c !important; } #nprogress .spinner-icon { border-top-color: #37d17c !important; border-left-color: #37d17c !important; }</style>
 
 <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -118,5 +120,22 @@
                 document.getElementById('logout-form').submit();
             }
         });
+    }
+</script>
+<script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+<script>
+    if (window.NProgress) {
+        NProgress.configure({ showSpinner: false, trickleSpeed: 120, minimum: 0.2 });
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest && e.target.closest('a');
+            if (!a) return;
+            var href = a.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || a.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            if (a.hasAttribute('data-no-progress') || a.hasAttribute('data-bs-toggle') || a.hasAttribute('data-toggle')) return;
+            if (a.origin && a.origin !== window.location.origin) return;
+            NProgress.start();
+        });
+        window.addEventListener('beforeunload', function () { NProgress.set(0.9); });
+        window.addEventListener('pageshow', function (e) { if (e.persisted) NProgress.remove(); else NProgress.done(true); });
     }
 </script>
