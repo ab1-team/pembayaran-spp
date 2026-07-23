@@ -621,7 +621,9 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('DukunganTeknis')).show();
         });
         document.getElementById('waSupport').addEventListener('click', function () {
-            var pesan = 'Halo Dukungan Teknis,%0A%0ASaya ingin konsultasi terkait kendala pada sistem.%0A%0AHalaman: ' + document.title + '%0AURL: ' + window.location.href + '%0A%0ATerima kasih.';
+            var nama = @json(auth()->user()->name ?? 'User');
+            var email = @json(auth()->user()->email ?? '-');
+            var pesan = 'Halo Technical Support,%0A%0APerkenalkan, saya *' + nama + '* (' + email + ') ingin berkonsultasi mengenai kendala pada sistem.%0A%0A*Detail:%0AHalaman*: ' + document.title + '%0A*URL*: ' + window.location.href + '%0A%0AMohon bantuannya. Terima kasih.';
             window.open('https://wa.me/62882006644656?text=' + pesan, '_blank');
         });
     </script>
