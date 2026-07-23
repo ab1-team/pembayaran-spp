@@ -23,32 +23,44 @@
         </tr>
     </table>
 
-    <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse; font-size:11px;">
+    <table width="100%" cellpadding="3" cellspacing="0" style="border-collapse:collapse; font-size:9px;">
 
         <thead>
             <tr style="text-align:center; font-weight:bold;">
-                <th rowspan="2" style="border:1px solid #000; width:4%;">No</th>
-                <th rowspan="2" style="border:1px solid #000; width:10%;">NISN</th>
-                <th rowspan="2" style="border:1px solid #000; width:20%;">Nama Siswa</th>
+                <th rowspan="3" style="border:1px solid #000; width:3%;">No</th>
+                <th rowspan="3" style="border:1px solid #000; width:8%;">NISN</th>
+                <th rowspan="3" style="border:1px solid #000; width:18%;">Nama Siswa</th>
 
-                <th colspan="2" style="border:1px solid #000; width:16%;">
-                    Target Pembayaran
+                <th rowspan="3" style="border:1px solid #000; width:7%;">Target / Bulan</th>
+
+                <th colspan="{{ count($bulanList) * 2 }}" style="border:1px solid #000;">
+                    Realisasi Per Bulan
                 </th>
 
-                <th colspan="3" style="border:1px solid #000; width:30%;">
-                    Realisasi Pembayaran
+                <th colspan="3" style="border:1px solid #000;">
+                    Akumulasi
                 </th>
 
-                <th rowspan="2" style="border:1px solid #000; width:20%;">Keterangan</th>
+                <th rowspan="3" style="border:1px solid #000; width:10%;">Keterangan</th>
             </tr>
 
             <tr style="text-align:center; font-weight:bold;">
-                <th style="border:1px solid #000; width:12%;">per Bulan</th>
-                <th style="border:1px solid #000; width:12%;">s.d. Saat Ini</th>
+                @foreach ($bulanList as $bln)
+                    <th colspan="2" style="border:1px solid #000;">
+                        {{ $bln->translatedFormat('M Y') }}
+                    </th>
+                @endforeach
 
-                <th style="border:1px solid #000; width:12%;">s.d. Periode Lalu</th>
-                <th style="border:1px solid #000; width:12%;">Periode Ini</th>
-                <th style="border:1px solid #000; width:12%;">s.d. Periode Ini</th>
+                <th rowspan="2" style="border:1px solid #000; width:6%;">Target s.d. Saat Ini</th>
+                <th rowspan="2" style="border:1px solid #000; width:6%;">Bayar s.d. Periode Ini</th>
+                <th rowspan="2" style="border:1px solid #000; width:6%;">Sisa</th>
+            </tr>
+
+            <tr style="text-align:center; font-weight:bold;">
+                @foreach ($bulanList as $bln)
+                    <th style="border:1px solid #000; width:3%;">Status</th>
+                    <th style="border:1px solid #000; width:4%;">Bayar</th>
+                @endforeach
             </tr>
         </thead>
         <tbody>
@@ -64,37 +76,47 @@
                         {{ $row->getSiswa->nama ?? '-' }}
                     </td>
 
-                    {{-- Target per bulan --}}
                     <td style="border:1px solid #000; text-align:right;">
                         {{ \App\Utils\Angka::format($row->per_bulan, 2) }}
                     </td>
 
-                    {{-- Target s.d saat ini --}}
+                    @foreach ($row->bulan_list as $b)
+                        <td style="border:1px solid #000; text-align:center;
+                            color: {{ $b->status === 'L' ? 'black' : ($b->status === 'B' ? 'red' : '#888') }};">
+                            @if ($b->status === 'L')
+                                L
+                            @elseif ($b->status === 'B')
+                                B
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td style="border:1px solid #000; text-align:right;">
+                            {{ $b->bayar > 0 ? \App\Utils\Angka::format($b->bayar, 2) : '-' }}
+                        </td>
+                    @endforeach
+
                     <td style="border:1px solid #000; text-align:right;">
                         {{ \App\Utils\Angka::format($row->target_sd_saat_ini, 2) }}
                     </td>
 
-                    {{-- Realisasi s.d periode lalu --}}
-                    <td style="border:1px solid #000; text-align:right;">
-                        {{ \App\Utils\Angka::format($row->sd_periode_lalu, 2) }}
-                    </td>
-
-                    {{-- Realisasi periode ini --}}
-                    <td style="border:1px solid #000; text-align:right;">
-                        {{ \App\Utils\Angka::format($row->periode_ini, 2) }}
-                    </td>
-
-                    {{-- Realisasi s.d periode ini --}}
                     <td style="border:1px solid #000; text-align:right;">
                         {{ \App\Utils\Angka::format($row->sd_periode_ini, 2) }}
                     </td>
 
-                    {{-- Keterangan --}}
-                    <td
-                        style="border:1px solid #000; text-align:center;
-                 color: {{ $row->sisa > 0 ? 'red' : 'black' }};">
+                    <td style="border:1px solid #000; text-align:right;
+                        color: {{ $row->sisa > 0 ? 'red' : 'black' }};">
                         @if ($row->sisa > 0)
-                            ({{ \App\Utils\Angka::format($row->sisa, 2) }})
+                            {{ \App\Utils\Angka::format($row->sisa, 2) }}
+                        @else
+                            -
+                        @endif
+                    </td>
+
+                    <td style="border:1px solid #000; text-align:center;
+                        color: {{ $row->sisa > 0 ? 'red' : 'black' }};">
+                        @if ($row->sisa > 0)
+                            Belum Lunas
                         @else
                             Lunas
                         @endif
@@ -103,7 +125,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="border:1px solid #000; text-align:center; font-style:italic;">
+                    <td colspan="{{ 5 + count($bulanList) * 2 + 4 }}" style="border:1px solid #000; text-align:center; font-style:italic;">
                         Tidak ada data
                     </td>
                 </tr>

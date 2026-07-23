@@ -29,17 +29,10 @@
             <tr style="text-align:center; font-weight:bold;">
                 <th style="border:1px solid #000; width:5%;">No</th>
                 <th style="border:1px solid #000; width:10%;">NISN</th>
-                <th style="border:1px solid #000; width:30%;">Nama Siswa</th>
-
-                <th style="border:1px solid #000; width:20%;">
-                    Target Pembayaran
-                </th>
-
-                <th style="border:1px solid #000; width:20%;">
-                    Realisasi Pembayaran
-                </th>
-
-                <th style="border:1px solid #000; width:20%;">Keterangan</th>
+                <th style="border:1px solid #000; width:25%;">Nama Siswa</th>
+                <th style="border:1px solid #000; width:15%;">Tgl Bayar Terakhir</th>
+                <th style="border:1px solid #000; width:20%;">Jumlah Bayar</th>
+                <th style="border:1px solid #000; width:25%;">Keterangan</th>
             </tr>
         </thead>
         <tbody>
@@ -55,34 +48,24 @@
                         {{ $row->getSiswa->nama ?? '-' }}
                     </td>
 
-                    {{-- Target --}}
-                    <td style="border:1px solid #000; text-align:right;">
-                        {{ \App\Utils\Angka::format($row->target ?? 0, 2) }}
+                    <td style="border:1px solid #000; text-align:center;">
+                        {{ $row->tgl_bayar_terakhir
+                            ? \Carbon\Carbon::parse($row->tgl_bayar_terakhir)->translatedFormat('d F Y')
+                            : '-' }}
                     </td>
 
-                    {{-- Realisasi --}}
                     <td style="border:1px solid #000; text-align:right;">
                         {{ \App\Utils\Angka::format($row->realisasi ?? 0, 2) }}
                     </td>
 
-                    {{-- Keterangan --}}
-                    <td
-                        style="border:1px solid #000; text-align:center;
-                color: {{ ($row->sisa ?? 0) > 0 ? 'red' : 'black' }};">
-
-                        @if (($row->sisa ?? 0) > 0)
-                            ({{ \App\Utils\Angka::format($row->sisa, 2) }})
-                        @else
-                            Lunas
-                        @endif
+                    <td style="border:1px solid #000; text-align:center;">
+                        Sudah Bayar
                     </td>
-
-
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="border:1px solid #000; text-align:center; font-style:italic;">
-                        Tidak ada data
+                    <td colspan="6" style="border:1px solid #000; text-align:center; font-style:italic;">
+                        Tidak ada siswa yang membayar pada periode ini
                     </td>
                 </tr>
             @endforelse

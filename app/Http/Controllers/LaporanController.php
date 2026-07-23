@@ -666,6 +666,13 @@ class LaporanController extends Controller
         $tglAwal  = Carbon::parse($data['tgl_awal'])->startOfMonth();
         $tglAkhir = Carbon::parse($data['tgl_akhir'])->endOfMonth();
 
+        $bulanList = [];
+        $cursor = $tglAwal->copy();
+        while ($cursor->lte($tglAkhir)) {
+            $bulanList[] = $cursor->copy();
+            $cursor->addMonth();
+        }
+
         $anggotaKelas = Anggota_Kelas::with(['getSiswa'])
             ->when(!empty($data['sub_laporan']), function ($q) use ($data) {
                 $q->where('kode_kelas', $data['sub_laporan']);
@@ -678,32 +685,47 @@ class LaporanController extends Controller
             })
             ->orderBy('id')
             ->get()
-            ->map(function ($row) use ($tglAwal, $tglAkhir) {
+            ->map(function ($row) use ($tglAwal, $tglAkhir, $bulanList) {
 
-                $jumlahBulan = $tglAwal->diffInMonths($tglAkhir) + 1;
+                $row->per_bulan = (int) ($row->getSiswa->spp_nominal ?? 0);
 
-                $row->per_bulan = $row->getSiswa->spp_nominal ?? 0;
+                $sppRows = Spp::where('anggota_kelas', $row->id)
+                    ->whereBetween('tanggal', [$tglAwal, $tglAkhir])
+                    ->orderBy('tanggal')
+                    ->get()
+                    ->keyBy(fn($s) => Carbon::parse($s->tanggal)->format('Y-m'));
 
-                $row->target_sd_saat_ini = $jumlahBulan * $row->per_bulan;
+                $row->bulan_list = collect($bulanList)->map(function ($bln) use ($sppRows, $row) {
+                    $key = $bln->format('Y-m');
+                    $s = $sppRows->get($key);
+                    $nominalTagihan = (int) ($s->nominal ?? $row->per_bulan);
+                    $lunas = $s && $s->status === 'L';
+                    return (object) [
+                        'bulan'   => $bln,
+                        'tagihan' => $nominalTagihan,
+                        'bayar'   => $lunas ? $nominalTagihan : 0,
+                        'status'  => $s ? ($lunas ? 'L' : 'B') : null,
+                    ];
+                });
+
+                $row->target_sd_saat_ini = $row->bulan_list->sum('tagihan');
 
                 $row->sd_periode_lalu = Spp::where('anggota_kelas', $row->id)
                     ->where('status', 'L')
                     ->where('tanggal', '<', $tglAwal)
                     ->sum('nominal');
 
-                $row->periode_ini = Spp::where('anggota_kelas', $row->id)
-                    ->where('status', 'L')
-                    ->whereBetween('tanggal', [$tglAwal, $tglAkhir])
-                    ->sum('nominal');
+                $row->periode_ini = $row->bulan_list->sum('bayar');
 
                 $row->sd_periode_ini = $row->sd_periode_lalu + $row->periode_ini;
 
-                $row->sisa = $row->target_sd_saat_ini - $row->sd_periode_ini;
+                $row->sisa = $row->target_sd_saat_ini - $row->periode_ini;
 
                 return $row;
             });
 
         $data['anggotaKelas'] = $anggotaKelas;
+        $data['bulanList']    = $bulanList;
 
         $logoPath = \App\Models\Profil::logoPath();
         if (file_exists($logoPath)) {
@@ -797,6 +819,10 @@ class LaporanController extends Controller
         ];
 
         $anggotaKelas = Anggota_Kelas::with(['getSiswa', 'getTahunAkademik'])
+            ->whereHas('getSiswa.transaksi', function ($q) use ($kodeAkun, $tglAwal, $tglAkhir) {
+                $q->where('rekening_kredit', $kodeAkun)
+                    ->whereBetween('tanggal_transaksi', [$tglAwal, $tglAkhir]);
+            })
             ->when(!empty($data['sub_laporan']), function ($q) use ($data) {
                 $q->where('kode_kelas', $data['sub_laporan']);
             })
@@ -808,16 +834,16 @@ class LaporanController extends Controller
             })
             ->orderBy('id')
             ->get()
-            ->map(function ($row) use ($tglAwal, $tglAkhir, $targetResolver, $kodeAkun) {
+            ->map(function ($row) use ($tglAwal, $tglAkhir, $kodeAkun) {
 
-                $row->target = $targetResolver($row);
-
-                $row->realisasi = (float) Transaksi::where('siswa_id', $row->getSiswa->id ?? 0)
+                $trx = Transaksi::where('siswa_id', $row->getSiswa->id ?? 0)
                     ->where('rekening_kredit', $kodeAkun)
                     ->whereBetween('tanggal_transaksi', [$tglAwal, $tglAkhir])
-                    ->sum('jumlah');
+                    ->orderByDesc('tanggal_transaksi')
+                    ->get();
 
-                $row->sisa = $row->target - $row->realisasi;
+                $row->tgl_bayar_terakhir = $trx->max('tanggal_transaksi');
+                $row->realisasi = (float) $trx->sum('jumlah');
 
                 return $row;
             });
