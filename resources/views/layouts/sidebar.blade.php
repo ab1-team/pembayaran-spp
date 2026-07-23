@@ -99,8 +99,8 @@
                                         @foreach($itemChildren as $child)
                                             @php $childIsActive = $isActive($child->route); @endphp
                                             <li class="nav-item">
-                                                <a class="nav-link {{ $childIsActive ? 'active bg-gradient-dark text-white' : 'text-dark' }} py-2" href="{{ $safeUrl($child->route) }}">
-                                                    <span class="sidenav-normal">{{ $child->nama_menu }}</span>
+                                                <a class="nav-link text-dark py-2" href="{{ $safeUrl($child->route) }}">
+                                                    <span class="sidenav-normal">{{ $childIsActive ? '• ' : '' }}{{ $child->nama_menu }}</span>
                                                 </a>
                                             </li>
                                         @endforeach
