@@ -2,17 +2,17 @@
 @extends('laporan-keuangan.layout.base')
 
 @section('content')
-    <table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:15px;">
+    <table width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:10px;">
         <tr>
             <td align="center" style="padding:0;">
-                <div style="font-size:20px; font-weight:bold; margin:0; padding:0; line-height:1.1;">
+                <div style="font-size:16px; font-weight:bold; margin:0; padding:0; line-height:1.2;">
                     {{ $title }}
                     @if (!empty($kelas))
-                        Kelas {{ $kelas->kode_kelas }}
+                        &mdash; Kelas {{ $kelas->kode_kelas }}
                     @endif
                 </div>
 
-                <div style="font-size:16px; font-weight:bold; margin:2px 0 0 0; padding:0; line-height:1.1;">
+                <div style="font-size:12px; margin:2px 0 0 0; padding:0; line-height:1.2;">
                     Periode
                     {{ $periode['awal']->translatedFormat('d F Y') }}
                     s.d.
