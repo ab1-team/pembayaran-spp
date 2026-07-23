@@ -12,6 +12,10 @@ class Transaksi extends Model
     protected $table = 'transaksi';
     protected $guarded = [];
 
+    protected $attributes = [
+        'invoice' => 0,
+    ];
+
     protected $casts = [
         'tanggal_transaksi' => 'date',
         'jumlah' => 'decimal:2',

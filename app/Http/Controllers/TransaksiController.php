@@ -13,6 +13,7 @@ use App\Utils\Inventaris as UtilsInventaris;
 use App\Utils\Angka;
 use App\Utils\Tanggal;
 use App\Models\Rekening;
+use App\Models\Saldo;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
@@ -33,8 +34,9 @@ class TransaksiController extends Controller
         $title = 'Jurnal Umum';
         $jenisTransaksi = Jenis_transaksi::all();
         $rekening = Rekening::orderBy('kode_akun', 'asc')->get();
+        $totalSaldo = (float) Saldo::selectRaw('SUM(debit - kredit) as total')->value('total');
 
-        return view('transaksi.index', compact('title', 'jenisTransaksi', 'rekening'));
+        return view('transaksi.index', compact('title', 'jenisTransaksi', 'rekening', 'totalSaldo'));
     }
 
     /**
@@ -100,14 +102,33 @@ class TransaksiController extends Controller
         $message = "Transaksi berhasil disimpan.";
         $form = $data[$data['transaksi']];
         if ($data['transaksi'] == 'jurnal_umum') {
+            $jumlah = Angka::parseInt($form['nominal']);
             Transaksi::create([
                 'user_id' => auth()->user()->id,
                 'tanggal_transaksi' => $data['tanggal'],
                 'rekening_debit' => $data['disimpan_ke'],
                 'rekening_kredit' => $data['sumber_dana'],
                 'keterangan' => $form['keterangan'],
-                'jumlah' => Angka::parseInt($form['nominal']),
+                'jumlah' => $jumlah,
+                'invoice' => 0,
+                'kode_spp' => '0',
+                'siswa_id' => 0,
+                'idtp' => '0',
+                'urutan' => '0',
             ]);
+
+            $bulan = (int) Carbon::parse($data['tanggal'])->format('n');
+            $tahun = (int) Carbon::parse($data['tanggal'])->format('Y');
+
+            Saldo::firstOrCreate(
+                ['kode_akun' => $data['disimpan_ke'], 'bulan' => $bulan, 'tahun' => $tahun],
+                ['debit' => 0, 'kredit' => 0]
+            )->increment('debit', $jumlah);
+
+            Saldo::firstOrCreate(
+                ['kode_akun' => $data['sumber_dana'], 'bulan' => $bulan, 'tahun' => $tahun],
+                ['debit' => 0, 'kredit' => 0]
+            )->increment('kredit', $jumlah);
         }
 
         if ($data['transaksi'] == 'beli_inventaris') {
@@ -139,6 +160,11 @@ class TransaksiController extends Controller
                 'rekening_kredit' => $data['disimpan_ke'],
                 'keterangan' => $keterangan,
                 'jumlah' => $harga_perolehan,
+                'invoice' => 0,
+                'kode_spp' => '0',
+                'siswa_id' => 0,
+                'idtp' => '0',
+                'urutan' => '0',
             ]);
         }
 
@@ -171,6 +197,10 @@ class TransaksiController extends Controller
                 'keterangan' => 'Penghapusan ' . $jumlah_unit . ' unit ' . $barang . ' (' . $id_inv . ')' . ' karena ' . $status,
                 'jumlah' => $nilai_buku,
                 'urutan' => '0',
+                'invoice' => 0,
+                'kode_spp' => '0',
+                'siswa_id' => 0,
+                'idtp' => '0',
             ];
 
             $update_inventaris = [
@@ -276,12 +306,213 @@ class TransaksiController extends Controller
         //
     }
 
+    public function jurnalUmumDetail(Request $request)
+    {
+        $query = Transaksi::with(['rekeningDebit', 'rekeningKredit', 'user'])
+            ->where('kode_spp', '0')
+            ->where('siswa_id', 0)
+            ->whereNull('deleted_at');
+
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_transaksi', $request->tahun);
+            if ($request->filled('bulan')) {
+                $query->whereMonth('tanggal_transaksi', $request->bulan);
+                if ($request->filled('tanggal')) {
+                    $query->whereDay('tanggal_transaksi', $request->tanggal);
+                }
+            }
+        }
+
+        $transaksi = $query->orderByDesc('tanggal_transaksi')->orderByDesc('id')->get();
+        $total = $transaksi->sum(fn ($t) => $t->getRawOriginal('jumlah'));
+
+        return view('transaksi.detail.jurnal-umum', compact('transaksi', 'total'));
+    }
+
+    public function jurnalUmumCetak(Request $request)
+    {
+        $query = Transaksi::with(['rekeningDebit', 'rekeningKredit', 'user'])
+            ->where('kode_spp', '0')
+            ->where('siswa_id', 0)
+            ->whereNull('deleted_at');
+
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_transaksi', $request->tahun);
+            if ($request->filled('bulan')) {
+                $query->whereMonth('tanggal_transaksi', $request->bulan);
+                if ($request->filled('tanggal')) {
+                    $query->whereDay('tanggal_transaksi', $request->tanggal);
+                }
+            }
+        }
+
+        $transaksi = $query->orderByDesc('tanggal_transaksi')->orderByDesc('id')->get();
+        $total = $transaksi->sum(fn ($t) => $t->getRawOriginal('jumlah'));
+
+        $transaksi->each(function ($t) {
+            $t->jenis_dokumen = $this->detectJenisDokumen($t);
+        });
+
+        return view('transaksi.detail.jurnal-umum-cetak', compact('transaksi', 'total'));
+    }
+
+    private function detectJenisDokumen(Transaksi $t): string
+    {
+        $d = $t->rekening_debit;
+        $k = $t->rekening_kredit;
+
+        $kas = fn($x) => str_starts_with((string) $x, '1.1.01');
+        $bank = fn($x) => str_starts_with((string) $x, '1.1.02');
+        $beban = fn($x) => str_starts_with((string) $x, '5.');
+        $pendapatan = fn($x) => str_starts_with((string) $x, '4.');
+
+        if ($kas($d) && !$kas($k)) return 'bkk';
+        if ($bank($d) && ($kas($k) || $bank($k))) return 'bkk';
+        if ($beban($d) && ($kas($k) || $bank($k))) return 'bkk';
+
+        if ($kas($k) && !$kas($d)) return 'bkm';
+        if ($bank($k) && ($kas($d) || $bank($d))) return 'bkm';
+        if (($kas($d) || $bank($d)) && $pendapatan($k)) return 'bkm';
+
+        return 'bm';
+    }
+
+    public function jurnalUmumPrintDokumen(Request $request, string $jenis)
+    {
+        $allowed = ['bkk', 'bkm', 'bm', 'kuitansi', 'kuitansi_thermal', 'cetak'];
+        if (!in_array($jenis, $allowed, true)) {
+            abort(404, 'Jenis dokumen tidak dikenal.');
+        }
+
+        $ids = array_filter(explode(',', $request->query('ids', '')));
+        $query = Transaksi::with(['rekeningDebit', 'rekeningKredit'])
+            ->where('kode_spp', '0')
+            ->where('siswa_id', 0)
+            ->whereNull('deleted_at');
+
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+
+        $transaksi = $query->orderBy('tanggal_transaksi')->orderBy('id')->get();
+        if ($transaksi->isEmpty()) {
+            abort(404, 'Tidak ada transaksi untuk dicetak.');
+        }
+
+        $profil = \App\Models\Profil::first();
+        $data = [
+            'profil' => $profil,
+            'transaksi' => $transaksi,
+            'jenis' => strtoupper(str_replace('_', ' ', $jenis)),
+        ];
+        $logoPath = \App\Models\Profil::logoPath();
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
+        }
+
+        $view = 'transaksi.detail.dokumen.' . $jenis;
+        $isCetak = $jenis === 'cetak';
+        $isThermal = $jenis === 'kuitansi_thermal';
+
+        if (!$isCetak) {
+            $data['trx'] = $transaksi->first();
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($view, $data);
+        if ($isThermal) {
+            $pdf->setPaper([0, 0, 226.77, 254.01]);
+        } elseif ($isCetak) {
+            $pdf->setPaper('A4', 'landscape');
+        } else {
+            $pdf->setPaper('A4', 'portrait');
+        }
+
+        return $pdf->stream('dokumen-' . $jenis . '.pdf');
+    }
+
+    public function jurnalUmumData(Request $request)
+    {
+        $query = Transaksi::with(['rekeningDebit', 'rekeningKredit', 'user'])
+            ->where('kode_spp', '0')
+            ->where('siswa_id', 0)
+            ->whereNull('deleted_at');
+
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_transaksi', $request->tahun);
+            if ($request->filled('bulan')) {
+                $query->whereMonth('tanggal_transaksi', $request->bulan);
+                if ($request->filled('tanggal')) {
+                    $query->whereDay('tanggal_transaksi', $request->tanggal);
+                }
+            }
+        }
+
+        $total = (clone $query)->sum('jumlah');
+
+        return DataTables::eloquent($query->select('transaksi.*'))
+            ->addIndexColumn()
+            ->addColumn('tgl_fmt', fn ($r) => $r->tanggal_transaksi->format('d-m-Y'))
+            ->addColumn('kode_akun', function ($r) {
+                $d = $r->rekeningDebit->kode_akun ?? '-';
+                $k = $r->rekeningKredit->kode_akun ?? '-';
+                return '<div class="small"><div>D: ' . $d . '</div><div>K: ' . $k . '</div></div>';
+            })
+            ->addColumn('rekening_debit_nama', fn ($r) => $r->rekeningDebit->nama_akun ?? '-')
+            ->addColumn('rekening_kredit_nama', fn ($r) => $r->rekeningKredit->nama_akun ?? '-')
+            ->addColumn('ket', fn ($r) => $r->keterangan ?: '-')
+            ->addColumn('nominal_fmt', fn ($r) => number_format((float) $r->jumlah, 0, ',', '.'))
+            ->addColumn('user', fn ($r) => $r->user->nama_lengkap ?? $r->user->name ?? '-')
+            ->addColumn('aksi', function ($r) {
+                $id = (int) $r->id;
+                $base = '/app/Transaksi/jurnal-umum/printDokumen/';
+                $html = '<div class="d-inline-flex gap-1">';
+                foreach ([
+                    'bkk' => ['Bukti Kas Keluar', 'output'],
+                    'bkm' => ['Bukti Kas Masuk', 'input'],
+                    'bm' => ['Bukti Memorial', 'description'],
+                ] as $jenis => [$title, $icon]) {
+                    $html .= '<a href="' . $base . $jenis . '?ids=' . $id . '" target="_blank" class="btn btn-secondary btn-compact" title="' . $title . '">'
+                        . '<i class="material-symbols-rounded">' . $icon . '</i></a>';
+                }
+                $html .= '<div class="dropdown">';
+                $html .= '<button type="button" class="btn btn-secondary btn-compact dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Kuitansi">'
+                    . '<i class="material-symbols-rounded">receipt_long</i></button>';
+                $html .= '<ul class="dropdown-menu">';
+                foreach ([
+                    'kuitansi' => 'Kuitansi',
+                    'kuitansi_thermal' => 'Kuitansi Thermal',
+                    'cetak' => 'Cetak Bukti',
+                ] as $jenis => $title) {
+                    $html .= '<li><a href="' . $base . $jenis . '?ids=' . $id . '" target="_blank" class="dropdown-item">' . $title . '</a></li>';
+                }
+                $html .= '</ul></div>';
+                $html .= '<button type="button" class="btn btn-danger btn-compact btnHapusJurnal" data-id="' . $id . '" title="Hapus">'
+                    . '<i class="material-symbols-rounded">delete</i></button>';
+                $html .= '</div>';
+                return $html;
+            })
+            ->rawColumns(['kode_akun', 'aksi'])
+            ->with('total_nominal', 'Rp ' . number_format((float) $total, 0, ',', '.'))
+            ->toJson();
+    }
+
     /**
      * Remove detail jurnal umum
      */
     public function destroy(Transaksi $Transaksi)
     {
         //
+    }
+
+    public function jurnalUmumDestroy(Transaksi $transaksi)
+    {
+        $transaksi->update(['deleted_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+            'msg' => 'Jurnal umum #' . $transaksi->id . ' berhasil dihapus.'
+        ]);
     }
 
     //PEMBAYARAN SPP
@@ -377,7 +608,7 @@ class TransaksiController extends Controller
                 'invoice' => 0,
                 'rekening_debit' => $request->sumber_dana,
                 'rekening_kredit' => $jp->kode_akun,
-                'kode_spp' => null,
+                'kode_spp' => '0',
                 'siswa_id' => $request->siswa_id,
                 'jumlah' => Angka::parseInt($request->nominal),
                 'keterangan' => $request->keterangan,
@@ -387,6 +618,23 @@ class TransaksiController extends Controller
 
             $transaksiList[] = $transaksi;
         }
+
+        $bulan = (int) Carbon::parse($request->tanggal)->format('n');
+        $tahun = (int) Carbon::parse($request->tanggal)->format('Y');
+        $totalJumlah = collect($transaksiList)->sum('jumlah');
+        $kreditAkunKode = $transaksiList[0]->rekening_kredit;
+
+        $debitAkun = Saldo::firstOrCreate(
+            ['kode_akun' => $request->sumber_dana, 'bulan' => $bulan, 'tahun' => $tahun],
+            ['debit' => 0, 'kredit' => 0]
+        );
+        $debitAkun->increment('debit', $totalJumlah);
+
+        $kreditAkun = Saldo::firstOrCreate(
+            ['kode_akun' => $kreditAkunKode, 'bulan' => $bulan, 'tahun' => $tahun],
+            ['debit' => 0, 'kredit' => 0]
+        );
+        $kreditAkun->increment('kredit', $totalJumlah);
 
         return response()->json([
             'success' => true,

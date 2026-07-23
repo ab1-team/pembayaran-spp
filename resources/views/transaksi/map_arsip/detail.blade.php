@@ -37,14 +37,22 @@
                                     </td>
                                     <td class="text-center text-nowrap">
                                         <div class="d-inline-flex gap-1">
-                                            <a href="/app/transaksi/kwitansi-spp?ids={{ $item->id }}" target="_blank"
-                                                class="btn btn-secondary btn-compact" title="Cetak Kwitansi">
-                                                <i class="material-symbols-rounded">print</i>
-                                            </a>
-                                            <a href="/app/transaksi/cetakPadaKartu?ids={{ $item->id }}" target="_blank"
-                                                class="btn btn-secondary btn-compact" title="Cetak Pada Kartu">
-                                                <i class="material-symbols-rounded">print</i>
-                                            </a>
+                                            <div class="dropdown">
+                                                <button type="button" class="btn btn-secondary btn-compact dropdown-toggle"
+                                                    data-bs-toggle="dropdown" aria-expanded="false" title="Cetak">
+                                                    <i class="material-symbols-rounded">print</i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a href="/app/transaksi/kwitansi-spp?ids={{ $item->id }}"
+                                                            target="_blank" class="dropdown-item">Cetak Kwitansi</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="/app/transaksi/cetakPadaKartu?ids={{ $item->id }}"
+                                                            target="_blank" class="dropdown-item">Cetak Pada Kartu</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                             <button type="button" class="btn btn-danger btn-compact btnDelete"
                                                 data-id="{{ $item->id }}">
                                                 <i class="material-symbols-rounded">delete</i>

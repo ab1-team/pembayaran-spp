@@ -82,6 +82,11 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
         ->where('jenis', 'uts1|uts2|pas1|pas2');
     Route::delete('/transaksi/pembayaranSPPDestroy/{Transaksi}', [TransaksiController::class, 'pembayaranSPPDestroy']);
     Route::resource('/Transaksi', TransaksiController::class);
+    Route::get('/Transaksi/jurnal-umum/data', [TransaksiController::class, 'jurnalUmumData'])->name('Transaksi.jurnalUmumData');
+    Route::get('/Transaksi/jurnal-umum/detail', [TransaksiController::class, 'jurnalUmumDetail'])->name('Transaksi.jurnalUmumDetail');
+    Route::get('/Transaksi/jurnal-umum/cetak', [TransaksiController::class, 'jurnalUmumCetak'])->name('Transaksi.jurnalUmumCetak');
+    Route::get('/Transaksi/jurnal-umum/printDokumen/{jenis}', [TransaksiController::class, 'jurnalUmumPrintDokumen'])->name('Transaksi.jurnalUmumPrintDokumen');
+    Route::delete('/Transaksi/jurnal-umum/{transaksi}', [TransaksiController::class, 'jurnalUmumDestroy'])->name('Transaksi.jurnalUmumDestroy');
 
     Route::resource('/jenis-biaya', JenisBiayaController::class);
     Route::get('/jenis-biaya-create-form', [JenisBiayaController::class, 'createForm']);

@@ -1,8 +1,8 @@
 @extends('layouts.base')
 @section('content')
 <div class="row">
-    <div class="col-md-8 mt-3">
-        <div class="card">
+    <div class="col-md-9 mt-3">
+        <div class="card h-100">
             <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                 <div
                     class="bg-gradient-secondary shadow-secondary border-radius-lg pt-3 pb-1 d-flex justify-content-between align-items-center">
@@ -11,7 +11,7 @@
                     </h6>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-3 pb-0">
                 <form action="/app/Transaksi" method="post" id="FormTransaksi">
                     @csrf
                     <input type="hidden" name="transaksi" id="transaksi" value="jurnal_umum">
@@ -57,11 +57,11 @@
                         <div class="col-md-12">
                             <label for="keterangan_transaksi">Keterangan</label>
                             <div class="input-group input-group-outline mb-3">
-                                <textarea class="form-control" rows="1" id="keterangan_transaksi"
-                                    name="jurnal_umum[keterangan]" rows="3"></textarea>
+                                <textarea class="form-control" id="keterangan_transaksi"
+                                    name="jurnal_umum[keterangan]" rows="1"></textarea>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="nominal">Nominal</label>
                             <div class="input-group input-group-outline mb-3">
                                 <input type="text" class="form-control nominal" id="nominal" name="jurnal_umum[nominal]"
@@ -152,28 +152,31 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-info">Simpan Transaksi</button>
+                        <button type="submit" class="btn btn-info mb-0">Simpan Transaksi</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <div class="col-md-4 mt-3 d-none">
+    <div class="col-md-3 mt-3">
         <div class="card h-100">
-            <div class="card-body pt-4 p-3">
-                <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">
-                    Saldo</span>
+            <div class="card-body p-3 pb-0">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-0">Saldo</h6>
+                    <span class="fw-bolder {{ $totalSaldo >= 0 ? 'text-success' : 'text-danger' }}">
+                        Rp. {{ number_format((float) $totalSaldo, 0, ',', '.') }}
+                    </span>
+                </div>
+                <hr class="horizontal dark my-4">
+                <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-2 text-center">
+                    Cetak Buku Bantu
                 </h6>
-                <hr class="horizontal dark my-2">
-                <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3 text-center">
-                    Cetak Buku Bantu</span>
-                </h6>
-                <hr class="horizontal dark my-2">
+                <hr class="horizontal dark my-3">
                 <div class="row">
                     <div class="col-md-12">
-                        <label>Tahunan</label>
-                        <div class="input-group input-group-outline mb-3">
-                            <select class="form-control select2" id="filter-tahunan">
+                        <label class="text-muted small mb-2">Tahunan</label>
+                        <div class="input-group input-group-outline input-group-sm mb-2">
+                            <select class="form-control form-control-sm select2" id="filter-tahunan">
                                 <option value="">Pilih Tahun</option>
                                 <option value="2025">2025</option>
                                 <option value="2026">2026</option>
@@ -182,30 +185,30 @@
                     </div>
 
                     <div class="col-md-12">
-                        <label>Bulanan</label>
-                        <div class="input-group input-group-outline mb-3">
-                            <select class="form-control select2" id="filter-bulanan">
+                        <label class="text-muted small mb-2">Bulanan</label>
+                        <div class="input-group input-group-outline input-group-sm mb-2">
+                            <select class="form-control form-control-sm select2" id="filter-bulanan">
                                 <option value="">Pilih Bulan</option>
-                                <option value="1">1.Januari</option>
-                                <option value="2">2.Februari</option>
-                                <option value="3">3.Maret</option>
-                                <option value="4">4.April</option>
-                                <option value="5">5.Mei</option>
-                                <option value="6">6.Juni</option>
-                                <option value="7">7.Juli</option>
-                                <option value="8">8.Agustus</option>
-                                <option value="9">9.September</option>
-                                <option value="10">10.Oktober</option>
-                                <option value="11">11.November</option>
-                                <option value="12">12.Desember</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="col-md-12">
-                        <label>Harian</label>
-                        <div class="input-group input-group-outline mb-3">
-                            <select class="form-control select2" id="filter-harian">
+                        <label class="text-muted small mb-2">Harian</label>
+                        <div class="input-group input-group-outline input-group-sm mb-3">
+                            <select class="form-control form-control-sm select2" id="filter-harian">
                                 <option value="">Pilih Tanggal</option>
                                 <option value="1">01</option>
                                 <option value="2">02</option>
@@ -242,13 +245,80 @@
                         </div>
                     </div>
                 </div>
-                    <div class="d-flex justify-content-end mt-4 mb-1">
-                        <button type="submit" class="btn btn-danger">Detail Transaksi</button>
+                    <div class="d-flex justify-content-end mt-3 mb-0">
+                        <button type="button" class="btn btn-danger text-white btn-sm mb-0" id="btnDetailJurnalUmum">
+                            <i class="bi bi-receipt-cutoff me-1"></i> Detail Transaksi
+                        </button>
                     </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
+@section('modal')
+    <div class="modal fade modal-fullscreen" id="detailJurnal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content" style="border-radius:0">
+                <div class="modal-header" style="border-radius:0">
+                    <h5 class="modal-title">
+                        <i class="bi bi-journal-text me-1"></i> Detail Jurnal Umum
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="detailJurnalContent">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-info-circle fs-2"></i>
+                        <p class="mt-2">Memuat detail jurnal umum...</p>
+                    </div>
+                </div>
+
+                <div class="modal-footer
+                            flex-column flex-sm-row
+                            justify-content-end gap-2
+                            position-sticky bottom-0 bg-white border-top"
+                     style="border-radius:0">
+                    <button type="button" class="btn btn-secondary w-100 w-sm-auto" id="btnCetakJurnal">
+                        <i class="bi bi-printer me-1"></i> Cetak Bukti Transaksi
+                    </button>
+                    <button type="button" class="btn btn-danger btn-close-modal w-100 w-sm-auto" id="btnTutupDetailJurnal">
+                        <i class="bi bi-x-circle me-1"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade modal-fullscreen" id="cetakJurnalModal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content" style="border-radius:0">
+                <div class="modal-header" style="border-radius:0">
+                    <h5 class="modal-title">
+                        <i class="bi bi-list-check me-1"></i> Pilih Transaksi Jurnal Umum
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="cetakJurnalContent">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-info-circle fs-2"></i>
+                        <p class="mt-2">Memuat bukti transaksi...</p>
+                    </div>
+                </div>
+                <div class="modal-footer
+                            flex-column flex-sm-row
+                            justify-content-end gap-2
+                            position-sticky bottom-0 bg-white border-top"
+                     style="border-radius:0">
+                    <button type="button" class="btn btn-success w-100 w-sm-auto" id="btnCetakJurnalPilih">
+                        <i class="bi bi-printer-fill me-1"></i> Cetak
+                    </button>
+                    <button type="button" class="btn btn-danger btn-close-modal w-100 w-sm-auto" id="btnTutupCakboxJurnal">
+                        <i class="bi bi-x-circle me-1"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('script')
 <script>
@@ -269,6 +339,24 @@ $(document).ready(function () {
     $('.select2').select2({ theme: 'bootstrap-5', allowClear: false });
     $('#tanggal').flatpickr();
     $('.nominal').maskMoney({ allowNegative: true });
+
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = now.getMonth() + 1;
+    var d = now.getDate();
+
+    var $tahun = $('#filter-tahunan');
+    $tahun.empty().append(new Option('Pilih Tahun', '', false, false));
+    for (var i = y - 2; i <= y + 1; i++) {
+        $tahun.append(new Option(i, i, i === y, i === y));
+    }
+    $tahun.val(y).trigger('change.select2');
+
+    var $bulan = $('#filter-bulanan');
+    $bulan.val(String(m)).trigger('change.select2');
+
+    var $hari = $('#filter-harian');
+    $hari.val(String(d)).trigger('change.select2');
 });
 
 $(document).on('change', '#tanggal', function () {
@@ -287,28 +375,28 @@ $(document).on('change', '#jenis_transaksi', function () {
             (item.lev1 == '2' || item.lev1 == '3' || item.lev1 == '4') &&
             !['2.1.04.01','2.1.04.02','2.1.04.03','2.1.02.01','2.1.03.01'].includes(item.kode_akun) &&
             !item.kode_akun.startsWith('4.1.01')
-        ).map(item => ({ id: item.id, text: item.kode_akun + '. ' + item.nama_akun }));
+        ).map(item => ({ id: item.kode_akun, text: item.kode_akun + '. ' + item.nama_akun }));
 
         disimpan_ke = REKENING.filter(item => item.lev1 == '1')
-            .map(item => ({ id: item.id, text: item.kode_akun + '. ' + item.nama_akun }));
+            .map(item => ({ id: item.kode_akun, text: item.kode_akun + '. ' + item.nama_akun }));
     }
 
     if (jenis_transaksi == '2') {
         sumber_dana = REKENING.filter(item =>
             (item.lev1 == '1' || item.lev1 == '2') &&
             !item.kode_akun.startsWith('2.1.04')
-        ).map(item => ({ id: item.id, text: item.kode_akun + '. ' + item.nama_akun }));
+        ).map(item => ({ id: item.kode_akun, text: item.kode_akun + '. ' + item.nama_akun }));
 
         disimpan_ke = REKENING.filter(item =>
             item.lev1 == '2' || item.lev1 == '3' || item.lev1 == '5'
-        ).map(item => ({ id: item.id, text: item.kode_akun + '. ' + item.nama_akun }));
+        ).map(item => ({ id: item.kode_akun, text: item.kode_akun + '. ' + item.nama_akun }));
 
         label_disimpan_ke = 'Keperluan';
     }
 
     if (jenis_transaksi == '3') {
-        sumber_dana = REKENING.map(item => ({ id: item.id, text: item.kode_akun + '. ' + item.nama_akun }));
-        disimpan_ke = REKENING.map(item => ({ id: item.id, text: item.kode_akun + '. ' + item.nama_akun }));
+        sumber_dana = REKENING.map(item => ({ id: item.kode_akun, text: item.kode_akun + '. ' + item.nama_akun }));
+        disimpan_ke = REKENING.map(item => ({ id: item.kode_akun, text: item.kode_akun + '. ' + item.nama_akun }));
     }
 
     setFormSelect2('#sumber_dana', sumber_dana);
@@ -323,8 +411,8 @@ $(document).on('change', '#sumber_dana, #disimpan_ke', function () {
     var sumber_dana = $('#sumber_dana').val();
     var disimpan_ke = $('#disimpan_ke').val();
 
-    var sd = REKENING.find(i => i.id == sumber_dana);
-    var dk = REKENING.find(i => i.id == disimpan_ke);
+    var sd = REKENING.find(i => i.kode_akun == sumber_dana);
+    var dk = REKENING.find(i => i.kode_akun == disimpan_ke);
 
     var keterangan = '';
 
@@ -426,5 +514,113 @@ function setFormSelect2(target, data) {
     data.forEach(opt => el.append(new Option(opt.text, opt.id, false, false)));
     el.trigger('change');
 }
+
+function loadJurnalUmumDetail() {
+    let modal = '#detailJurnal';
+    let content = '#detailJurnalContent';
+    $(content).html(`
+        <div class="text-center py-5">
+            <div class="spinner-border text-danger"></div>
+            <p class="mt-2">Memuat detail jurnal umum...</p>
+        </div>
+    `);
+    $(modal).modal('show');
+
+    $.get('/app/Transaksi/jurnal-umum/detail', {
+        tahun: $('#filter-tahunan').val() || '',
+        bulan: $('#filter-bulanan').val() || '',
+        tanggal: $('#filter-harian').val() || ''
+    })
+        .done(function (res) {
+            $(content).html(res);
+        })
+        .fail(function () {
+            $(content).html(`
+                <div class="alert alert-danger">
+                    Detail jurnal umum gagal dimuat. Coba lagi beberapa saat.
+                </div>
+            `);
+        });
+}
+
+$(document).on('show.bs.dropdown', '#tableJurnalUmum .dropdown', function () {
+    const dropdown = this;
+    const $dropdown = $(dropdown);
+    const $toggle = $dropdown.find('[data-bs-toggle="dropdown"]');
+    const $menu = $dropdown.find('.dropdown-menu');
+    const rect = $toggle[0].getBoundingClientRect();
+
+    $menu.data('dropdown-parent', dropdown).appendTo(document.body).addClass('show').css({
+        position: 'fixed',
+        top: rect.bottom + 'px',
+        left: Math.max(8, rect.right - $menu.outerWidth()) + 'px',
+        zIndex: 13050
+    });
+});
+
+$(document).on('hidden.bs.dropdown', '#tableJurnalUmum .dropdown', function () {
+    const dropdown = this;
+    $('body > .dropdown-menu').filter(function () {
+        return $(this).data('dropdown-parent') === dropdown;
+    }).removeClass('show').removeAttr('style').removeData('dropdown-parent').appendTo(dropdown);
+});
+
+$(document).on('click', '#btnDetailJurnalUmum', function () {
+    loadJurnalUmumDetail();
+});
+
+$(document).on('click', '#btnCetakJurnal', function () {
+    const params = new URLSearchParams({
+        tahun: $('#filter-tahunan').val() || '',
+        bulan: $('#filter-bulanan').val() || '',
+        tanggal: $('#filter-harian').val() || ''
+    });
+    $('#cetakJurnalContent').html(`
+        <div class="text-center text-muted py-5">
+            <div class="spinner-border text-danger"></div>
+            <p class="mt-2">Memuat bukti transaksi...</p>
+        </div>
+    `);
+    $('#cetakJurnalModal').modal('show');
+    $.get('/app/Transaksi/jurnal-umum/cetak', params.toString())
+        .done(function (res) {
+            $('#cetakJurnalContent').html(res);
+        })
+        .fail(function () {
+            $('#cetakJurnalContent').html(`
+                <div class="alert alert-danger">Bukti transaksi gagal dimuat.</div>
+            `);
+        });
+});
+
+$(document).on('change', '#cetakJurnalContent #checkAllJurnal', function () {
+    $('#cetakJurnalContent .checkItemJurnal').prop('checked', $(this).is(':checked'));
+});
+
+$(document).on('change', '#cetakJurnalContent .checkItemJurnal', function () {
+    const $items = $('#cetakJurnalContent .checkItemJurnal');
+    $('#cetakJurnalContent #checkAllJurnal').prop(
+        'checked',
+        $items.filter(':checked').length === $items.length && $items.length > 0
+    );
+});
+
+$(document).on('click', '#btnCetakJurnalPilih', function () {
+    const $checked = $('#cetakJurnalContent .checkItemJurnal:checked');
+    if ($checked.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Perhatian',
+            text: 'Pilih minimal 1 transaksi untuk dicetak'
+        });
+        return;
+    }
+    const ids = $checked.map(function () { return $(this).val(); }).get();
+    window.open('/app/Transaksi/jurnal-umum/printDokumen/cetak?ids=' + ids.join(','), '_blank');
+});
+
+$(document).on('click', '#detailJurnal .btn-close-modal, #cetakJurnalModal .btn-close-modal, #btnTutupDetailJurnal, #btnTutupCakboxJurnal', function () {
+    $('.modal.show').modal('hide');
+});
 </script>
 @endsection

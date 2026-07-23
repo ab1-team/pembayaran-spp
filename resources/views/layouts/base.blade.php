@@ -353,18 +353,22 @@
         }
         .material-symbols-rounded {
             font-family: 'Material Symbols Rounded' !important;
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
             font-variation-settings:
                 'FILL' 0,
                 'wght' 400,
                 'GRAD' 0,
                 'opsz' 24;
-            font-size: 20px;
-            line-height: 1;
-            display: inline-flex;
+            display: inline-block;
             vertical-align: middle;
-            overflow: hidden;
-            width: 1em;
-            height: 1em;
         }
         .material-symbols-rounded:empty { display: none; }
         .material-icons {
