@@ -31,6 +31,18 @@
 
     $beranda = $menus->firstWhere('nama_menu', 'Beranda');
 
+    $currentPath = trim(request()->path(), '/');
+    $isActive = function ($route) use ($currentPath) {
+        if (empty($route)) return false;
+        $route = trim($route, '/');
+        if ($route === '' || $route === '/') return $currentPath === '';
+        return $currentPath === $route || str_starts_with($currentPath, $route . '/');
+    };
+
+    $safeUrl = function ($route) {
+        return !empty($route) ? url($route) : 'javascript:void(0)';
+    };
+
     $groupOrder = [
         'Pengaturan' => 'submenusettigs',
         'Master Data' => null,
@@ -39,11 +51,11 @@
     ];
 @endphp
 
-<div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
+<div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main" style="height: calc(100vh - 120px); overflow-y: auto;">
     <ul class="navbar-nav">
         @if($beranda)
             <li class="nav-item">
-                <a class="nav-link active bg-gradient-dark text-white" href="{{ url($beranda->route) }}">
+                <a class="nav-link {{ $isActive($beranda->route) ? 'active bg-gradient-dark text-white' : 'text-dark' }}" href="{{ $safeUrl($beranda->route) }}">
                     <span class="material-symbols-rounded opacity-5">{{ $beranda->icon }}</span>
                     <span class="nav-link-text ms-1">{{ $beranda->nama_menu }}</span>
                 </a>
@@ -69,19 +81,25 @@
                         @endphp
 
                         @if($isDropdown)
+                            @php
+                                $childActive = $itemChildren->contains(fn($c) => $isActive($c->route));
+                                $parentActive = $isActive($item->route);
+                                $showOpen = $childActive || $parentActive;
+                            @endphp
                             <li class="nav-item">
-                                <a data-bs-toggle="collapse" href="#{{ $collapseId }}" class="nav-link text-dark py-2 my-1"
-                                    aria-controls="{{ $collapseId }}" role="button" aria-expanded="false">
+                                <a data-bs-toggle="collapse" href="#{{ $collapseId }}" class="nav-link {{ $showOpen ? 'active bg-gradient-dark text-white' : 'text-dark' }} py-2 my-1"
+                                    aria-controls="{{ $collapseId }}" role="button" aria-expanded="{{ $showOpen ? 'true' : 'false' }}">
                                     @if($item->icon)
                                         <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
                                     @endif
                                     <span class="sidenav-normal ms-1">{{ $item->nama_menu }}</span>
                                 </a>
-                                <div class="collapse" id="{{ $collapseId }}">
+                                <div class="collapse {{ $showOpen ? 'show' : '' }}" id="{{ $collapseId }}">
                                     <ul class="nav ms-4">
                                         @foreach($itemChildren as $child)
+                                            @php $childIsActive = $isActive($child->route); @endphp
                                             <li class="nav-item">
-                                                <a class="nav-link text-dark py-2" href="{{ url($child->route) }}">
+                                                <a class="nav-link {{ $childIsActive ? 'active bg-gradient-dark text-white' : 'text-dark' }} py-2" href="{{ $safeUrl($child->route) }}">
                                                     <span class="sidenav-normal">{{ $child->nama_menu }}</span>
                                                 </a>
                                             </li>
@@ -90,8 +108,9 @@
                                 </div>
                             </li>
                         @else
+                            @php $itemActive = $isActive($item->route); @endphp
                             <li class="nav-item">
-                                <a class="nav-link text-dark py-2 my-1" href="{{ url($item->route) }}">
+                                <a class="nav-link {{ $itemActive ? 'active bg-gradient-dark text-white' : 'text-dark' }} py-2 my-1" href="{{ $safeUrl($item->route) }}">
                                     @if($item->icon)
                                         <span class="material-symbols-rounded opacity-5">{{ $item->icon }}</span>
                                     @endif

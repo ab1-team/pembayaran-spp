@@ -517,6 +517,80 @@
     </div>
     @yield('modal')
 
+    <div class="modal fade" id="DukunganTeknis" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 720px;">
+            <div class="modal-content border-0" style="border-radius: 1.25rem; overflow: hidden;">
+                <div class="modal-body p-0">
+                    <div class="px-4 pt-4 pb-2 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="material-symbols-rounded" style="font-size:24px; color:#37d17c;">support_agent</span>
+                            <h5 class="modal-title mb-0">Dukungan Teknis</h5>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="px-4 pb-3 text-muted" style="font-size: 14px;">
+                        Kendala pada sistem? Hubungi kami lewat saluran di bawah ini.
+                    </div>
+
+                    <div class="row g-2 px-3 pb-4">
+                        <div class="col-12 col-md-6">
+                            <a href="tel:+62882006644656" class="text-decoration-none text-dark support-card d-flex align-items-center gap-3 p-3">
+                                <span class="support-icon" style="background: rgba(55,209,124,.12); color:#37d17c;">
+                                    <span class="material-symbols-rounded">call</span>
+                                </span>
+                                <span class="flex-grow-1">
+                                    <span class="d-block fw-semibold">Telepon</span>
+                                    <span class="d-block text-muted" style="font-size:13px;">+62 882-0066-44656</span>
+                                </span>
+                                <span class="material-symbols-rounded text-muted">chevron_right</span>
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <a href="javascript:void(0)" id="waSupport" class="text-decoration-none text-dark support-card d-flex align-items-center gap-3 p-3">
+                                <span class="support-icon" style="background: rgba(37,211,102,.12); color:#25d366;">
+                                    <span class="material-symbols-rounded">chat</span>
+                                </span>
+                                <span class="flex-grow-1">
+                                    <span class="d-block fw-semibold">WhatsApp</span>
+                                    <span class="d-block text-muted" style="font-size:13px;">Chat sekarang</span>
+                                </span>
+                                <span class="material-symbols-rounded text-muted">chevron_right</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .support-card {
+            border: 1px solid #e9ecef;
+            border-radius: .85rem;
+            transition: all .2s ease;
+            background: #fff;
+        }
+        .support-card:hover {
+            border-color: #37d17c;
+            background: #fafdfb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(55,209,124,.12);
+        }
+        .support-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: .75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .support-icon .material-symbols-rounded {
+            font-size: 22px;
+        }
+    </style>
+
     <script>
         const icon = document.getElementById('iconSettings');
         let angle = 0;
@@ -537,6 +611,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.3/typeahead.jquery.min.js"></script>
     <script src="/assets/js/core/popper.min.js"></script>
     <script src="/assets/js/core/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('btnDukunganTeknis').addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var dd = this.closest('.dropdown-menu');
+            var trigger = dd ? dd.closest('.nav-item').querySelector('[data-bs-toggle="dropdown"]') : null;
+            if (trigger) bootstrap.Dropdown.getOrCreateInstance(trigger).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('DukunganTeknis')).show();
+        });
+        document.getElementById('waSupport').addEventListener('click', function () {
+            var pesan = 'Halo Dukungan Teknis,%0A%0ASaya ingin konsultasi terkait kendala pada sistem.%0A%0AHalaman: ' + document.title + '%0AURL: ' + window.location.href + '%0A%0ATerima kasih.';
+            window.open('https://wa.me/62882006644656?text=' + pesan, '_blank');
+        });
+    </script>
     <script src="/assets/js/plugins/perfect-scrollbar.min.js"></script>
     <script src="/assets/js/plugins/smooth-scrollbar.min.js"></script>
     <script src="/assets/js/plugins/chartjs.min.js"></script>
@@ -565,8 +653,8 @@
         ].filter(Boolean);
         const setDimmed = (on) => {
             dimTargets().forEach(el => {
-                el.style.opacity = on ? '0.5' : '';
-                el.style.filter = on ? 'grayscale(1) brightness(0.4)' : '';
+                el.style.opacity = on ? '0.4' : '';
+                el.style.filter = on ? 'blur(5px) grayscale(1) brightness(0.6)' : '';
             });
         };
         document.addEventListener('show.bs.modal', () => setDimmed(true));
