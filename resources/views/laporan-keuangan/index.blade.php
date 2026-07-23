@@ -133,7 +133,7 @@
                     </div>
 
                     <div class="lk-actions d-flex justify-content-end gap-2 p-3 pt-2 pb-0">
-                        <button type="button" class="btn btn-danger " disabled>Simpan Saldo</button>
+                        <button type="button" id="btnSimpanSaldo" class="btn btn-danger">Simpan Saldo</button>
                         <button type="submit" name="action" value="excel" class="btn btn-success">Excel</button>
                         <button type="submit" name="action" value="preview" class="btn btn-info">Preview</button>
                     </div>
@@ -275,6 +275,37 @@
                     }
                 }
             });
+        });
+
+        const NAMA_BULAN = {
+            '01':'Januari','02':'Februari','03':'Maret','04':'April','05':'Mei','06':'Juni',
+            '07':'Juli','08':'Agustus','09':'September','10':'Oktober','11':'November','12':'Desember'
+        };
+
+        $('#btnSimpanSaldo').on('click', function() {
+            const tahun = $('select[name="tahun"]').val();
+            const bulan = $('select[name="bulan"]').val();
+            if (!tahun || !bulan) return;
+
+            const loading = Swal.fire({
+                title: 'Mohon Menunggu..',
+                html: 'Menyimpan saldo periode ' + (NAMA_BULAN[bulan] || '') + ' ' + tahun,
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            window.open(
+                '/app/laporan-keuangan/simpan-saldo?tahun=' + tahun + '&bulan=' + bulan,
+                '_blank'
+            );
+        });
+
+        window.addEventListener('message', function(e) {
+            if (e.data === 'closed') {
+                Swal.close();
+                window.location.reload();
+            }
         });
     </script>
 @endsection

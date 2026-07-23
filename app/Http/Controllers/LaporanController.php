@@ -16,10 +16,12 @@ use App\Models\Spp;
 use App\Models\Anggota_Kelas;
 use App\Models\SubLaporan;
 use App\Models\Jenis_Biaya;
+use App\Models\Saldo;
 use App\Utils\Keuangan;
 use App\Utils\Tanggal;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
@@ -853,5 +855,50 @@ class LaporanController extends Controller
             ->first();
 
         return (float) ($biaya->total_beban ?? 0);
+    }
+
+    public function simpanSaldo()
+    {
+        $tahun = request()->get('tahun') ?: date('Y');
+        $bulan = str_pad(request()->get('bulan') ?: date('m'), 2, '0', STR_PAD_LEFT);
+
+        if ($bulan === '00') {
+            $bulan = 12;
+            $tahun = (int) $tahun - 1;
+        }
+
+        $start = "$tahun-01-01";
+        $end   = date('Y-m-t', strtotime("$tahun-$bulan-01"));
+
+        $rekening = Rekening::whereNull('tgl_nonaktif')->orderBy('kode_akun')->get();
+        foreach ($rekening as $rek) {
+            $d = (float) DB::table('transaksi')
+                ->whereNull('deleted_at')
+                ->whereBetween('tanggal_transaksi', [$start, $end])
+                ->where('rekening_debit', $rek->kode_akun)
+                ->sum('jumlah');
+            $k = (float) DB::table('transaksi')
+                ->whereNull('deleted_at')
+                ->whereBetween('tanggal_transaksi', [$start, $end])
+                ->where('rekening_kredit', $rek->kode_akun)
+                ->sum('jumlah');
+
+            Saldo::updateOrCreate(
+                ['kode_akun' => $rek->kode_akun, 'tahun' => (int) $tahun, 'bulan' => (int) $bulan],
+                ['debit' => $d, 'kredit' => $k]
+            );
+        }
+
+        $nextBulan = (int) $bulan + 1;
+        $nextTahun = (int) $tahun;
+        if ($nextBulan > 12) {
+            return '<script>window.opener.postMessage("closed","*");window.close();</script>';
+        }
+
+        $url = url('/app/laporan-keuangan/simpan-saldo')
+            . '?tahun=' . $nextTahun
+            . '&bulan=' . str_pad($nextBulan, 2, '0', STR_PAD_LEFT);
+
+        return '<a id="next" href="' . $url . '"></a><script>document.getElementById("next").click()</script>';
     }
 }

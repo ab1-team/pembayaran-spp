@@ -116,6 +116,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::resource('/siswa', SiswaController::class);
 
     Route::get('/laporan-keuangan', [LaporanController::class, 'index']);
+    Route::get('/laporan-keuangan/simpan-saldo', [LaporanController::class, 'simpanSaldo']);
 
     Route::get('/dashboard/siswa-aktif', [DashboardController::class, 'siswaAktifTable']);
     Route::get('/dashboard/siswa-menunggak', [DashboardController::class, 'siswaMenunggakTable']);
