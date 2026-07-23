@@ -44,9 +44,30 @@
             </li>
 
             <li class="nav-item dropdown pe-3 d-flex align-items-center" data-bs-auto-close="outside">
+                @auth
+                    @php $avatar = auth()->user()->foto ? asset('storage/users/' . auth()->user()->foto) : null; @endphp
+                @endauth
                 <a href="javascript:;" class="nav-link text-body p-0" data-bs-toggle="dropdown">
-                    <span class="material-symbols-rounded">account_circle</span>
+                    @auth
+                        @if($avatar)
+                            <img src="{{ $avatar }}" alt="avatar" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)">
+                        @else
+                            @php
+                                $words = preg_split('/\s+/', trim(auth()->user()->nama ?? 'U'));
+                                $initials = strtoupper(implode('', array_map(fn($w) => substr($w, 0, 1), array_slice($words, 0, 2))));
+                                if ($initials === '') $initials = 'U';
+                                $palette = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#14b8a6'];
+                                $color = $palette[crc32($initials) % count($palette)];
+                            @endphp
+                            <span class="d-inline-flex justify-content-center align-items-center rounded-circle text-white fw-bold" style="width:36px;height:36px;background:{{ $color }};font-size:13px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)">{{ $initials }}</span>
+                        @endif
+                    @else
+                        <span class="material-symbols-rounded">account_circle</span>
+                    @endauth
                 </a>
+                @auth
+                    <a href="javascript:;" class="d-none d-sm-inline-block ms-2 fw-bold text-body" data-bs-toggle="dropdown">{{ auth()->user()->nama ?? auth()->user()->username }}</a>
+                @endauth
                 <ul class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4">
                     <li class="mb-2">
                         <a class="dropdown-item border-radius-md d-flex align-items-center" href="/app/profile">
