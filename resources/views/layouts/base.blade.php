@@ -589,6 +589,15 @@
         .support-icon .material-symbols-rounded {
             font-size: 22px;
         }
+
+        .fixed-plugin-button-nav {
+            display: inline-block;
+            transition: transform .4s ease;
+            cursor: pointer;
+        }
+        .fixed-plugin-button-nav:hover {
+            transform: rotate(90deg);
+        }
     </style>
 
     <script>
