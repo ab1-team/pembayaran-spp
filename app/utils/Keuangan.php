@@ -188,6 +188,30 @@ class Keuangan
         $map = [1=>'I',2=>'II',3=>'III',4=>'IV',5=>'V',6=>'VI',7=>'VII',8=>'VIII',9=>'IX',10=>'X'];
         return $map[$angka] ?? $angka;
     }
+
+    public function komSaldo($rek)
+    {
+        $awal_debit = 0;
+        $awal_kredit = 0;
+        $saldo_debit = 0;
+        $saldo_kredit = 0;
+
+        foreach ($rek->kom_saldo as $kom) {
+            if ($kom->bulan == 0) {
+                $awal_debit += (float) $kom->debit;
+                $awal_kredit += (float) $kom->kredit;
+            } else {
+                $saldo_debit += (float) $kom->debit;
+                $saldo_kredit += (float) $kom->kredit;
+            }
+        }
+
+        $lev1 = (int) $rek->lev1;
+        if ($lev1 === 1 || $lev1 === 5) {
+            return ($awal_debit - $awal_kredit) + ($saldo_debit - $saldo_kredit);
+        }
+        return ($awal_kredit - $awal_debit) + ($saldo_kredit - $saldo_debit);
+    }
       public static function hitungSaldoCALK($rekening, $tgl_awal = null, $tgl_akhir = null)
     {
         $total_debit = $rekening->transaksiDebit()

@@ -163,10 +163,11 @@
             <div class="card-body p-3 pb-0">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-0">Saldo</h6>
-                    <span class="fw-bolder {{ $totalSaldo >= 0 ? 'text-success' : 'text-danger' }}">
-                        Rp. {{ number_format((float) $totalSaldo, 0, ',', '.') }}
+                    <span class="fw-bolder" id="saldo-wrapper">
+                        Rp. <span id="saldo">0</span>
                     </span>
                 </div>
+                <input type="hidden" name="saldo_trx" id="saldo_trx" value="0">
                 <hr class="horizontal dark my-4">
                 <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-2 text-center">
                     Cetak Buku Bantu
@@ -335,6 +336,23 @@ function numberFormat(val) {
     return val.toLocaleString('id-ID');
 }
 
+function setSaldo(sumber_dana, tgl_iso) {
+    if (!sumber_dana || !tgl_iso) return;
+    var parts = tgl_iso.split('-');
+    var tahun = parts[0];
+    var bulan = parts[1];
+    var hari  = parts[2];
+    $.get('/app/transaksi/saldo/' + encodeURIComponent(sumber_dana),
+        { tahun: tahun, bulan: bulan, hari: hari },
+        function (r) {
+            var s = parseFloat(r.saldo) || 0;
+            $('#saldo').text(numberFormat(s));
+            $('#saldo_trx').val(s);
+            $('#saldo-wrapper').toggleClass('text-success', s >= 0).toggleClass('text-danger', s < 0);
+        }
+    );
+}
+
 $(document).ready(function () {
     $('.select2').select2({ theme: 'bootstrap-5', allowClear: false });
     $('#tanggal').flatpickr();
@@ -346,21 +364,55 @@ $(document).ready(function () {
     var d = now.getDate();
 
     var $tahun = $('#filter-tahunan');
+    var $bulan = $('#filter-bulanan');
+    var $hari = $('#filter-harian');
+
     $tahun.empty().append(new Option('Pilih Tahun', '', false, false));
     for (var i = y - 2; i <= y + 1; i++) {
         $tahun.append(new Option(i, i, i === y, i === y));
     }
     $tahun.val(y).trigger('change.select2');
 
-    var $bulan = $('#filter-bulanan');
-    $bulan.val(String(m)).trigger('change.select2');
+    function daysInMonth(year, month1to12) {
+        return new Date(year, month1to12, 0).getDate();
+    }
 
-    var $hari = $('#filter-harian');
-    $hari.val(String(d)).trigger('change.select2');
+    function setHariOptions() {
+        var tahun = $tahun.val();
+        var bulan = parseInt($bulan.val(), 10);
+        var prev = $hari.val();
+        $hari.empty().append(new Option('-- Semua Tanggal (Full Bulan) --', '', false, false));
+        var max = (tahun && bulan) ? daysInMonth(tahun, bulan) : 31;
+        for (var i = 1; i <= max; i++) {
+            var s = String(i).padStart(2, '0');
+            $hari.append(new Option(s, i, false, false));
+        }
+        if (prev && parseInt(prev, 10) <= max) $hari.val(prev);
+        else if (tahun && bulan && parseInt(tahun, 10) === y && bulan === m) $hari.val(d);
+        else $hari.val('');
+        $hari.prop('disabled', !(tahun && bulan));
+        $hari.trigger('change.select2');
+    }
+
+    $bulan.prop('disabled', !$tahun.val());
+    setHariOptions();
+
+    $(document).on('change', '#filter-tahunan', function () {
+        $bulan.prop('disabled', !$tahun.val());
+        $bulan.val('').trigger('change.select2');
+        $hari.val('').trigger('change.select2');
+        setHariOptions();
+    });
+
+    $(document).on('change', '#filter-bulanan', function () {
+        setHariOptions();
+    });
 });
 
 $(document).on('change', '#tanggal', function () {
     ambilDaftarInventaris($(this).val());
+    var sd = $('#sumber_dana').val();
+    if (sd) setSaldo(sd, $(this).val());
 });
 
 $(document).on('change', '#jenis_transaksi', function () {
@@ -414,6 +466,10 @@ $(document).on('change', '#sumber_dana, #disimpan_ke', function () {
     var sd = REKENING.find(i => i.kode_akun == sumber_dana);
     var dk = REKENING.find(i => i.kode_akun == disimpan_ke);
 
+    if ($(this).attr('id') == 'sumber_dana' && sd) {
+        setSaldo(sumber_dana, $('#tanggal').val());
+    }
+
     var keterangan = '';
 
     if (sd) {
@@ -440,6 +496,27 @@ $(document).on('change', '#sumber_dana, #disimpan_ke', function () {
 $(document).on('submit', '#FormTransaksi', function (e) {
     e.preventDefault();
 
+    var jenis_transaksi = $('#jenis_transaksi').val();
+    var sumber_dana = $('#sumber_dana').val();
+    var nominal = numberUnformat($('#nominal').val());
+
+    if (jenis_transaksi == '2' && sumber_dana && nominal > 0) {
+        var sd = REKENING.find(i => i.kode_akun == sumber_dana);
+        var lev1 = sd ? sd.lev1 : null;
+        var skipCek = ['2', '3', '4', '5'].indexOf(String(lev1)) !== -1
+            || (sumber_dana.startsWith('1.2.02.')
+                || sumber_dana.startsWith('1.2.04.')
+                || sumber_dana.startsWith('1.1.04.'));
+
+        if (!skipCek) {
+            var saldo_rek = parseFloat($('#saldo_trx').val()) || 0;
+            if (saldo_rek < nominal) {
+                Swal.fire('Error', 'Nominal transaksi melebihi saldo', 'error');
+                return false;
+            }
+        }
+    }
+
     $.ajax({
         type: 'POST',
         url: $(this).attr('action'),
@@ -451,6 +528,8 @@ $(document).on('submit', '#FormTransaksi', function (e) {
 
             $('#FormTransaksi')[0].reset();
             $('.select2').val(null).trigger('change');
+            $('#saldo').text('0');
+            $('#saldo_trx').val(0);
         },
         error: function (xhr) {
             Swal.fire(

@@ -30,4 +30,9 @@ class Rekening extends Model
     {
         return $this->hasMany(Transaksi::class, 'rekening_kredit', 'kode_akun');
     }
+
+    public function kom_saldo()
+    {
+        return $this->hasMany(Saldo::class, 'kode_akun', 'kode_akun');
+    }
 }

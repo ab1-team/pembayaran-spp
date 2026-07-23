@@ -875,4 +875,28 @@ class TransaksiController extends Controller
             'msg' => 'Transaksi pembayaran SPP berhasil dibatalkan.'
         ]);
     }
+
+    public function saldo($kode_akun)
+    {
+        $keuangan = new Keuangan;
+        $tahun = request()->get('tahun');
+        $bulan = request()->get('bulan');
+        $hari  = request()->get('hari');
+
+        $total_saldo = 0;
+        if ($tahun || $bulan || $hari) {
+            $rek = Rekening::where('kode_akun', $kode_akun)->with([
+                'kom_saldo' => function ($q) use ($tahun, $bulan) {
+                    $q->where('tahun', $tahun)
+                        ->where(function ($qq) use ($bulan) {
+                            $qq->where('bulan', 0)->orWhere('bulan', (int) $bulan);
+                        });
+                },
+            ])->first();
+
+            $total_saldo = $rek ? $keuangan->komSaldo($rek) : 0;
+        }
+
+        return response()->json(['saldo' => $total_saldo]);
+    }
 }
