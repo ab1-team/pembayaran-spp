@@ -410,6 +410,66 @@
         .modal-fullscreen .modal-footer {
             border-radius: 0 !important;
         }
+
+        @media (min-width: 1200px) {
+            .sidenav.navbar-vertical.navbar-expand-xs,
+            .sidenav:hover {
+                max-width: 15rem !important;
+            }
+            .sidenav.fixed-start + .main-content,
+            .sidenav.fixed-end + .main-content {
+                margin-left: 15rem !important;
+                margin-right: 0 !important;
+            }
+            .main-content > .container-fluid {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            .main-content {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+        }
+
+        .sidenav .nav-link.nav-active,
+        .sidenav .nav-link.active.nav-active {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            border-radius: 50rem !important;
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
+        }
+        .sidenav .nav-link.nav-active .material-symbols-rounded,
+        .sidenav .nav-link.active.nav-active .material-symbols-rounded {
+            color: #ffffff !important;
+            opacity: 1 !important;
+        }
+        .sidenav .nav-link:hover:not(.nav-active) {
+            background-color: #f5f5f5 !important;
+            color: #1a1a1a !important;
+            border-radius: 50rem !important;
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
+        }
+        #sidenav-main .collapse,
+        #sidenav-main .collapsing {
+            transition: none !important;
+        }
+        #sidenav-main {
+            border-radius: 0.75rem !important;
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .main-content .card,
+        .main-content .modal-content {
+            border-radius: 0.75rem !important;
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        }
+        #sidenav-main .nav .nav-link.text-dark:hover {
+            color: #1a1a1a !important;
+        }
     </style>
 
 

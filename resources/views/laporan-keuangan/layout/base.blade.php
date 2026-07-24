@@ -1,9 +1,19 @@
+@php $excelMode = (request('action') === 'excel'); @endphp
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Dokumen')</title>
+    @if ($excelMode)
+        <style>
+            * { font-family: Arial, sans-serif; font-size: 11px; }
+            table { border-collapse: collapse; }
+            .border-table th, .border-table td { border: 1px solid #000; padding: 4px 6px; }
+            .border-table th { background: #d9d9d9; font-weight: bold; text-align: center; }
+            img { display: none; }
+        </style>
+    @endif
     <style>
         * {
             font-family: 'Arial', sans-serif;

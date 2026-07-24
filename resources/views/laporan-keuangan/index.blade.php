@@ -40,14 +40,19 @@
             box-shadow: 0 6px 18px rgba(20, 20, 43, .06);
             transition: transform .15s ease, box-shadow .15s ease;
         }
+        .lk-info-card.bg-danger-soft { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
+        .lk-info-card.bg-success-soft { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
+        .lk-info-card.bg-info-soft { background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%); }
         .lk-info-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(20, 20, 43, .1); }
         .lk-info-card .lk-icon {
             width: 44px; height: 44px; min-width: 44px; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
             color: #fff; font-size: 18px; margin-right: 12px;
         }
-        .lk-info-card h6 { margin: 0; font-weight: 700; }
-        .lk-info-card p { margin: 4px 0 0; color: #64748b; font-size: 13px; line-height: 1.5; }
+        .lk-info-card h6 { margin: 0; font-weight: 700; font-size: 14px; }
+        .lk-info-card p { margin: 4px 0 0; color: #64748b; font-size: 12px; line-height: 1.4; }
+        .lk-info-card .card-body { padding: 12px 14px; }
+        .lk-info-card .lk-icon { width: 38px; height: 38px; min-width: 38px; font-size: 16px; margin-right: 10px; }
         .row.g-3 > [class*="col-"] > .lk-info-card { height: 100%; }
         .bg-grad-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); }
         .bg-grad-success { background: linear-gradient(135deg, #10b981, #047857); }
@@ -57,7 +62,7 @@
     <div class="lk-page">
         <div class="card lk-card mb-3">
             <div class="card-body p-4">
-                <form action="/app/pelaporan/preview" method="GET" target="_blank">
+                <form id="formPelaporan" action="/app/pelaporan/preview" method="GET" target="_blank">
                     <div id="laporanRow" class="row g-3">
                         <div class="col-md-4" id="wrapTahun">
                             <label class="form-label">Pilih Tahun</label>
@@ -134,8 +139,8 @@
 
                     <div class="lk-actions d-flex justify-content-end gap-2 p-3 pt-2 pb-0">
                         <button type="button" id="btnSimpanSaldo" class="btn btn-danger">Simpan Saldo</button>
-                        <button type="submit" name="action" value="excel" class="btn btn-success">Excel</button>
-                        <button type="submit" name="action" value="preview" class="btn btn-info">Preview</button>
+                        <button type="button" id="btnExcel" class="btn btn-success">Excel</button>
+                        <button type="button" id="btnPreview" class="btn btn-info">Preview</button>
                     </div>
                 </form>
             </div>
@@ -143,7 +148,7 @@
 
         <div class="row g-3 mt-1">
             <div class="col-md-4">
-                <div class="card lk-info-card">
+                <div class="card lk-info-card bg-danger-soft">
                     <div class="card-body d-flex align-items-start">
                         <span class="lk-icon bg-grad-danger"><i class="fa-solid fa-floppy-disk"></i></span>
                         <div>
@@ -154,7 +159,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card lk-info-card">
+                <div class="card lk-info-card bg-success-soft">
                     <div class="card-body d-flex align-items-start">
                         <span class="lk-icon bg-grad-success"><i class="fa-solid fa-file-excel"></i></span>
                         <div>
@@ -165,7 +170,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card lk-info-card">
+                <div class="card lk-info-card bg-info-soft">
                     <div class="card-body d-flex align-items-start">
                         <span class="lk-icon bg-grad-info"><i class="fa-solid fa-eye"></i></span>
                         <div>
@@ -281,6 +286,45 @@
             '01':'Januari','02':'Februari','03':'Maret','04':'April','05':'Mei','06':'Juni',
             '07':'Juli','08':'Agustus','09':'September','10':'Oktober','11':'November','12':'Desember'
         };
+
+        $('#btnPreview').on('click', function() {
+            $('#formPelaporan').attr('target', '_blank');
+            $('#formPelaporan').find('input[name=action]').remove();
+            $('#formPelaporan').submit();
+        });
+
+        $('#btnExcel').on('click', function(e) {
+            e.preventDefault();
+            const $form = $('#formPelaporan');
+            const url = $form.attr('action') + '?' + $form.serialize() + '&action=excel';
+
+            const loading = Swal.fire({
+                title: 'Menyiapkan Excel...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch(url, { credentials: 'same-origin' })
+                .then(r => {
+                    const dispo = r.headers.get('Content-Disposition') || '';
+                    const m = dispo.match(/filename="?([^"]+)"?/);
+                    const filename = m ? m[1] : 'laporan.xls';
+                    return r.blob().then(b => ({ blob: b, filename: filename }));
+                })
+                .then(({ blob, filename }) => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
+                })
+                .catch(err => {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: err.message || String(err) });
+                })
+                .finally(() => Swal.close());
+        });
 
         $('#btnSimpanSaldo').on('click', function() {
             const tahun = $('select[name="tahun"]').val();

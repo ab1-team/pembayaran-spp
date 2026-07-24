@@ -6,6 +6,8 @@
         --sop-accent-dark: #0f9b58;
         --sop-ink: #0f172a;
         --sop-muted: #64748b;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 
     .sop-hero {
@@ -111,12 +113,22 @@
         to   { opacity: 1; transform: translateY(0); }
     }
 
+    .sop-card,
+    .sop-shell .card.sop-card {
+        border-radius: 0.75rem !important;
+        border: none !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        overflow: hidden;
+    }
     .sop-card .card-header {
         background: #fff;
         border-bottom: 1px solid #f1f5f9;
         padding: 14px 18px;
         display: flex; align-items: center; gap: 12px;
+        border-top-left-radius: 0.75rem !important;
+        border-top-right-radius: 0.75rem !important;
     }
+    .sop-card > .card-body.sop-menu { flex: 0 0 auto; }
     .sop-card .card-header .header-icon {
         width: 32px; height: 32px;
         border-radius: 9px;
@@ -160,9 +172,9 @@
 </style>
 
 <div class="container-fluid py-4 sop-setting sop-shell">
-    <div class="row sop-wrapper g-3">
-        <div class="col-lg-3 col-md-4">
-            <div class="card sop-card shadow-sm">
+    <div class="row sop-wrapper g-3 align-items-stretch">
+        <div class="col-lg-3 col-md-4 d-flex">
+            <div class="card sop-card shadow-sm w-100">
                 <div class="card-header">
                     <div>
                         <h5>Menu SOP</h5>
@@ -186,7 +198,7 @@
             </div>
         </div>
 
-        <div class="col-lg-9 col-md-8">
+        <div class="col-lg-9 col-md-8 d-flex flex-column">
             <div class="sop-content card sop-card shadow-sm" id="lembaga">
                 <div class="card-header">
                     <div class="header-icon"><i class="fas fa-school"></i></div>

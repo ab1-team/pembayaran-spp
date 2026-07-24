@@ -26,6 +26,27 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
+    private function respond(string $viewHtml, array $data, ?string $filename = null)
+    {
+        if (request('action') === 'excel') {
+            return response($viewHtml, 200, [
+                'Content-Type'        => 'application/vnd.ms-excel; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="' . ($filename ?? 'laporan.xls') . '"',
+                'Cache-Control'       => 'max-age=0',
+                'Pragma'              => 'public',
+            ]);
+        }
+        return Pdf::loadHTML($viewHtml)
+            ->setOptions([
+                'margin-top'    => 30,
+                'margin-bottom' => 15,
+                'margin-left'   => 25,
+                'margin-right'  => 20,
+                'enable-local-file-access' => true,
+            ])
+            ->stream($filename ?? 'laporan.pdf');
+    }
+
     public function index()
     {
         $title = 'Laporan Keuangan';
@@ -138,7 +159,7 @@ class LaporanController extends Controller
         }
 
         // ================= SIMPAN CALK =================
-        if ($laporan === 'calk') {
+        if ($laporan === 'calk' && $request->action !== 'excel') {
 
             $tahun = $request->tahun;
             $bulan = str_pad($request->bulan, 2, '0', STR_PAD_LEFT);
@@ -195,15 +216,7 @@ class LaporanController extends Controller
         $data['profil'] = Profil::first();
         $view = view('laporan-keuangan.views.cover', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'cover.xls');
     }
 
     private function buku_besar(array $data)
@@ -316,15 +329,7 @@ class LaporanController extends Controller
 
         $view = view('laporan-keuangan.views.buku_besar', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'buku-besar.xls');
     }
 
     private function jurnal_transaksi(array $data)
@@ -360,15 +365,7 @@ class LaporanController extends Controller
         $data['ttd'] = Tanda_tangan::first();
         $view = view('laporan-keuangan.views.jurnal_transaksi', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'jurnal-transaksi.xls');
     }
 
     private function arus_kas(array $data)
@@ -420,15 +417,7 @@ class LaporanController extends Controller
 
         $view = view('laporan-keuangan.views.arus_kas', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'arus-kas.xls');
     }
 
     private function laba_rugi(array $data)
@@ -474,15 +463,7 @@ class LaporanController extends Controller
 
         $view = view('laporan-keuangan.views.laba_rugi', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'laba-rugi.xls');
     }
 
     private function neraca(array $data)
@@ -518,15 +499,7 @@ class LaporanController extends Controller
 
         $view = view('laporan-keuangan.views.neraca', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'neraca.xls');
     }
 
     private function neraca_saldo(array $data)
@@ -573,17 +546,7 @@ class LaporanController extends Controller
 
         $view = view('laporan-keuangan.views.neraca_saldo', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)
-        ->setPaper('a4', 'landscape')
-        ->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'neraca-saldo.xls');
     }
 
     private function calk(array $data)
@@ -626,15 +589,7 @@ class LaporanController extends Controller
 
         $view = view('laporan-keuangan.views.calk', $data)->render();
 
-        $pdf = Pdf::loadHTML($view)->setOptions([
-            'margin-top'    => 30,
-            'margin-bottom' => 15,
-            'margin-left'   => 25,
-            'margin-right'  => 20,
-            'enable-local-file-access' => true,
-        ]);
-
-        return $pdf->stream();
+        return $this->respond($view, $data, 'calk.xls');
     }
 
     public function pembayaran_spp(Request $request)
@@ -733,10 +688,8 @@ class LaporanController extends Controller
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
         }
 
-        $pdf = Pdf::loadView('laporan-keuangan.views.pembayaran_spp', $data)
-            ->setPaper('A4', 'landscape');
-
-        return $pdf->stream('laporan-spp.pdf');
+        $view = view('laporan-keuangan.views.pembayaran_spp', $data)->render();
+        return $this->respond($view, $data, 'laporan-spp.xls');
     }
 
     public function daftar_ulang(Request $request)
@@ -856,17 +809,8 @@ class LaporanController extends Controller
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
         }
 
-        $pdf = Pdf::loadView('laporan-keuangan.views.daftar_ulang', $data)
-            ->setPaper('A4', 'landscape')
-            ->setOptions([
-                'margin-top'             => 30,
-                'margin-bottom'          => 15,
-                'margin-left'            => 20,
-                'margin-right'           => 20,
-                'enable-local-file-access' => true,
-            ]);
-
-        return $pdf->stream($filename);
+        $view = view('laporan-keuangan.views.daftar_ulang', $data)->render();
+        return $this->respond($view, $data, str_replace('.pdf', '.xls', $filename));
     }
 
     private function nominalJenisBiaya(Anggota_Kelas $row, int $idJp): float

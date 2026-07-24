@@ -6,10 +6,10 @@
 @section('content')
 <style>
     .stat-card {
-        border-radius: 14px;
+        border-radius: 0.75rem;
         border: none;
         background: #fff;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, .06);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         padding: 18px 20px;
         height: 100%;
         cursor: pointer;
@@ -35,10 +35,10 @@
     .bg-grad-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
 
     .panel-card {
-        border-radius: 14px;
+        border-radius: 0.75rem;
         border: none;
         background: #fff;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, .06);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         padding: 18px 20px;
         display: flex;
         flex-direction: column;
