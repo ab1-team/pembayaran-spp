@@ -518,7 +518,7 @@
     </main>
     
     <div class="fixed-plugin">
-        <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+        <a href="javascript:void(0)" class="fixed-plugin-button text-dark position-fixed px-3 py-2">
             <span id="iconSettings" class="material-symbols-rounded py-2">settings</span>
         </a>
         <div class="card shadow-lg">
@@ -662,12 +662,31 @@
 
     <script>
         const icon = document.getElementById('iconSettings');
+        const fixedPlugin = document.querySelector('.fixed-plugin');
+        const fixedPluginButton = document.querySelector('.fixed-plugin-button');
         let angle = 0;
+        let spinning = true;
         function rotate() {
-            angle += 2; // kecepatan
-            icon.style.transform = `rotate(${angle}deg)`;
+            if (spinning) {
+                angle += 2;
+                icon.style.transform = `rotate(${angle}deg)`;
+            }
             requestAnimationFrame(rotate);
         } rotate();
+        fixedPluginButton.addEventListener('mouseenter', () => spinning = false);
+        fixedPluginButton.addEventListener('mouseleave', () => spinning = true);
+        fixedPluginButton.addEventListener('click', function (e) {
+            e.stopPropagation();
+            fixedPlugin.classList.toggle('show');
+        });
+        document.querySelectorAll('.fixed-plugin-close-button').forEach(btn => {
+            btn.addEventListener('click', () => fixedPlugin.classList.remove('show'));
+        });
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.fixed-plugin')) {
+                fixedPlugin.classList.remove('show');
+            }
+        });
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

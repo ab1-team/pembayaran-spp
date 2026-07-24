@@ -36,15 +36,17 @@ class LaporanController extends Controller
                 'Pragma'              => 'public',
             ]);
         }
-        return Pdf::loadHTML($viewHtml)
+        $landscape = !empty($data['_landscape']);
+        $pdf = Pdf::loadHTML($viewHtml)
+            ->setPaper($landscape ? 'a4' : 'a4', $landscape ? 'landscape' : 'portrait')
             ->setOptions([
                 'margin-top'    => 30,
                 'margin-bottom' => 15,
-                'margin-left'   => 25,
-                'margin-right'  => 20,
+                'margin-left'   => 15,
+                'margin-right'  => 15,
                 'enable-local-file-access' => true,
-            ])
-            ->stream($filename ?? 'laporan.pdf');
+            ]);
+        return $pdf->stream($filename ?? 'laporan.pdf');
     }
 
     public function index()
@@ -621,10 +623,20 @@ class LaporanController extends Controller
         $tglAwal  = Carbon::parse($data['tgl_awal'])->startOfMonth();
         $tglAkhir = Carbon::parse($data['tgl_akhir'])->endOfMonth();
 
+        $excludeRaw = (string) $request->exclude_months;
+        $hideAllMonths = $excludeRaw === 'ALL';
+        $exclude = collect(explode(',', $excludeRaw))
+            ->map(fn($m) => trim($m))
+            ->filter()
+            ->values();
+
         $bulanList = [];
         $cursor = $tglAwal->copy();
         while ($cursor->lte($tglAkhir)) {
-            $bulanList[] = $cursor->copy();
+            $key = $cursor->format('Y-m');
+            if (!$hideAllMonths && !$exclude->contains($key)) {
+                $bulanList[] = $cursor->copy();
+            }
             $cursor->addMonth();
         }
 
@@ -663,18 +675,17 @@ class LaporanController extends Controller
                     ];
                 });
 
-                $row->target_sd_saat_ini = $row->bulan_list->sum('tagihan');
-
-                $row->sd_periode_lalu = Spp::where('anggota_kelas', $row->id)
-                    ->where('status', 'L')
-                    ->where('tanggal', '<', $tglAwal)
+                $row->target_sd_saat_ini = Spp::where('anggota_kelas', $row->id)
+                    ->where('status', 'B')
+                    ->whereBetween('tanggal', [$tglAwal, $tglAkhir])
                     ->sum('nominal');
 
-                $row->periode_ini = $row->bulan_list->sum('bayar');
+                $row->sd_periode_ini = Spp::where('anggota_kelas', $row->id)
+                    ->where('status', 'L')
+                    ->whereBetween('tanggal', [$tglAwal, $tglAkhir])
+                    ->sum('nominal');
 
-                $row->sd_periode_ini = $row->sd_periode_lalu + $row->periode_ini;
-
-                $row->sisa = $row->target_sd_saat_ini - $row->periode_ini;
+                $row->sisa = $row->target_sd_saat_ini - $row->sd_periode_ini;
 
                 return $row;
             });
@@ -689,6 +700,7 @@ class LaporanController extends Controller
         }
 
         $view = view('laporan-keuangan.views.pembayaran_spp', $data)->render();
+        $data['_landscape'] = true;
         return $this->respond($view, $data, 'laporan-spp.xls');
     }
 
