@@ -14,8 +14,8 @@
                 <div class="card-body">
                     <form id="FormJenisBiaya" method="POST" action="/app/jenis-biaya" class="text-start">
                         @csrf
-                        <div class="row">
-                            <div class="col-md-4">
+                        <div class="row g-2">
+                            <div class="col-12 col-md-4">
                                 <label for="angkatan">Tahun Akademik</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <select name="angkatan" id="angkatan" class="form-control select2" required>
@@ -26,7 +26,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label for="">Pilih Jenis Pembayaran</label>
                                 <div class="input-group input-group-outline flex-fill">
                                     <select name="id_jp" id="id_jp" class="form-control select2" required>
@@ -37,13 +37,13 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label>Kode Akun</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <input type="text" id="kode_akun" class="form-control" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label for="total_beban">Jumlah Bayar</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <label class="form-label"> Masukkan Total Beban</label>
@@ -51,9 +51,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between mt-3">
-                            <a href="/app/jenis-biaya" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-info" id="simpan">Simpan Data</button>
+                        <div class="action-toolbar mt-3">
+                            <a href="/app/jenis-biaya" class="btn btn-secondary w-100 w-md-auto">Kembali</a>
+                            <button type="submit" class="btn btn-info w-100 w-md-auto" id="simpan">Simpan Data</button>
                         </div>
                     </form>
                 </div>

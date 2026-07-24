@@ -17,8 +17,8 @@
                         class="text-start">
                         @csrf
                         @method('PUT')
-                        <div class="row">
-                            <div class="col-md-4">
+                        <div class="row g-2">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Tahun Akademik</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <select name="angkatan" id="angkatan" class="form-control select2" required>
@@ -32,7 +32,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Pilih Jenis Pembayaran</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <select name="id_jp" id="id_jp" class="form-control select2">
@@ -46,14 +46,14 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Kode Akun</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <input type="text" id="kode_akun" class="form-control"
                                         value="{{ $jenis_biaya->get_jenis_pembayaran->kode_akun ?? '' }}" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label">Total Beban</label>
                                 <div class="input-group input-group-outline mb-3">
                                     <input type="text" name="total_beban" class="form-control nominal"
@@ -61,9 +61,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between mt-3">
-                            <a href="/app/jenis-biaya" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-info" id="simpan">Update Data</button>
+                        <div class="action-toolbar mt-3">
+                            <a href="/app/jenis-biaya" class="btn btn-secondary w-100 w-md-auto">Kembali</a>
+                            <button type="submit" class="btn btn-info w-100 w-md-auto" id="simpan">Update Data</button>
                         </div>
                     </form>
                 </div>

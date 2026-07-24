@@ -110,12 +110,22 @@
             height: 20px;
             transform: scale(1);
         }
-        .table td,
-        .table th {
+        .table.table-nowrap td,
+        .table.table-nowrap th {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            vertical-align: middle
+            vertical-align: middle;
+        }
+        .table:not(.table-nowrap) td,
+        .table:not(.table-nowrap) th {
+            vertical-align: middle;
+        }
+        @media (max-width: 767.98px) {
+            .table.table-nowrap td,
+            .table.table-nowrap th { white-space: normal; }
+            .table thead th { font-size: 14px; }
+            .table tbody td { font-size: 12px; }
         }
 
         .td-action .action-container {
@@ -130,12 +140,48 @@
             margin: 0
         }
         .btn-compact {
-            padding: 4px 8px !important;
+            padding: 6px 10px !important;
             line-height: 1.2 !important;
+            min-height: 36px;
         }
         .btn-compact i {
             font-size: 16px !important;
         }
+        @media (max-width: 575.98px) {
+            .btn-compact { min-height: 44px; padding: 8px 12px !important; }
+        }
+
+        /* === Reusable utilities === */
+        .action-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+        @media (min-width: 768px) {
+            .action-toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
+        }
+
+        .page-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        @media (min-width: 768px) { .page-title { font-size: 1.35rem; } }
+        @media (min-width: 1200px) { .page-title { font-size: 1.5rem; } }
+
+        .filter-bar {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+        @media (min-width: 768px) {
+            .filter-bar { flex-direction: row; flex-wrap: wrap; align-items: end; }
+        }
+
+        .touch-target { min-width: 36px; min-height: 36px; display: inline-flex; align-items: center; justify-content: center; }
+        @media (max-width: 575.98px) { .touch-target { min-width: 44px; min-height: 44px; } }
 
         @media(max-width:576px) {
             #preview-img-box {
