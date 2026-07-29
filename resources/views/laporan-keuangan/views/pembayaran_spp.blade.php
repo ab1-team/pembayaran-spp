@@ -44,20 +44,20 @@
         </colgroup>
 
         <thead>
-            <tr style="text-align:center; font-weight:bold;">
-                <th rowspan="2" style="border:1px solid #000;">No</th>
-                <th rowspan="2" style="border:1px solid #000;">NISN</th>
-                <th rowspan="2" style="border:1px solid #000;">Nama Siswa</th>
-                <th rowspan="2" style="border:1px solid #000;">Target / Bulan</th>
-                <th colspan="3" style="border:1px solid #000;">Akumulasi</th>
-                <th rowspan="2" style="border:1px solid #000;">Keterangan</th>
-            </tr>
-            <tr style="text-align:center; font-weight:bold;">
-                <th style="border:1px solid #000; border-top:none;">Target s.d. Saat Ini</th>
-                <th style="border:1px solid #000; border-top:none;">Bayar s.d. Periode Ini</th>
-                <th style="border:1px solid #000; border-top:none;">Sisa</th>
-            </tr>
-        </thead>
+    <tr style="text-align:center; font-weight:bold;">
+        <th rowspan="2" style="border:1px solid #000;" width="5%">No</th>
+        <th rowspan="2" style="border:1px solid #000;" width="12%">NISN</th>
+        <th rowspan="2" style="border:1px solid #000;" width="25%">Nama Siswa</th>
+        <th rowspan="2" style="border:1px solid #000;" width="12%">Target / Bulan</th>
+        <th colspan="3" style="border:1px solid #000;" width="36%">Akumulasi</th>
+        <th rowspan="2" style="border:1px solid #000;" width="10%">Keterangan</th>
+    </tr>
+    <tr style="text-align:center; font-weight:bold;">
+        <th style="border:1px solid #000; border-top:none;" width="12%">Target s.d. Saat Ini</th>
+        <th style="border:1px solid #000; border-top:none;" width="12%">Bayar s.d. Periode Ini</th>
+        <th style="border:1px solid #000; border-top:none;" width="12%">Sisa</th>
+    </tr>
+</thead>
 
         <tbody>
             @forelse ($anggotaKelas as $i => $row)
