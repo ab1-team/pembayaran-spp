@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Profil;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -12,13 +13,15 @@ class ProfilController extends Controller
 {
     public function index()
     {
-        $user = User::first();
+        $user = auth()->user();
         $title = "Profil";
-        return view('profil.index', compact('title', 'user'));
+        $jabatans = DB::table('jabatan')->orderBy('nama_jabatan')->get(['id', 'nama_jabatan']);
+        return view('profil.index', compact('title', 'user', 'jabatans'));
     }
 
     public function update(Request $request, $id)
     {
+        abort_unless((int) $id === (int) auth()->id(), 403);
         $user = User::findOrFail($id);
 
         $data = $request->only([
@@ -35,6 +38,7 @@ class ProfilController extends Controller
         $rules = [
             'nama' => 'required',
             'email' => 'required|email',
+            'jabatan' => 'nullable|exists:jabatan,id',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'password' => 'nullable|confirmed',
         ];

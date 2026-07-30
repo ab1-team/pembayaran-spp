@@ -193,7 +193,7 @@
                 @if($user->jabatan)
                     <span class="role-badge">
                         <span class="material-symbols-rounded" style="font-size:14px">badge</span>
-                        {{ $user->jabatan }}
+                        {{ $jabatans->firstWhere('id', (int)$user->jabatan)->nama_jabatan ?? $user->jabatan }}
                     </span>
                 @endif
             </div>
@@ -228,7 +228,12 @@
                     <div class="col-md-4">
                         <div class="input-group input-group-outline mb-3 {{ $isFilled($user->jabatan) }}">
                             <label class="form-label">Jabatan</label>
-                            <input type="text" name="jabatan" value="{{ $user->jabatan }}" class="form-control">
+                            <select name="jabatan" class="form-control select2">
+                                <option value="">— Pilih jabatan —</option>
+                                @foreach (($jabatans ?? collect()) as $j)
+                                    <option value="{{ $j->id }}" {{ (string)$user->jabatan === (string)$j->id ? 'selected' : '' }}>{{ $j->nama_jabatan }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-4">
