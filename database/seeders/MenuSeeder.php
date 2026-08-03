@@ -21,6 +21,7 @@ class MenuSeeder extends Seeder
             [9, 'Tagihan Siswa', '/app/Transaksi/pembayaran-spp', 'request_quote', 9, 'aktif', 'Transaksi'],
             [10, 'Jurnal Umum', '/app/Transaksi', 'menu_book', 10, 'aktif', 'Transaksi'],
             [11, 'Laporan Keuangan', '/app/laporan-keuangan', 'receipt_long', 11, 'aktif', 'Pelaporan'],
+            [14, 'Daftar Kelas', '/app/daftar-kelas', 'class', 14, 'aktif', 'Master Data'],
         ];
 
         $data = array_map(function ($r) {

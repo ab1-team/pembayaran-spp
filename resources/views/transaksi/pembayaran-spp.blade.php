@@ -108,6 +108,19 @@
         //search
         $(function() {
             formTagihanBulanan();
+
+            let urlParams = new URLSearchParams(window.location.search);
+            let prefillId   = urlParams.get('prefill_id');
+            let prefillNama = urlParams.get('prefill_nama');
+            if (prefillId) {
+                $('#pembayaranSPP').val(prefillNama || prefillId);
+                $.get('/app/spp/CariSiswaAktif', { query: prefillNama || prefillId }, function(result) {
+                    if (result && result.length) {
+                        let found = result.find(r => String(r.id_siswa) === String(prefillId)) || result[0];
+                        formTagihanBulanan(found);
+                    }
+                });
+            }
         });
 
         $(document).on('click', '#closeRiwayat', function() {

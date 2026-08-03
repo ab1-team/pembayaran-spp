@@ -18,6 +18,7 @@ use App\Http\Controllers\RuanganController;
 use App\Http\Controllers\TahunAkademikController;
 use App\Http\Controllers\JenisPembayaranController;
 use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\DaftarKelasController;
 use App\Http\Controllers\Master\MasterAuthController;
 use App\Http\Controllers\Master\MasterDashboardController;
 use App\Http\Controllers\Master\AdminInvoiceController;
@@ -115,6 +116,11 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::post('/siswa/mutasi', [SiswaController::class, 'mutasi']);
     Route::get('/siswa/riwayatPembayaran/{id}', [SiswaController::class, 'riwayatPembayaran']);
     Route::resource('/siswa', SiswaController::class);
+
+    Route::get('/daftar-kelas/listTahun', [DaftarKelasController::class, 'listTahun']);
+    Route::get('/daftar-kelas/listKelas', [DaftarKelasController::class, 'listKelas']);
+    Route::get('/daftar-kelas/data', [DaftarKelasController::class, 'data']);
+    Route::get('/daftar-kelas', [DaftarKelasController::class, 'index']);
 
     Route::get('/laporan-keuangan', [LaporanController::class, 'index']);
     Route::get('/laporan-keuangan/simpan-saldo', [LaporanController::class, 'simpanSaldo']);

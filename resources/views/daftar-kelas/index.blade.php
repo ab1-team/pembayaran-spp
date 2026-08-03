@@ -1,0 +1,200 @@
+@extends('layouts.base')
+@section('content')
+    <div class="row">
+        <div class="col-12">
+            <div class="card my-4">
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div class="bg-gradient-secondary shadow-secondary border-radius-lg py-2 px-3 d-flex align-items-center">
+                        <div class="row align-items-center w-100 gx-2">
+                            <div class="col-12 col-md-3">
+                                <select id="tahun_akademik" class="form-control select2 text-white w-100">
+                                    <option value="">Pilih Tahun Akademik</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <select id="kelas" class="form-control select2 text-white w-100">
+                                    <option value="">Pilih Kelas</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-auto pt-2 ms-md-auto">
+                                <span class="text-white small">
+                                    <i class="material-icons align-middle me-1" style="font-size:16px">event</i>
+                                    Status: {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body px-3 py-2">
+                    <div id="notifikasi">
+                        <div class="alert alert-light alert-dismissible text-secondary" role="alert">
+                            Silakan gunakan filter untuk menampilkan data tagihan SPP per kelas.
+                            <button type="button" class="btn-close text-lg opacity-10" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                    <div class="table-responsive mt-3 d-none" id="tableWrapper">
+                        <table id="daftarkelas" class="table table-striped align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" width="5%">No</th>
+                                    <th width="12%">NISN</th>
+                                    <th>Nama Siswa</th>
+                                    <th class="text-end" width="12%">SPP Per Bulan</th>
+                                    <th class="text-end" width="13%">Target s.d Bulan Ini</th>
+                                    <th class="text-end" width="13%">Realisasi s.d Bulan Ini</th>
+                                    <th class="text-end" width="13%">Target Daftar Ulang</th>
+                                    <th class="text-end" width="13%">Realisasi s.d Bulan Ini DU</th>
+                                    <th class="text-center" width="12%">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
+
+        <div style="position:absolute; top:45%; left:50%; transform:translate(-50%,-50%);">
+            <div class="spinner-border text-primary" style="width:3rem; height:3rem;"></div>
+            <p class="mt-3 fw-bold">Memproses data...</p>
+        </div>
+    </div>
+
+@endsection
+@section('script')
+    <script>
+        $(document).ready(function() {
+
+            let urlParams = new URLSearchParams(window.location.search);
+            let qs_tahun = urlParams.get('tahun_akademik') || @json($tahunBerjalan);
+            let qs_kelas = urlParams.get('kelas');
+            let tahunLoaded = false;
+            let kelasLoaded = false;
+
+            let table = $('#daftarkelas').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: true,
+                paging: true,
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                info: true,
+                autoWidth: true,
+                scrollX: true,
+                rowId: 'id',
+                ajax: {
+                    url: '/app/daftar-kelas/data',
+                    data: function(d) {
+                        d.tahun_akademik = $('#tahun_akademik').val();
+                        d.kelas = $('#kelas').val();
+                    }
+                },
+                columns: [
+                    { data: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
+                    { name: 'nisn', data: 'nisn' },
+                    { name: 'nama', data: 'nama' },
+                    { data: 'spp_per_bulan', searchable: false,
+                        render: function(d){ return formatRupiah(d); } },
+                    { data: 'target_sampai_bulan_ini', searchable: false,
+                        render: function(d){ return formatRupiah(d); } },
+                    { data: 'realisasi_sampai_bulan_ini', searchable: false,
+                        render: function(d){ return formatRupiah(d); } },
+                    { data: 'target_daftar_ulang', searchable: false,
+                        render: function(d){ return formatRupiah(d); } },
+                    { data: 'realisasi_daftar_ulang', searchable: false,
+                        render: function(d){ return formatRupiah(d); } },
+                    { data: 'action', orderable: false, searchable: false, className: 'text-center td-action' }
+                ],
+                drawCallback: function() {
+                    $('#daftarkelas').css('width', '100%');
+                }
+            });
+
+            function formatRupiah(num) {
+                if (num === null || num === undefined) return '0';
+                return new Intl.NumberFormat('id-ID').format(num);
+            }
+
+            function tryReloadTable() {
+                if (!tahunLoaded || !kelasLoaded) return;
+
+                let tahunVal = $('#tahun_akademik').val();
+                let kelasVal = $('#kelas').val();
+
+                if (!tahunVal || !kelasVal) {
+                    $('#notifikasi').removeClass('d-none');
+                    $('#tableWrapper').addClass('d-none');
+                    table.clear().draw();
+                    return;
+                }
+
+                $('#notifikasi').addClass('d-none');
+                $('#tableWrapper').removeClass('d-none');
+
+                table.ajax.reload();
+            }
+
+            $.getJSON('/app/daftar-kelas/listTahun', function(data) {
+                let tahun = $('#tahun_akademik');
+                tahun.empty().append('<option value="">Pilih Tahun Akademik</option>');
+                data.forEach(t => tahun.append(`<option value="${t.nama_tahun}">${t.nama_tahun}</option>`));
+
+                if (qs_tahun && data.some(t => t.nama_tahun === qs_tahun)) {
+                    tahun.val(qs_tahun);
+                } else if (data.length > 0) {
+                    tahun.val(data[0].nama_tahun);
+                }
+
+                tahun.select2({ theme: 'bootstrap-5' });
+                tahunLoaded = true;
+                tryReloadTable();
+            });
+
+            $.getJSON('/app/daftar-kelas/listKelas', function(data) {
+                let kelas = $('#kelas');
+                kelas.empty().append('<option value="">Pilih Kelas</option>');
+                data.forEach(k => kelas.append(
+                    `<option value="${k.kode_kelas}">${k.kode_kelas} - ${k.nama_kelas}</option>`));
+
+                if (qs_kelas) {
+                    kelas.val(qs_kelas);
+                }
+
+                kelas.select2({ theme: 'bootstrap-5' });
+                kelasLoaded = true;
+                tryReloadTable();
+            });
+
+            function applyFilter() {
+                let tahun = $('#tahun_akademik').val();
+                let kelas = $('#kelas').val();
+
+                let params = new URLSearchParams(window.location.search);
+                if (tahun) params.set('tahun_akademik', tahun); else params.delete('tahun_akademik');
+                if (kelas) params.set('kelas', kelas); else params.delete('kelas');
+                window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+
+                if (!tahun || !kelas) {
+                    $('#notifikasi').removeClass('d-none');
+                    $('#tableWrapper').addClass('d-none');
+                    table.clear().draw();
+                    return;
+                }
+
+                $('#notifikasi').addClass('d-none');
+                $('#tableWrapper').removeClass('d-none');
+                table.ajax.reload(function () {
+                    table.columns.adjust().draw();
+                });
+            }
+
+            $('#tahun_akademik, #kelas').on('change', applyFilter);
+        });
+    </script>
+@endsection
