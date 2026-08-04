@@ -13,7 +13,7 @@
                             </div>
                             <div class="col-12 col-md-3">
                                 <select id="kelas" class="form-control select2 text-white w-100">
-                                    <option value="">Pilih Kelas</option>
+                                    <option value="__all__">Pilih Kelas</option>
                                 </select>
                             </div>
                             <div class="col-12 col-md-auto pt-2 ms-md-auto">
@@ -27,13 +27,8 @@
                 </div>
 
                 <div class="card-body px-3 py-2">
-                    <div id="notifikasi">
-                        <div class="alert alert-light alert-dismissible text-secondary" role="alert">
-                            Silakan gunakan filter untuk menampilkan data tagihan SPP per kelas.
-                            <button type="button" class="btn-close text-lg opacity-10" data-bs-dismiss="alert"></button>
-                        </div>
-                    </div>
-                    <div class="table-responsive mt-3 d-none" id="tableWrapper">
+                    <div id="notifikasi" class="d-none"></div>
+                    <div class="table-responsive mt-3" id="tableWrapper">
                         <table id="daftarkelas" class="table table-striped align-items-center mb-0">
                             <thead>
                                 <tr>
@@ -41,10 +36,7 @@
                                     <th width="12%">NISN</th>
                                     <th>Nama Siswa</th>
                                     <th class="text-end" width="12%">SPP Per Bulan</th>
-                                    <th class="text-end" width="13%">Target s.d Bulan Ini</th>
-                                    <th class="text-end" width="13%">Realisasi s.d Bulan Ini</th>
-                                    <th class="text-end" width="13%">Target Daftar Ulang</th>
-                                    <th class="text-end" width="13%">Realisasi s.d Bulan Ini DU</th>
+                                    <th class="text-end" width="13%">Tagihan s.d Bulan Ini</th>
                                     <th class="text-center" width="12%">Aksi</th>
                                 </tr>
                             </thead>
@@ -65,7 +57,6 @@
             <p class="mt-3 fw-bold">Memproses data...</p>
         </div>
     </div>
-
 @endsection
 @section('script')
     <script>
@@ -83,7 +74,10 @@
                 searching: true,
                 paging: true,
                 pageLength: 10,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "Semua"]
+                ],
                 info: true,
                 autoWidth: true,
                 scrollX: true,
@@ -95,21 +89,44 @@
                         d.kelas = $('#kelas').val();
                     }
                 },
-                columns: [
-                    { data: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
-                    { name: 'nisn', data: 'nisn' },
-                    { name: 'nama', data: 'nama' },
-                    { data: 'spp_per_bulan', searchable: false,
-                        render: function(d){ return formatRupiah(d); } },
-                    { data: 'target_sampai_bulan_ini', searchable: false,
-                        render: function(d){ return formatRupiah(d); } },
-                    { data: 'realisasi_sampai_bulan_ini', searchable: false,
-                        render: function(d){ return formatRupiah(d); } },
-                    { data: 'target_daftar_ulang', searchable: false,
-                        render: function(d){ return formatRupiah(d); } },
-                    { data: 'realisasi_daftar_ulang', searchable: false,
-                        render: function(d){ return formatRupiah(d); } },
-                    { data: 'action', orderable: false, searchable: false, className: 'text-center td-action' }
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        name: 'nisn',
+                        data: 'nisn'
+                    },
+                    {
+                        name: 'nama',
+                        data: 'nama'
+                    },
+                    {
+                        data: 'spp_per_bulan',
+                        searchable: false,
+                        render: function(d) {
+                            return formatRupiah(d);
+                        }
+                    },
+                    {
+                        data: 'target_sampai_bulan_ini',
+                        searchable: false,
+                        render: function(d, type, row) {
+                            let status = row.status_tagihan ?? 'menunggak';
+                            let cls = 'text-danger fw-bold';
+                            if (status === 'lebih') cls = 'text-success fw-bold';
+                            else if (status === 'pas') cls = 'text-warning fw-bold';
+                            return `<span class="${cls}">${formatRupiah(d)}</span>`;
+                        }
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center td-action'
+                    }
                 ],
                 drawCallback: function() {
                     $('#daftarkelas').css('width', '100%');
@@ -125,17 +142,11 @@
                 if (!tahunLoaded || !kelasLoaded) return;
 
                 let tahunVal = $('#tahun_akademik').val();
-                let kelasVal = $('#kelas').val();
 
-                if (!tahunVal || !kelasVal) {
-                    $('#notifikasi').removeClass('d-none');
-                    $('#tableWrapper').addClass('d-none');
+                if (!tahunVal) {
                     table.clear().draw();
                     return;
                 }
-
-                $('#notifikasi').addClass('d-none');
-                $('#tableWrapper').removeClass('d-none');
 
                 table.ajax.reload();
             }
@@ -151,22 +162,28 @@
                     tahun.val(data[0].nama_tahun);
                 }
 
-                tahun.select2({ theme: 'bootstrap-5' });
+                tahun.select2({
+                    theme: 'bootstrap-5'
+                });
                 tahunLoaded = true;
                 tryReloadTable();
             });
 
             $.getJSON('/app/daftar-kelas/listKelas', function(data) {
                 let kelas = $('#kelas');
-                kelas.empty().append('<option value="">Pilih Kelas</option>');
+                kelas.empty().append('<option value="__all__">Pilih Kelas</option>');
                 data.forEach(k => kelas.append(
                     `<option value="${k.kode_kelas}">${k.kode_kelas} - ${k.nama_kelas}</option>`));
 
-                if (qs_kelas) {
+                if (qs_kelas && (qs_kelas === '__all__' || data.some(k => k.kode_kelas === qs_kelas))) {
                     kelas.val(qs_kelas);
+                } else {
+                    kelas.val('__all__');
                 }
 
-                kelas.select2({ theme: 'bootstrap-5' });
+                kelas.select2({
+                    theme: 'bootstrap-5'
+                });
                 kelasLoaded = true;
                 tryReloadTable();
             });
@@ -176,20 +193,18 @@
                 let kelas = $('#kelas').val();
 
                 let params = new URLSearchParams(window.location.search);
-                if (tahun) params.set('tahun_akademik', tahun); else params.delete('tahun_akademik');
-                if (kelas) params.set('kelas', kelas); else params.delete('kelas');
+                if (tahun) params.set('tahun_akademik', tahun);
+                else params.delete('tahun_akademik');
+                if (kelas && kelas !== '__all__') params.set('kelas', kelas);
+                else params.delete('kelas');
                 window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
 
-                if (!tahun || !kelas) {
-                    $('#notifikasi').removeClass('d-none');
-                    $('#tableWrapper').addClass('d-none');
+                if (!tahun) {
                     table.clear().draw();
                     return;
                 }
 
-                $('#notifikasi').addClass('d-none');
-                $('#tableWrapper').removeClass('d-none');
-                table.ajax.reload(function () {
+                table.ajax.reload(function() {
                     table.columns.adjust().draw();
                 });
             }

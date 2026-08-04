@@ -114,9 +114,12 @@
             let prefillNama = urlParams.get('prefill_nama');
             if (prefillId) {
                 $('#pembayaranSPP').val(prefillNama || prefillId);
-                $.get('/app/spp/CariSiswaAktif', { query: prefillNama || prefillId }, function(result) {
+                $.get('/app/spp/CariSiswa', { query: prefillNama || prefillId }, function(result) {
                     if (result && result.length) {
                         let found = result.find(r => String(r.id_siswa) === String(prefillId)) || result[0];
+                        let inisial = found.package_inisial ? ' - ' + found.package_inisial : '';
+                        let displayName = found.nama + ' - ' + found.kode_kelas + inisial + ' [' + found.nisn + ']';
+                        $('#pembayaranSPP').typeahead('val', displayName);
                         formTagihanBulanan(found);
                     }
                 });

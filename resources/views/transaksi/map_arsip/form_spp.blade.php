@@ -295,6 +295,20 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
 <script>
     $('#keterangan').val('-').trigger('focus').trigger('blur');
 
+    function applyPrefillJenis() {
+        if (typeof window.__prefillJenisApplied !== 'undefined' && window.__prefillJenisApplied) return;
+        if ($('#jenis_biaya').length === 0) return;
+        let urlParams = new URLSearchParams(window.location.search);
+        let prefillJenis = urlParams.get('prefill_jenis');
+        if (prefillJenis === 'spp') {
+            let $sppOpt = $('#jenis_biaya option[data-is-spp="1"]').first();
+            if ($sppOpt.length) {
+                $('#jenis_biaya').val($sppOpt.val()).trigger('change').trigger('select2:select');
+                window.__prefillJenisApplied = true;
+            }
+        }
+    }
+
     $(document).ready(function() {
         $('.select2').select2({
             theme: 'bootstrap-5'
@@ -360,6 +374,8 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
                 return arr && arr.length ? arr[0] : 0;
             } catch (e) { return 0; }
         }
+
+        applyPrefillJenis();
 
         $('.spp-checkbox').on('change', function() {
             let total = 0;

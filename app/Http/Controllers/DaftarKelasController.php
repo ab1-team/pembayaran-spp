@@ -14,10 +14,7 @@ class DaftarKelasController extends Controller
 {
     public function index()
     {
-        $tahunBerjalan = Tahun_Akademik::where('status', 'aktif')->value('nama_tahun');
-        if (!$tahunBerjalan) {
-            $tahunBerjalan = Tahun_Akademik::orderByDesc('nama_tahun')->value('nama_tahun');
-        }
+        $tahunBerjalan = $this->tahunBerjalan();
 
         return view('daftar-kelas.index', [
             'title'          => 'Daftar Kelas',
@@ -25,12 +22,32 @@ class DaftarKelasController extends Controller
         ]);
     }
 
+    private function tahunBerjalan(): ?string
+    {
+        $now = \Carbon\Carbon::now();
+        $yy  = (int) $now->format('Y');
+        $mm  = (int) $now->format('n');
+
+        if ($mm >= 7) {
+            $candidate = sprintf('%d/%d', $yy, $yy + 1);
+        } else {
+            $candidate = sprintf('%d/%d', $yy - 1, $yy);
+        }
+
+        $found = Tahun_Akademik::where('nama_tahun', $candidate)->value('nama_tahun');
+        if ($found) {
+            return $found;
+        }
+
+        return Tahun_Akademik::orderByDesc('nama_tahun')->value('nama_tahun');
+    }
+
     public function listTahun(Request $request)
     {
         $search = $request->get('q');
 
         $query = Tahun_Akademik::select('id', 'nama_tahun')
-            ->orderByDesc('nama_tahun');
+            ->orderBy('nama_tahun');
         if ($search) {
             $query->where('nama_tahun', 'like', "%{$search}%");
         }
@@ -70,6 +87,9 @@ class DaftarKelasController extends Controller
     {
         $ta    = $request->tahun_akademik;
         $kelas = $request->kelas;
+        if ($kelas === '__all__') {
+            $kelas = null;
+        }
 
         $query = Siswa::query()
             ->whereHas('anggotaKelas', function ($q) use ($ta, $kelas) {
@@ -136,20 +156,64 @@ class DaftarKelasController extends Controller
                     })
                     ->sum('nominal');
             })
+            ->addColumn('status_tagihan', function ($row) {
+                $ak = $row->anggotaKelas->first();
+                if (!$ak) return 'menunggak';
+                $bulanSekarang = (int) date('n');
+                $tahunSekarang = (int) date('Y');
+                $target = $ak->spp
+                    ->filter(function ($s) use ($bulanSekarang, $tahunSekarang) {
+                        if (!$s->tanggal) return false;
+                        $ts = $s->tanggal instanceof \DateTimeInterface
+                            ? $s->tanggal
+                            : \Carbon\Carbon::parse($s->tanggal);
+                        return (int) $ts->format('Y') < $tahunSekarang
+                            || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                    })
+                    ->sum('nominal');
+                $realisasi = $ak->spp
+                    ->where('status', 'L')
+                    ->filter(function ($s) use ($bulanSekarang, $tahunSekarang) {
+                        if (!$s->tgl_lunas) {
+                            if (!$s->tanggal) return false;
+                            $ts = $s->tanggal instanceof \DateTimeInterface
+                                ? $s->tanggal
+                                : \Carbon\Carbon::parse($s->tanggal);
+                            return (int) $ts->format('Y') < $tahunSekarang
+                                || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                        }
+                        $ts = $s->tgl_lunas instanceof \DateTimeInterface
+                            ? $s->tgl_lunas
+                            : \Carbon\Carbon::parse($s->tgl_lunas);
+                        return (int) $ts->format('Y') < $tahunSekarang
+                            || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                    })
+                    ->sum('nominal');
+                if ($realisasi > $target) return 'lebih';
+                if ($realisasi == $target && $target > 0) return 'pas';
+                return 'menunggak';
+            })
             ->addColumn('target_daftar_ulang', function ($row) {
                 return 0;
             })
             ->addColumn('realisasi_daftar_ulang', function ($row) {
                 return 0;
             })
-            ->addColumn('action', function ($row) {
-                $url = '/app/Transaksi/pembayaran-spp?prefill_id=' . $row->id . '&prefill_nama=' . urlencode($row->nama);
+            ->addColumn('action', function ($row) use ($request) {
+                $params = [
+                    'prefill_id'       => $row->id,
+                    'prefill_nama'     => $row->nama,
+                    'prefill_status'   => 'aktif',
+                    'prefill_jenis'    => 'spp',
+                    'tahun_akademik'   => $request->tahun_akademik,
+                ];
+                $url = '/app/Transaksi/pembayaran-spp?' . http_build_query($params);
                 return '<a href="' . $url . '" class="btn btn-info btn-sm text-white d-inline-flex align-items-center gap-1" title="Bayar Sekarang">'
                     . '<span>Bayar Sekarang</span>'
                     . '<i class="material-icons align-middle" style="font-size:16px">arrow_forward</i>'
                     . '</a>';
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['action', 'target_sampai_bulan_ini'])
             ->toJson();
     }
 }
