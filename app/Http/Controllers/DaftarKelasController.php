@@ -17,7 +17,7 @@ class DaftarKelasController extends Controller
         $tahunBerjalan = $this->tahunBerjalan();
 
         return view('daftar-kelas.index', [
-            'title'          => 'Daftar Kelas',
+            'title'          => 'Daftar Siswa Per-Kelas',
             'tahunBerjalan'  => $tahunBerjalan,
         ]);
     }
@@ -89,6 +89,9 @@ class DaftarKelasController extends Controller
         $kelas = $request->kelas;
         if ($kelas === '__all__') {
             $kelas = null;
+        }
+        if (!$kelas) {
+            $kelas = 'I.A';
         }
 
         $query = Siswa::query()
@@ -206,6 +209,7 @@ class DaftarKelasController extends Controller
                     'prefill_status'   => 'aktif',
                     'prefill_jenis'    => 'spp',
                     'tahun_akademik'   => $request->tahun_akademik,
+                    'kelas'            => $request->kelas,
                 ];
                 $url = '/app/Transaksi/pembayaran-spp?' . http_build_query($params);
                 return '<a href="' . $url . '" class="btn btn-info btn-sm text-white d-inline-flex align-items-center gap-1" title="Bayar Sekarang">'

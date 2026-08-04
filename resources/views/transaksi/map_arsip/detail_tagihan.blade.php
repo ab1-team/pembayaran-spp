@@ -10,11 +10,10 @@
                 <thead>
                     <tr>
                         <th class="text-center" width="6%">No</th>
-                        <th width="28%">Nama</th>
-                        <th width="16%">NISN</th>
-                        <th width="20%">Bulan</th>
+                        <th width="34%">Bulan</th>
                         <th class="text-end" width="16%">Nominal</th>
-                        <th class="text-center" width="14%">Status</th>
+                        <th class="text-center" width="22%">Status</th>
+                        <th class="text-center" width="22%">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -28,35 +27,66 @@
                             $diffTahun = $tahunTsg - $tahunSekarang;
                             $diffBulan = $bulanTsg - $bulanSekarang;
                             $totalBulan = $diffTahun * 12 + $diffBulan;
+                            $bayarUrl = url('/app/Transaksi/pembayaran-spp?' . http_build_query([
+                                'prefill_id'     => $siswa->id,
+                                'prefill_nama'   => $siswa->nama,
+                                'prefill_status' => 'aktif',
+                                'prefill_jenis'  => 'spp',
+                                'tahun_akademik' => optional($anggota_kelas)->tahun_akademik,
+                                'kelas'          => optional($anggota_kelas)->kode_kelas,
+                            ]));
                         @endphp
                         <tr>
                             <td class="text-center">{{ $i + 1 }}</td>
-                            <td>{{ $siswa->nama }}</td>
-                            <td>{{ $siswa->nisn ?: '-' }}</td>
                             <td>{{ Tanggal::namaBulan($item->tanggal) }} {{ $ts->format('Y') }}</td>
-                            <td class="text-end">{{ Angka::format((int) $item->nominal, 0) }}</td>
+                            <td class="text-end">
+                                @if ($totalBulan > 0)
+                                    <span class="text-muted">-</span>
+                                @else
+                                    {{ Angka::format((int) $item->nominal, 0) }}
+                                @endif
+                            </td>
                             <td class="text-center">
                                 @if ($totalBulan < 0)
                                     <span class="badge bg-danger">Menunggak</span>
                                 @elseif ($totalBulan === 0)
-                                    <span class="badge bg-success">Lancar</span>
+                                    <span class="badge bg-warning text-dark">Belum Dibayar</span>
                                 @else
-                                    <span class="badge bg-secondary">Belum Dibayar</span>
+                                    <span class="badge bg-secondary">Belum Jatuh Tempo</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if ($totalBulan <= 0)
+                                    <a href="{{ $bayarUrl }}" class="btn btn-info btn-sm text-white d-inline-flex align-items-center gap-1" title="Bayar Sekarang">
+                                        <span>Bayar Sekarang</span>
+                                        <i class="material-icons align-middle" style="font-size:16px">arrow_forward</i>
+                                    </a>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
+                            <td colspan="5" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
                 @if ($sppBelumLunas->count())
+                    @php
+                        $totalTagihan = $sppBelumLunas->filter(function ($item) {
+                            $ts = \Carbon\Carbon::parse($item->tanggal);
+                            $bulanSekarang = (int) date('n');
+                            $tahunSekarang = (int) date('Y');
+                            $totalBulan = ((int) $ts->format('Y') - $tahunSekarang) * 12
+                                + ((int) $ts->format('n') - $bulanSekarang);
+                            return $totalBulan <= 0;
+                        })->sum('nominal');
+                    @endphp
                     <tfoot>
                         <tr class="fw-bold">
-                            <td colspan="4" class="text-end">Total</td>
-                            <td class="text-end">{{ Angka::format($sppBelumLunas->sum('nominal'), 0) }}</td>
+                            <td colspan="2" class="text-end">Total</td>
+                            <td class="text-end">{{ Angka::format($totalTagihan, 0) }}</td>
+                            <td></td>
                             <td></td>
                         </tr>
                     </tfoot>

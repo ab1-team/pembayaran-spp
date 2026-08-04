@@ -80,7 +80,7 @@
                     </div>
                     <div class="row mt-2" id="bulanWrapper" style="display: none;">
                         <div class="col-12 mt-2">
-                            <label>Bulan Dibayar</label>
+                            <label>Bulan Tagihan</label>
                         </div>
                         <div class="col-md-12 mt-2">
                             <div class="d-flex flex-wrap gap-0 mt-1">
@@ -250,6 +250,12 @@
                         @disabled(!$siswa->exists)>
                         <i class="bi bi-receipt-cutoff me-1"></i> Detail Pembayaran
                     </button>
+                    <a href="{{ url('/app/daftar-kelas') . '?' . http_build_query(array_filter([
+                        'tahun_akademik' => request('tahun_akademik'),
+                        'kelas'          => request('kelas') !== '__all__' ? request('kelas') : null,
+                    ])) }}" class="btn btn-secondary btn-sm w-100 mt-2">
+                        <i class="bi bi-list-ul me-1"></i> Daftar Siswa Per-Kelas
+                    </a>
                 @endif
             </div>
         </div>

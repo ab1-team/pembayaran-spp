@@ -234,7 +234,7 @@
                 if (qs_kelas && (qs_kelas === '__all__' || data.some(k => k.kode_kelas === qs_kelas))) {
                     kelas.val(qs_kelas);
                 } else {
-                    kelas.val('__all__');
+                    kelas.val('I.A');
                 }
 
                 kelas.select2({

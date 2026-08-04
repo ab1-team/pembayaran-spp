@@ -684,7 +684,7 @@ class TransaksiController extends Controller
             : collect();
 
         return view('transaksi.map_arsip.detail_tagihan', compact(
-            'siswa', 'sppBelumLunas'
+            'siswa', 'sppBelumLunas', 'anggota_kelas'
         ));
     }
     public function pembayaranSPPPrintAll($id)

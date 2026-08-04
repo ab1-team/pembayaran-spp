@@ -184,9 +184,16 @@
         function formTagihanBulanan(siswa = null) {
             let idSiswa = siswa?.id_siswa ?? 0;
 
+            let qs = new URLSearchParams(window.location.search);
+            let extra = {};
+            ['tahun_akademik', 'kelas'].forEach(k => {
+                let v = qs.get(k);
+                if (v) extra[k] = v;
+            });
+
             formTagihanRequest?.abort();
             dataCustomer = null;
-            formTagihanRequest = $.get('/app/spp/Pembayaran-spp/' + idSiswa, function(result) {
+            formTagihanRequest = $.get('/app/spp/Pembayaran-spp/' + idSiswa, extra, function(result) {
                 $('#accordion').html(result.view ?? '');
                 dataCustomer = siswa ? {
                     item: siswa,
