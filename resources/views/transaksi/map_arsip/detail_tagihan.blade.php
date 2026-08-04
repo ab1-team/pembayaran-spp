@@ -10,11 +10,11 @@
                 <thead>
                     <tr>
                         <th class="text-center" width="6%">No</th>
-                        <th width="24%">Nama</th>
-                        <th width="14%">NISN</th>
-                        <th width="15%">Bulan</th>
-                        <th class="text-end" width="14%">Nominal</th>
-                        <th class="text-center" width="12%">Status</th>
+                        <th width="28%">Nama</th>
+                        <th width="16%">NISN</th>
+                        <th width="20%">Bulan</th>
+                        <th class="text-end" width="16%">Nominal</th>
+                        <th class="text-center" width="14%">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,7 +43,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
+                            <td colspan="6" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
                             </td>
                         </tr>
                     @endforelse
@@ -51,7 +51,7 @@
                 @if ($sppBelumLunas->count())
                     <tfoot>
                         <tr class="fw-bold">
-                            <td colspan="5" class="text-end">Total</td>
+                            <td colspan="4" class="text-end">Total</td>
                             <td class="text-end">{{ Angka::format($sppBelumLunas->sum('nominal'), 0) }}</td>
                             <td></td>
                         </tr>
