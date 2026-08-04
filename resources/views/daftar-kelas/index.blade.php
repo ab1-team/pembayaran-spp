@@ -58,6 +58,31 @@
         </div>
     </div>
 @endsection
+@section('modal')
+    <div class="modal fade" id="detailTagihanSpp" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-receipt-cutoff me-1"></i> Detail Tagihan SPP
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailTagihanSppContent">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2">Klik salah satu baris siswa untuk melihat detail tagihan.</p>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-end gap-2">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
 @section('script')
     <script>
         $(document).ready(function() {
@@ -130,7 +155,38 @@
                 ],
                 drawCallback: function() {
                     $('#daftarkelas').css('width', '100%');
+                    $('#daftarkelas tbody tr').css('cursor', 'pointer');
                 }
+            });
+
+            $(document).on('click', '#daftarkelas tbody tr', function(e) {
+                if ($(e.target).closest('a, button').length) return;
+
+                let row = table.row(this).data();
+                if (!row || !row.id) return;
+
+                let modal = '#detailTagihanSpp';
+                let content = '#detailTagihanSppContent';
+                $(content).html(`
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2 small mb-0">Memuat...</p>
+                    </div>
+                `);
+                $(modal).modal('show');
+                $.get('/app/transaksi/pembayaranSPPDetailTagihan/' + row.id)
+                    .done(function(res) {
+                        $(content).html(res);
+                    })
+                    .fail(function() {
+                        $(content).html(`
+                            <div class="alert alert-danger text-start mb-0">
+                                <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Detail tagihan gagal dimuat</div>
+                                <div class="small"><strong>Penyebab:</strong> siswa sudah dihapus / tidak ditemukan, atau terjadi gangguan jaringan.</div>
+                                <div class="small mt-1"><strong>Solusi:</strong> tutup modal lalu klik baris siswa kembali.</div>
+                            </div>
+                        `);
+                    });
             });
 
             function formatRupiah(num) {

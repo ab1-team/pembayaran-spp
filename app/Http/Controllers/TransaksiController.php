@@ -9,6 +9,7 @@ use App\Models\Profil;
 use App\Models\Siswa;
 use App\Models\Spp;
 use App\Models\Inventaris;
+use App\Models\Anggota_Kelas;
 use App\Utils\Inventaris as UtilsInventaris;
 use App\Utils\Angka;
 use App\Utils\Tanggal;
@@ -661,6 +662,30 @@ class TransaksiController extends Controller
         ])->findOrFail($id);
 
         return view('transaksi.map_arsip.detail', compact('siswa'));
+    }
+
+    /**
+     * Detail TAGIHAN SPP per siswa (hanya yang belum lunas)
+     */
+    public function pembayaranSPPDetailTagihan($id)
+    {
+        $siswa = Siswa::findOrFail($id);
+
+        $anggota_kelas = Anggota_Kelas::where('id_siswa', $id)
+            ->with(['getSpp'])
+            ->where('status', 'aktif')
+            ->first();
+
+        $sppBelumLunas = $anggota_kelas
+            ? $anggota_kelas->getSpp
+                ->where('status', 'B')
+                ->sortBy(fn($s) => \Carbon\Carbon::parse($s->tanggal)->month)
+                ->values()
+            : collect();
+
+        return view('transaksi.map_arsip.detail_tagihan', compact(
+            'siswa', 'sppBelumLunas'
+        ));
     }
     public function pembayaranSPPPrintAll($id)
     {
