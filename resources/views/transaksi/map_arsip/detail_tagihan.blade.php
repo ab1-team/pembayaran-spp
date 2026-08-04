@@ -12,7 +12,6 @@
                         <th class="text-center" width="6%">No</th>
                         <th width="24%">Nama</th>
                         <th width="14%">NISN</th>
-                        <th width="13%">SPP Ke</th>
                         <th width="15%">Bulan</th>
                         <th class="text-end" width="14%">Nominal</th>
                         <th class="text-center" width="12%">Status</th>
@@ -32,7 +31,6 @@
                             <td class="text-center">{{ $i + 1 }}</td>
                             <td>{{ $siswa->nama }}</td>
                             <td>{{ $siswa->nisn ?: '-' }}</td>
-                            <td>{{ $item->spp_ke ?? '-' }}</td>
                             <td>{{ Tanggal::namaBulan($item->tanggal) }} {{ $ts->format('Y') }}</td>
                             <td class="text-end">{{ Angka::format((int) $item->nominal, 0) }}</td>
                             <td class="text-center">
