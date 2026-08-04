@@ -23,9 +23,11 @@
                             $ts = \Carbon\Carbon::parse($item->tanggal);
                             $bulanSekarang = (int) date('n');
                             $tahunSekarang = (int) date('Y');
-                            $isLewat =
-                                (int) $ts->format('Y') < $tahunSekarang ||
-                                ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                            $tahunTsg = (int) $ts->format('Y');
+                            $bulanTsg = (int) $ts->format('n');
+                            $diffTahun = $tahunTsg - $tahunSekarang;
+                            $diffBulan = $bulanTsg - $bulanSekarang;
+                            $totalBulan = $diffTahun * 12 + $diffBulan;
                         @endphp
                         <tr>
                             <td class="text-center">{{ $i + 1 }}</td>
@@ -34,10 +36,12 @@
                             <td>{{ Tanggal::namaBulan($item->tanggal) }} {{ $ts->format('Y') }}</td>
                             <td class="text-end">{{ Angka::format((int) $item->nominal, 0) }}</td>
                             <td class="text-center">
-                                @if ($isLewat)
+                                @if ($totalBulan < 0)
                                     <span class="badge bg-danger">Menunggak</span>
+                                @elseif ($totalBulan === 0)
+                                    <span class="badge bg-success">Lancar</span>
                                 @else
-                                    <span class="badge bg-secondary">Belum Jatuh Tempo</span>
+                                    <span class="badge bg-secondary">Belum Dibayar</span>
                                 @endif
                             </td>
                         </tr>

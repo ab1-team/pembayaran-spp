@@ -679,7 +679,7 @@ class TransaksiController extends Controller
         $sppBelumLunas = $anggota_kelas
             ? $anggota_kelas->getSpp
                 ->where('status', 'B')
-                ->sortBy(fn($s) => \Carbon\Carbon::parse($s->tanggal)->month)
+                ->sortBy(fn($s) => \Carbon\Carbon::parse($s->tanggal)->timestamp)
                 ->values()
             : collect();
 
