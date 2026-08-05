@@ -867,11 +867,28 @@ class TransaksiController extends Controller
             ?? \App\Models\Tahun_Akademik::where('status', 'aktif')->value('nama_tahun')
             ?? date('Y');
 
+        $sppLunas = Transaksi::query()
+            ->whereNull('deleted_at')
+            ->where('siswa_id', $siswa->id)
+            ->whereNotNull('kode_spp')
+            ->whereHas('spp', function ($q) {
+                $q->where('status', 'L');
+            })
+            ->with(['spp'])
+            ->get()
+            ->sortBy(function ($trx) {
+                $ts = \Carbon\Carbon::parse($trx->spp->tanggal);
+                $m  = (int) $ts->month;
+                return $m >= 7 ? $m : $m + 12;
+            })
+            ->values();
+
         $data = [
             'siswa'        => $siswa,
             'profil'       => $profil,
             'tahun_pel'    => $tahun_pel,
             'spp_perbulan' => $siswa->spp_nominal ?? 0,
+            'sppLunas'     => $sppLunas,
         ];
 
         $logoPath = \App\Models\Profil::logoPath();
