@@ -565,10 +565,63 @@ class TransaksiController extends Controller
                     'msg' => 'Data SPP tidak sinkron'
                 ], 422);
             }
+
+            $sppOrdered = Spp::whereIn('kode', $kodeSpp)
+                ->orderByRaw("CASE WHEN MONTH(tanggal) >= 7 THEN MONTH(tanggal) ELSE MONTH(tanggal) + 12 END")
+                ->orderBy('tanggal')
+                ->get()
+                ->keyBy('kode');
+
+            $urutBulan = [];
+            foreach ($sppOrdered as $sp) {
+                $m = (int) Carbon::parse($sp->tanggal)->month;
+                $urutBulan[$sp->kode] = $m >= 7 ? $m : $m + 12;
+            }
+
+            $expected = [];
+            foreach ($kodeSpp as $kode) {
+                if (!isset($urutBulan[$kode])) {
+                    return response()->json([
+                        'success' => false,
+                        'msg' => 'Kode SPP tidak valid: ' . $kode
+                    ], 422);
+                }
+                $expected[] = $urutBulan[$kode];
+            }
+            $sortedExpected = $expected;
+            sort($sortedExpected);
+            if ($expected !== $sortedExpected) {
+                return response()->json([
+                    'success' => false,
+                    'msg' => 'Bulan tagihan harus dibayar berurutan mulai Juli. Selesaikan bulan sebelumnya terlebih dahulu.'
+                ], 422);
+            }
+
+            foreach ($sppOrdered as $sp) {
+                $m = (int) Carbon::parse($sp->tanggal)->month;
+                $u = $m >= 7 ? $m : $m + 12;
+                if ($u == 7) continue;
+                $prevU = $u - 1;
+                $prevFound = $sppOrdered->first(function ($x) use ($prevU) {
+                    $xm = (int) Carbon::parse($x->tanggal)->month;
+                    $xu = $xm >= 7 ? $xm : $xm + 12;
+                    return $xu === $prevU;
+                });
+                if (!$prevFound || ($prevFound && $prevFound->status !== 'L' && !in_array($prevFound->kode, $kodeSpp))) {
+                    return response()->json([
+                        'success' => false,
+                        'msg' => 'Bulan ' . Tanggal::namaBulan($prevFound ? $prevFound->tanggal : $sp->tanggal)
+                            . ' belum dibayar. Selesaikan bulan sebelumnya terlebih dahulu.'
+                    ], 422);
+                }
+            }
+
+            $sppByKode = $sppOrdered;
+
             foreach ($kodeSpp as $i => $kode) {
 
                 $nilai = Angka::parseInt($nominals[$i]);
-                $spp   = Spp::where('kode', $kode)->firstOrFail();
+                $spp   = $sppByKode[$kode] ?? Spp::where('kode', $kode)->firstOrFail();
 
                 $isTunggakan = Carbon::parse($spp->tanggal)
                     ->lt(Carbon::parse($request->tanggal)->startOfMonth());

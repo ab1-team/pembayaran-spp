@@ -1,7 +1,7 @@
 @if ($siswa->exists)
-<div class="row mt-2 mb-2">
-    <div class="col-12 ">
-        <div class="card m-0">
+<div class="row d-flex align-items-stretch mt-2 mb-2">
+    <div class="col-12 d-flex">
+        <div class="card m-0 flex-fill">
             <div class="card-body py-2 px-2">
                 <div class="row g-2 align-items-center">
                     <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-spp/{{ $siswa->id }}" target="_blank" class="btn btn-outline-primary w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Cetak Kartu SPP</a></div>
@@ -82,55 +82,45 @@
                         <div class="col-12 mt-2">
                             <label>Bulan Tagihan</label>
                         </div>
+                        @php
+                            $sppItems = $spp->sortBy(function ($item) {
+                                $m = (int) \Carbon\Carbon::parse($item->tanggal)->month;
+                                return $m >= 7 ? $m : $m + 12;
+                            })->values();
+                        @endphp
                         <div class="col-md-12 mt-2">
-                            <div class="d-flex flex-wrap gap-0 mt-1">
-                                @foreach ($spp->sortBy(function ($item) {
-                                    return \Carbon\Carbon::parse($item->tanggal)->month;
-                                }) as $item)
+                            <div class="d-flex flex-wrap gap-0 mt-1" id="sppBulanList">
+                                @foreach ($sppItems as $idx => $item)
                                     @php
-                                        $bulan = \Carbon\Carbon::parse($item->tanggal)->month;
+                                        $bulan = (int) \Carbon\Carbon::parse($item->tanggal)->month;
+                                        $isPaid = $item->status == 'L';
+                                        $prevKode = $idx > 0 ? $sppItems[$idx - 1]->kode : null;
+                                        $prevBulan = $idx > 0 ? (int) \Carbon\Carbon::parse($sppItems[$idx - 1]->tanggal)->month : null;
+                                        $lockReason = $idx > 0
+                                            ? 'Bulan ' . \App\Utils\Tanggal::namaBulan($sppItems[$idx - 1]->tanggal) . ' belum dibayar'
+                                            : '';
+
+                                        if ($isPaid) {
+                                            $btnClass = $bulan > 6 ? 'btn-info' : 'btn-danger';
+                                        } else {
+                                            $btnClass = $bulan > 6 ? 'btn-outline-info' : 'btn-outline-danger';
+                                        }
                                     @endphp
 
-                                    @if ($bulan > 6)
-                                        <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox"
-                                            data-kode="{{ $item->kode }}" data-nominal="{{ $item->nominal }}"
-                                            id="tgl_{{ $item->id }}" value="{{ $item->tanggal }}"
-                                            data-spp_ke="{{ $item->spp_ke }}"
-                                            {{ $item->status == 'L' ? 'checked disabled' : '' }}>
+                                    <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox spp-bln"
+                                        data-kode="{{ $item->kode }}" data-nominal="{{ $item->nominal }}"
+                                        id="tgl_{{ $item->id }}" value="{{ $item->tanggal }}"
+                                        data-spp_ke="{{ $item->spp_ke }}"
+                                        data-bulan="{{ $bulan }}"
+                                        data-prev-kode="{{ $prevKode }}"
+                                        data-lock-reason="{{ $lockReason }}"
+                                        {{ $isPaid ? 'checked disabled' : '' }}>
 
-                                        <label
-                                            class="btn btn-sm rounded-pill flex-fill text-center
-                                            {{ $item->status == 'L' ? 'btn-info' : 'btn-outline-info' }}"
-                                            for="tgl_{{ $item->id }}">
-                                            {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
-                                        </label>
-                                    @endif
-                                @endforeach
-                            </div>
-                        </div>
-                        <div class="col-md-12 mt-2">
-                            <div class="d-flex flex-wrap gap-0 mt-1">
-                                @foreach ($spp->sortBy(function ($item) {
-                                        return \Carbon\Carbon::parse($item->tanggal)->month;
-                                    }) as $item)
-                                    @php
-                                        $bulan = \Carbon\Carbon::parse($item->tanggal)->month;
-                                    @endphp
-
-                                    @if ($bulan <= 6)
-                                        <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox"
-                                            data-kode="{{ $item->kode }}" data-spp_ke="{{ $item->spp_ke }}"
-                                            data-nominal="{{ $item->nominal }}" id="tgl_{{ $item->id }}"
-                                            value="{{ $item->tanggal }}"
-                                            {{ $item->status == 'L' ? 'checked disabled' : '' }}>
-
-                                        <label
-                                            class="btn btn-sm rounded-pill flex-fill text-center
-                                            {{ $item->status == 'L' ? 'btn-danger' : 'btn-outline-danger' }}"
-                                            for="tgl_{{ $item->id }}">
-                                            {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
-                                        </label>
-                                    @endif
+                                    <label
+                                        class="btn btn-sm rounded-pill flex-fill text-center spp-label {{ $btnClass }}"
+                                        for="tgl_{{ $item->id }}">
+                                        {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
+                                    </label>
                                 @endforeach
                             </div>
                         </div>
@@ -346,7 +336,8 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             });
 
             $('#bulanWrapper').toggle(isSpp);
-            $('.spp-checkbox').prop('checked', false).prop('disabled', false);
+            $('.spp-checkbox').prop('checked', false);
+            $('.spp-bln:not(:disabled)').prop('disabled', false);
             $('#sppIDContainer').empty();
 
             const defaultNominal = lookupNominal(idjp, angkatan);
@@ -369,7 +360,8 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
             } else {
                 $('#nominal').prop('readonly', false).val('');
                 syncNominalLabel();
-                $('#keterangan').val('');
+                $('#kuitansi, #CetakPadaKartu').addClass('d-none');
+                $('#keterangan').val(`${namaAkun} an. ${nama}`);
             }
         });
 
@@ -382,6 +374,61 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
         }
 
         applyPrefillJenis();
+
+        function sppIsBulanUnlocked($input) {
+            const prevKode = $input.data('prev-kode');
+            if (!prevKode) return true;
+            const $prev = $('#tgl_' + $('[data-kode="' + prevKode + '"]').attr('id').replace('tgl_', ''));
+            const $prevByKode = $('.spp-bln').filter(function() {
+                return $(this).data('kode') === prevKode;
+            }).first();
+            if ($prevByKode.length === 0) return true;
+            if ($prevByKode.prop('disabled')) return true;
+            if ($prevByKode.is(':checked')) return true;
+            return false;
+        }
+
+        function sppNotifyLocked($input) {
+            const reason = $input.data('lock-reason') || 'Bulan sebelumnya belum dibayar';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Dapat Memilih Bulan Ini',
+                    text: reason + '. Selesaikan pembayaran bulan sebelumnya terlebih dahulu.',
+                    confirmButtonText: 'Oke'
+                });
+            } else {
+                alert(reason + '. Selesaikan pembayaran bulan sebelumnya terlebih dahulu.');
+            }
+        }
+
+        $(document).on('click', '.spp-label', function(e) {
+            const $input = $(this).siblings('.spp-bln');
+            if ($input.length && !$input.prop('disabled') && !sppIsBulanUnlocked($input)) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                $input.prop('checked', false);
+                setTimeout(function() { $input.prop('checked', false); }, 0);
+                sppNotifyLocked($input);
+                return false;
+            }
+        });
+
+        $(document).on('click', '.spp-bln', function(e) {
+            if (!this.disabled && this.checked && !sppIsBulanUnlocked($(this))) {
+                e.stopImmediatePropagation();
+                this.checked = false;
+                sppNotifyLocked($(this));
+            }
+        });
+
+        $(document).on('change', '.spp-bln', function(e) {
+            if (!this.disabled && this.checked && !sppIsBulanUnlocked($(this))) {
+                e.stopImmediatePropagation();
+                this.checked = false;
+                sppNotifyLocked($(this));
+            }
+        });
 
         $('.spp-checkbox').on('change', function() {
             let total = 0;

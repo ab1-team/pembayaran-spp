@@ -81,7 +81,7 @@ class SppController extends Controller
             $sd_bulan_ini = $spp->where('status', 'L')->sum('nominal');
             $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
             $tahun_angkatan = Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y');
-            $jenis_biaya = JenisPembayaran::orderBy('nama')->get();
+            $jenis_biaya = JenisPembayaran::orderBy('id')->get();
             $nominalMap = Jenis_Biaya::where('angkatan', (string) $tahun_angkatan)
                 ->get()
                 ->groupBy(fn ($i) => $i->id_jp.'|'.$i->angkatan);
