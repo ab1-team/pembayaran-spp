@@ -1,20 +1,58 @@
 @if ($siswa->exists)
-<div class="row d-flex align-items-stretch mt-2 mb-2">
-    <div class="col-12 d-flex">
-        <div class="card m-0 flex-fill">
-            <div class="card-body py-2 px-2">
-                <div class="row g-2 align-items-center">
-                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-spp/{{ $siswa->id }}" target="_blank" class="btn btn-outline-primary w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Cetak Kartu SPP</a></div>
-                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts1" target="_blank" class="btn btn-outline-success w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu UTS I</a></div>
-                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas1" target="_blank" class="btn btn-outline-warning w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu PAS I</a></div>
-                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts2" target="_blank" class="btn btn-outline-info w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu UTS II</a></div>
-                    <div class="col-12 col-sm-6 col-md"><a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas2" target="_blank" class="btn btn-outline-danger w-100 mb-0"><i class="material-symbols-rounded me-1">print</i> Kartu PAS II</a></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endif
+
+<style>
+  .action-section {
+    position: relative;
+  }
+  .action-section .section-label {
+    position: absolute;
+    top: -.55rem;
+    left: .75rem;
+    padding: 0 .35rem;
+    background: #fff;
+    font-size: .65rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: #6c757d;
+    line-height: 1;
+    z-index: 1;
+    max-width: calc(100% - 1.5rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .action-section .section-label i {
+    font-size: .8rem;
+    margin-right: .15rem;
+    vertical-align: -1px;
+  }
+  .action-card {
+    height: 38px;
+    font-size: .8rem;
+    font-weight: 500;
+    border-radius: .375rem;
+    transition: all .15s ease;
+    white-space: nowrap;
+  }
+  .action-card i {
+    font-size: 1rem;
+  }
+  .action-card:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  }
+  @media (max-width: 575.98px) {
+    .action-card {
+      height: 36px;
+      font-size: .75rem;
+    }
+    .action-card i {
+      font-size: .9rem;
+    }
+  }
+</style>
 
 <div class="row d-flex align-items-stretch">
     <div class="col-md-8 d-flex">
@@ -163,13 +201,13 @@
                     </button>
                     <button type="submit" id="Tunai"
                         data-sumber="1.1.01.01"
-                        class="btn btn-warning w-100 w-md-auto SPPsimpan"
+                        class="btn btn-warning w-100 mb-0 w-md-auto SPPsimpan"
                         @disabled(!$siswa->exists)>
                         Tunai
                     </button>
                     <button type="submit" id="TransferBank"
                         data-sumber="1.1.01.03"
-                        class="btn btn-info w-100 w-md-auto SPPsimpan"
+                        class="btn btn-info w-100 w-md-auto mb-0 SPPsimpan"
                         @disabled(!$siswa->exists)>
                         Transfer Bank
                     </button>
@@ -180,11 +218,7 @@
     </div>
     <div class="col-md-4 d-flex">
         <div class="card mt-1 mb-4 flex-fill">
-            <div class="card-header bg-gradient-white text-dark">
-                <h6 class="mb-0 text-bold">Detail Siswa</h6>
-            </div>
-            <hr class="horizontal dark my-1">
-            <div class="card-body pt-2">
+            <div class="card-body pt-3">
                 @if(!$siswa->exists)
                     <div class="text-center text-muted py-4">
                         <i class="bi bi-person fs-1"></i>
@@ -201,51 +235,78 @@
                             <small class="text-muted">{{ $siswa->kode_kelas }} · {{ $siswa->ruang }}</small>
                         </div>
                     </div>
-                    <ul class="list-group list-group-flush small mb-0">
-                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                            <span class="text-muted">NISN</span>
-                            <span class="fw-semibold">{{ $siswa->nisn ?: '-' }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                            <span class="text-muted">NIPD</span>
-                            <span class="fw-semibold">{{ $siswa->nipd ?: '-' }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                            <span class="text-muted">TTL</span>
-                            <span class="fw-semibold text-end">
-                                {{ $siswa->tempat_lahir ?: '-' }}{{ $siswa->tanggal_lahir ? ', '.$siswa->tanggal_lahir->format('d-m-Y') : '' }}
-                            </span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                            <span class="text-muted">Jenis Kelamin</span>
-                            <span class="fw-semibold">{{ $siswa->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                            <span class="text-muted">Status</span>
-                            <span class="badge bg-{{ $siswa->status_siswa == 'aktif' ? 'success' : 'secondary' }}">
-                                {{ ucfirst($siswa->status_siswa ?? '-') }}
-                            </span>
-                        </li>
-                        @if (($siswa->spp_nominal ?? 0) > 0)
-                            <li class="list-group-item d-flex justify-content-between px-0 py-1">
-                                <span class="text-muted">SPP / Bulan</span>
-                                <span class="fw-semibold text-danger">
-                                    Rp {{ number_format((int) $siswa->spp_nominal, 0, ',', '.') }}
-                                </span>
-                            </li>
-                        @endif
-                    </ul>
-                    <button type="button" id="btnDetailSiswa"
-                        class="btn btn-danger btn-sm w-100 mt-3"
-                        @disabled(!$siswa->exists)>
-                        <i class="bi bi-receipt-cutoff me-1"></i> Detail Pembayaran
-                    </button>
-                    <a href="{{ url('/app/daftar-kelas') . '?' . http_build_query(array_filter([
-                        'tahun_akademik' => request('tahun_akademik'),
-                        'kelas'          => request('kelas') !== '__all__' ? request('kelas') : null,
-                    ])) }}" class="btn btn-secondary btn-sm w-100 mt-2">
-                        <i class="bi bi-list-ul me-1"></i> Daftar Siswa Per-Kelas
-                    </a>
+                    <hr class="horizontal dark my-3">
+                    <hr class="horizontal dark my-3">
+
+                    <div class="action-section mb-3">
+                        <button type="button" id="btnDetailSiswa"
+                            class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                            @disabled(!$siswa->exists)>
+                            <i class="bi bi-receipt-cutoff" style="font-size:1.1rem;"></i>
+                            <span>Detail Pembayaran</span>
+                        </button>
+                        <a href="{{ url('/app/daftar-kelas') . '?' . http_build_query(array_filter([
+                            'tahun_akademik' => request('tahun_akademik'),
+                            'kelas'          => request('kelas') !== '__all__' ? request('kelas') : null,
+                        ])) }}" class="btn btn-secondary btn-sm w-100 mt-2 d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-list-ul" style="font-size:1.1rem;"></i>
+                            <span>Daftar Siswa Per-Kelas</span>
+                        </a>
+                    </div>
+
+                    <div class="action-section mb-3 pt-3 px-2 pb-1 border border-light rounded">
+                        <div class="section-label">
+                            <i class="bi bi-credit-card-2-front"></i>
+                            <span>Cetak Kartu SPP</span>
+                        </div>
+                        <a href="/app/transaksi/cetak-kartu-spp/{{ $siswa->id }}" target="_blank"
+                            class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                            @disabled(!$siswa->exists)>
+                            <i class="material-symbols-rounded" style="font-size:1.2rem;">print</i>
+                            <span>Kartu SPP</span>
+                        </a>
+                    </div>
+
+                    <div class="action-section pt-3 px-2 pb-1 border border-light rounded">
+                        <div class="section-label">
+                            <i class="bi bi-pencil-square"></i>
+                            <span>Cetak Kartu Ujian</span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts1" target="_blank"
+                                    class="action-card btn btn-outline-success d-flex align-items-center justify-content-center gap-2"
+                                    @disabled(!$siswa->exists)>
+                                    <i class="material-symbols-rounded">print</i>
+                                    <span>UTS I</span>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas1" target="_blank"
+                                    class="action-card btn btn-outline-warning d-flex align-items-center justify-content-center gap-2"
+                                    @disabled(!$siswa->exists)>
+                                    <i class="material-symbols-rounded">print</i>
+                                    <span>PAS I</span>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts2" target="_blank"
+                                    class="action-card btn btn-outline-info d-flex align-items-center justify-content-center gap-2"
+                                    @disabled(!$siswa->exists)>
+                                    <i class="material-symbols-rounded">print</i>
+                                    <span>UTS II</span>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas2" target="_blank"
+                                    class="action-card btn btn-outline-danger d-flex align-items-center justify-content-center gap-2"
+                                    @disabled(!$siswa->exists)>
+                                    <i class="material-symbols-rounded">print</i>
+                                    <span>PAS II</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>

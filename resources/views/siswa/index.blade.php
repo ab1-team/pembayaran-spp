@@ -13,7 +13,7 @@
                             </div>
                             <div class="col-12 col-md-3">
                                 <select id="kelas" class="form-control select2 text-white w-100">
-                                    <option value="">Pilih Kelas</option>
+                                    <option value="">Semua Kelas</option>
                                 </select>
                             </div>
                             <div class="col-12 col-md-auto pt-2 ms-md-auto">
@@ -30,7 +30,7 @@
                 <div class="card-body px-3 py-2">
                     <div id="notifikasi">
                         <div class="alert alert-light alert-dismissible text-secondary" role="alert">
-                            Silakan gunakan fitur Filter untuk menampilkan data siswa.
+                            Silakan pilih Tahun Akademik untuk menampilkan data siswa.
                             <button type="button" class="btn-close text-lg opacity-10" data-bs-dismiss="alert"></button>
                         </div>
                     </div>
@@ -84,7 +84,9 @@
                 processing: true,
                 serverSide: true,
                 searching: true,
-                paging: false,
+                paging: true,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
                 info: true,
                 autoWidth: true,
                 scrollX: true,
@@ -97,7 +99,7 @@
                     }
                 },
                 columns: [{
-                        width: "10%",
+                        width: "9%",
                         data: 'checkbox',
                         orderable: false,
                         searchable: false,
@@ -161,9 +163,8 @@
                 if (!tahunLoaded || !kelasLoaded) return;
 
                 let tahunVal = $('#tahun_akademik').val();
-                let kelasVal = $('#kelas').val();
 
-                if (!tahunVal || !kelasVal) {
+                if (!tahunVal) {
                     $('#notifikasi').removeClass('d-none');
                     $('#tableWrapper').addClass('d-none');
                     table.clear().draw();
@@ -192,7 +193,7 @@
 
             $.getJSON('/app/siswa/listKelas', function(data) {
                 let kelas = $('#kelas');
-                kelas.empty().append('<option value="">Pilih Kelas</option>');
+                kelas.empty().append('<option value="">Semua Kelas</option>');
                 data.forEach(k => kelas.append(
                     `<option value="${k.kode_kelas}">${k.kode_kelas} - ${k.nama_kelas}</option>`));
                 kelas.select2({ theme: 'bootstrap-5' });
@@ -233,7 +234,7 @@
                 params.set('kelas', kelas);
                 window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
 
-                if (!tahun || !kelas) {
+                if (!tahun) {
                     $('#notifikasi').removeClass('d-none');
                     $('#tableWrapper').addClass('d-none');
                     table.clear().draw();

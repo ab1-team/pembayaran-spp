@@ -212,9 +212,9 @@ class DaftarKelasController extends Controller
                     'kelas'            => $request->kelas,
                 ];
                 $url = '/app/Transaksi/pembayaran-spp?' . http_build_query($params);
-                return '<a href="' . $url . '" class="btn btn-info btn-sm text-white d-inline-flex align-items-center gap-1" title="Bayar Sekarang">'
+                return '<a href="' . $url . '" class="btn btn-info btn-sm text-white d-inline-flex align-items-center gap-1 px-2" title="Bayar Sekarang" style="font-size:.75rem;line-height:1.4;">'
                     . '<span>Bayar Sekarang</span>'
-                    . '<i class="material-icons align-middle" style="font-size:16px">arrow_forward</i>'
+                    . '<i class="material-icons align-middle" style="font-size:14px">arrow_forward</i>'
                     . '</a>';
             })
             ->rawColumns(['action', 'target_sampai_bulan_ini'])

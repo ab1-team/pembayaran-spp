@@ -32,12 +32,12 @@
                         <table id="daftarkelas" class="table table-striped align-items-center mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-center" width="5%">No</th>
-                                    <th width="12%">NISN</th>
-                                    <th>Nama Siswa</th>
-                                    <th class="text-end" width="12%">SPP Per Bulan</th>
-                                    <th class="text-end" width="13%">Tagihan s.d Bulan Ini</th>
-                                    <th class="text-center" width="12%">Aksi</th>
+                                    <th class="text-center" width="4%">No</th>
+                                    <th width="10%">NISN</th>
+                                    <th width="23%">Nama Siswa</th>
+                                    <th class="text-end" width="11%">SPP / Bulan</th>
+                                    <th class="text-end" width="13%">Tagihan s.d Periode Ini</th>
+                                    <th class="text-center" width="14%">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -63,9 +63,12 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-receipt-cutoff me-1"></i> Detail Tagihan SPP
-                    </h5>
+                    <div class="d-flex flex-column">
+                        <h5 class="modal-title mb-1">
+                            <i class="bi bi-receipt-cutoff me-1"></i> Detail Tagihan SPP
+                        </h5>
+                        <small class="text-muted modal-title-nama lh-sm">—</small>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="detailTagihanSppContent">
@@ -104,7 +107,7 @@
                     [10, 25, 50, "Semua"]
                 ],
                 info: true,
-                autoWidth: true,
+                autoWidth: false,
                 scrollX: true,
                 rowId: 'id',
                 ajax: {
@@ -115,22 +118,34 @@
                     }
                 },
                 columns: [{
-                        data: 'DT_RowIndex',
+                        data: null,
                         orderable: false,
                         searchable: false,
-                        className: 'text-center'
+                        className: 'text-center',
+                        width: '4%',
+                        render: function(data, type, row, meta) {
+                            return meta.row + 1;
+                        }
                     },
                     {
                         name: 'nisn',
-                        data: 'nisn'
+                        data: 'nisn',
+                        width: '10%',
+                        defaultContent: '-',
+                        render: function(d) {
+                            return (d === '0' || !d) ? '-' : d;
+                        }
                     },
                     {
                         name: 'nama',
-                        data: 'nama'
+                        data: 'nama',
+                        width: '23%'
                     },
                     {
                         data: 'spp_per_bulan',
                         searchable: false,
+                        width: '11%',
+                        className: 'text-end',
                         render: function(d) {
                             return formatRupiah(d);
                         }
@@ -138,6 +153,8 @@
                     {
                         data: 'target_sampai_bulan_ini',
                         searchable: false,
+                        width: '13%',
+                        className: 'text-end',
                         render: function(d, type, row) {
                             let status = row.status_tagihan ?? 'menunggak';
                             let cls = 'text-danger fw-bold';
@@ -150,11 +167,15 @@
                         data: 'action',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center td-action'
+                        className: 'text-center td-action',
+                        width: '14%'
                     }
                 ],
+                columnDefs: [{
+                    targets: '_all',
+                    className: 'align-middle'
+                }],
                 drawCallback: function() {
-                    $('#daftarkelas').css('width', '100%');
                     $('#daftarkelas tbody tr').css('cursor', 'pointer');
                 }
             });
@@ -167,6 +188,8 @@
 
                 let modal = '#detailTagihanSpp';
                 let content = '#detailTagihanSppContent';
+                let kelasTxt = row.kode_kelas ? ', Kelas ' + row.kode_kelas : '';
+                $(modal).find('.modal-title-nama').text((row.nama || '—') + kelasTxt);
                 $(content).html(`
                     <div class="text-center py-4">
                         <div class="spinner-border text-primary"></div>

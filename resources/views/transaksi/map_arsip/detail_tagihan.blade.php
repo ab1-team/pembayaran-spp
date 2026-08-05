@@ -9,11 +9,10 @@
             <table class="table table-sm table-striped align-items-center mb-0">
                 <thead>
                     <tr>
-                        <th class="text-center" width="6%">No</th>
-                        <th width="34%">Bulan</th>
-                        <th class="text-end" width="16%">Nominal</th>
+                        <th class="text-center" width="10%">No</th>
+                        <th width="38%">Bulan</th>
+                        <th class="text-end" width="18%">Nominal</th>
                         <th class="text-center" width="22%">Status</th>
-                        <th class="text-center" width="22%">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,27 +45,28 @@
                                     {{ Angka::format((int) $item->nominal, 0) }}
                                 @endif
                             </td>
-                            <td class="text-center">
-                                @if ($totalBulan < 0)
-                                    <span class="badge bg-danger">Menunggak</span>
-                                @elseif ($totalBulan === 0)
-                                    <span class="badge bg-warning text-dark">Belum Dibayar</span>
-                                @else
-                                    <span class="badge bg-secondary">Belum Jatuh Tempo</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                @if ($totalBulan <= 0)
-                                    <a href="{{ $bayarUrl }}" class="btn btn-info btn-sm text-white d-inline-flex align-items-center gap-1" title="Bayar Sekarang">
-                                        <span>Bayar Sekarang</span>
-                                        <i class="material-icons align-middle" style="font-size:16px">arrow_forward</i>
-                                    </a>
-                                @endif
+                            <td class="text-nowrap">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        @if ($totalBulan < 0)
+                                            <span class="badge bg-danger">Menunggak</span>
+                                        @elseif ($totalBulan === 0)
+                                            <span class="badge bg-warning text-dark">Belum Dibayar</span>
+                                        @else
+                                            <span class="badge bg-secondary">Belum Jatuh Tempo</span>
+                                        @endif
+                                    </div>
+                                    @if ($totalBulan <= 0)
+                                        <a href="{{ $bayarUrl }}" class="btn btn-info btn-sm text-white rounded-circle d-inline-flex align-items-center justify-content-center" title="Bayar Sekarang" style="width:28px;height:28px;padding:0;">
+                                            <i class="material-icons" style="font-size:16px">payments</i>
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
+                            <td colspan="4" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
                             </td>
                         </tr>
                     @endforelse
@@ -86,7 +86,6 @@
                         <tr class="fw-bold">
                             <td colspan="2" class="text-end">Total</td>
                             <td class="text-end">{{ Angka::format($totalTagihan, 0) }}</td>
-                            <td></td>
                             <td></td>
                         </tr>
                     </tfoot>
