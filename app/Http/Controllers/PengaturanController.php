@@ -198,6 +198,21 @@ class PengaturanController extends Controller
         ]);
     }
 
+    public function sopPembayaran(Request $request, $id)
+    {
+        $request->validate([
+            'cetak_pts' => 'required|integer|min:0|max:12',
+            'cetak_pas' => 'required|integer|min:0|max:12',
+        ]);
+
+        Profil::findOrFail($id)->update($request->only(['cetak_pts', 'cetak_pas']));
+
+        return response()->json([
+            'success' => true,
+            'msg' => 'SOP Pembayaran berhasil diperbarui!',
+        ]);
+    }
+
     public function invoice(Request $request)
     {
         $title = 'Daftar Invoice';

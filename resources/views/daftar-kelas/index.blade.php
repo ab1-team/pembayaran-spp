@@ -16,6 +16,17 @@
                                     <option value="__all__">Pilih Kelas</option>
                                 </select>
                             </div>
+                            <div class="col-12 col-md-3">
+                                <select id="cetak_batch" class="form-control select2 text-white w-100"
+                                    title="Cetak kartu seluruh siswa di kelas yang sedang dipilih">
+                                    <option value="">Cetak Kartu…</option>
+                                    <option value="kartu_spp">Cetak Kartu SPP</option>
+                                    <option value="uts1">Cetak Kartu UTS I</option>
+                                    <option value="pas1">Cetak Kartu PAS I</option>
+                                    <option value="uts2">Cetak Kartu UTS II</option>
+                                    <option value="pas2">Cetak Kartu PAS II</option>
+                                </select>
+                            </div>
                             <div class="col-12 col-md-auto pt-2 ms-md-auto">
                                 <span class="text-white small">
                                     <i class="material-icons align-middle me-1" style="font-size:16px">event</i>
@@ -289,6 +300,39 @@
             }
 
             $('#tahun_akademik, #kelas').on('change', applyFilter);
+
+            $('#cetak_batch').on('change', function() {
+                let jenis = $(this).val();
+                if (!jenis) return;
+
+                let tahun = $('#tahun_akademik').val();
+                let kelas = $('#kelas').val();
+
+                if (!tahun) {
+                    Swal.fire('Info', 'Pilih Tahun Akademik terlebih dahulu.', 'info');
+                    $(this).val('').trigger('change.select2');
+                    return;
+                }
+                if (!kelas || kelas === '__all__') {
+                    Swal.fire('Info', 'Pilih Kelas terlebih dahulu.', 'info');
+                    $(this).val('').trigger('change.select2');
+                    return;
+                }
+
+                let url = '/app/daftar-kelas/cetak-kartu-batch?' + $.param({
+                    jenis: jenis,
+                    tahun_akademik: tahun,
+                    kelas: kelas,
+                });
+
+                window.open(url, '_blank');
+                $(this).val('').trigger('change.select2');
+            });
+
+            $('#cetak_batch').select2({
+                theme: 'bootstrap-5',
+                minimumResultsForSearch: Infinity,
+            });
         });
     </script>
 @endsection

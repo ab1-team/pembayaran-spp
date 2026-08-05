@@ -27,6 +27,16 @@ class Spp extends Model
         $this->forceFill(['status' => 'B', 'tgl_lunas' => null])->save();
     }
 
+    public static function bulanLunasBySiswa(int $idSiswa): int
+    {
+        return self::query()
+            ->whereHas('anggotaKelas', function ($q) use ($idSiswa) {
+                $q->where('id_siswa', $idSiswa);
+            })
+            ->where('status', 'L')
+            ->count();
+    }
+
     public function transaksi()
     {
         return $this->hasMany(Transaksi::class, 'kode_spp', 'kode');

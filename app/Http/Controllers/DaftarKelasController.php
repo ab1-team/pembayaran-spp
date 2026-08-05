@@ -7,6 +7,8 @@ use App\Models\Siswa;
 use App\Models\Spp;
 use App\Models\Tahun_Akademik;
 use App\Models\Kelas;
+use App\Models\Profil;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -219,5 +221,95 @@ class DaftarKelasController extends Controller
             })
             ->rawColumns(['action', 'target_sampai_bulan_ini'])
             ->toJson();
+    }
+
+    public function cetakKartuBatch(Request $request)
+    {
+        $jenis = $request->query('jenis', 'kartu_spp');
+        $allowed = ['kartu_spp', 'uts1', 'pas1', 'uts2', 'pas2'];
+        if (!in_array($jenis, $allowed, true)) {
+            abort(404, 'Jenis cetak tidak dikenal.');
+        }
+
+        $ta    = $request->query('tahun_akademik');
+        $kelas = $request->query('kelas');
+        if ($kelas === '__all__' || !$kelas) {
+            abort(422, 'Pilih kelas terlebih dahulu.');
+        }
+
+        $profil = Profil::first();
+        $sopPts = (int) ($profil->cetak_pts ?? 3);
+        $sopPas = (int) ($profil->cetak_pas ?? 3);
+
+        $siswaQuery = Siswa::query()
+            ->whereHas('anggotaKelas', function ($q) use ($ta, $kelas) {
+                $q->where('status', 'aktif');
+                if ($ta)    $q->where('tahun_akademik', $ta);
+                if ($kelas) $q->where('kode_kelas', $kelas);
+            })
+            ->with(['anggotaKelas' => function ($q) use ($ta, $kelas) {
+                $q->where('status', 'aktif');
+                if ($ta)    $q->where('tahun_akademik', $ta);
+                if ($kelas) $q->where('kode_kelas', $kelas);
+                $q->orderByDesc('id');
+            }, 'anggotaKelas.spp'])
+            ->orderBy('nama');
+
+        $siswaAll = $siswaQuery->get();
+
+        $kelasLabel = trim($kelas.' · '.$ta);
+
+        $logoPath = \App\Models\Profil::logoPath();
+        $data = [
+            'profil'      => $profil,
+            'siswaList'   => [],
+            'kelasLabel'  => $kelasLabel,
+            'tahun_pel'   => $ta,
+        ];
+        if (file_exists($logoPath)) {
+            $data['logo'] = base64_encode(file_get_contents($logoPath));
+            $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
+        }
+
+        if ($jenis === 'kartu_spp') {
+            $data['siswaList'] = $siswaAll->map(function ($siswa) {
+                $ak = $siswa->anggotaKelas->first();
+                return [
+                    'siswa'         => $siswa,
+                    'spp_perbulan'  => (int) ($siswa->spp_nominal ?? 0),
+                ];
+            })->values()->all();
+
+            $pdf = Pdf::loadView('daftar-kelas.arsip.view.cetak_kartu_spp_batch', $data)
+                ->setPaper('A4', 'portrait');
+
+            return $pdf->stream('kartu-spp-'.$kelas.'.pdf');
+        }
+
+        $syarat = $jenis === 'uts1' || $jenis === 'pas1' ? $sopPts : $sopPas;
+        $kat = str_starts_with($jenis, 'uts') ? 'uts' : 'pas';
+        $periode = substr($jenis, -1);
+        $periodeRoman = $periode === '1' ? 'I' : 'II';
+        $jenisUjian = ($kat === 'uts' ? 'UJIAN TENGAH SEMESTER' : 'PENILAIAN AKHIR SEMESTER').' '.$periodeRoman;
+
+        $data['siswaList'] = $siswaAll->map(function ($siswa) use ($syarat) {
+            $bulanLunas = Spp::bulanLunasBySiswa((int) $siswa->id);
+            return [
+                'siswa'        => $siswa,
+                'bulan_lunas'  => $bulanLunas,
+                'memenuhi'     => $bulanLunas >= $syarat,
+            ];
+        })
+        ->filter(fn ($row) => $row['memenuhi'])
+        ->values()
+        ->all();
+
+        $data['syarat']     = $syarat;
+        $data['jenis_ujian'] = $jenisUjian;
+
+        $pdf = Pdf::loadView('daftar-kelas.arsip.view.cetak_kartu_ujian_batch', $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->stream('kartu-'.($kat).$periode.'-'.$kelas.'.pdf');
     }
 }

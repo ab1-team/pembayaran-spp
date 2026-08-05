@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Anggota_Kelas;
 use App\Models\Jenis_Biaya;
 use App\Models\JenisPembayaran;
+use App\Models\Profil;
 use App\Models\Rekening;
 use App\Models\Siswa;
+use App\Models\Spp;
 use App\Models\Tahun_Akademik;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
@@ -52,6 +54,7 @@ class SppController extends Controller
             $jenis_biaya = collect();
             $nominalMap = collect();
             $kode_tunggakan = collect();
+            $bulan_lunas = 0;
         } else {
             $anggota_kelas = Anggota_Kelas::where('id_siswa', $id)
                 ->with([
@@ -79,6 +82,7 @@ class SppController extends Controller
             $spp_perbulan = $siswa->spp_nominal;
             $target_bulan = $spp->sum('nominal');
             $sd_bulan_ini = $spp->where('status', 'L')->sum('nominal');
+            $bulan_lunas = Spp::bulanLunasBySiswa((int) $siswa->id);
             $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
             $tahun_angkatan = Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y');
             $jenis_biaya = JenisPembayaran::orderBy('id')->get();
@@ -105,6 +109,9 @@ class SppController extends Controller
                     'spp_perbulan' => $spp_perbulan,
                     'target_bulan' => $target_bulan,
                     'sd_bulan_ini' => $sd_bulan_ini,
+                    'bulan_lunas' => $bulan_lunas,
+                    'sop_pts' => (int) (Profil::first()->cetak_pts ?? 3),
+                    'sop_pas' => (int) (Profil::first()->cetak_pas ?? 3),
                     'sumber_dana' => $sumber_dana,
                     'jenis_biaya' => $jenis_biaya,
                     'tahun_angkatan' => $tahun_angkatan,

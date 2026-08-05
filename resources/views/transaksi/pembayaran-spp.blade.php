@@ -193,6 +193,7 @@
 
             formTagihanRequest?.abort();
             dataCustomer = null;
+            resetCetakButton();
             formTagihanRequest = $.get('/app/spp/Pembayaran-spp/' + idSiswa, extra, function(result) {
                 $('#accordion').html(result.view ?? '');
                 dataCustomer = siswa ? {
@@ -381,20 +382,24 @@
                             </div>
                         `;
                     }
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Transaksi Berhasil',
-                        html: `
-                            <div class="text-center mb-2">
-                                ${result.keterangan}
-                            </div>
-                            ${detailHtml}
-                        `,
-                        timer: 2500,
-                        showConfirmButton: false
-                    });
-                    $('#FormPembayaranSPP')[0].reset();
-                },
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Transaksi Berhasil',
+                                html: `
+                                    <div class="text-center mb-2">
+                                        ${result.keterangan}
+                                    </div>
+                                    ${detailHtml}
+                                `,
+                                timer: 2500,
+                                showConfirmButton: false
+                            });
+                            $('#FormPembayaranSPP')[0].reset();
+
+                            if (dataCustomer && dataCustomer.item) {
+                                formTagihanBulanan(dataCustomer.item);
+                            }
+                        },
                 error: function () {
                     Swal.fire({
                         icon: 'error',

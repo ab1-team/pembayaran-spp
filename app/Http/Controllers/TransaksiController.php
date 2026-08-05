@@ -718,7 +718,7 @@ class TransaksiController extends Controller
     }
 
     /**
-     * Detail TAGIHAN SPP per siswa (hanya yang belum lunas)
+     * Detail TAGIHAN SPP per siswa (semua: lunas & belum lunas)
      */
     public function pembayaranSPPDetailTagihan($id)
     {
@@ -736,8 +736,15 @@ class TransaksiController extends Controller
                 ->values()
             : collect();
 
+        $sppLunas = $anggota_kelas
+            ? $anggota_kelas->getSpp
+                ->where('status', 'L')
+                ->sortBy(fn($s) => \Carbon\Carbon::parse($s->tanggal)->timestamp)
+                ->values()
+            : collect();
+
         return view('transaksi.map_arsip.detail_tagihan', compact(
-            'siswa', 'sppBelumLunas', 'anggota_kelas'
+            'siswa', 'sppBelumLunas', 'sppLunas', 'anggota_kelas'
         ));
     }
     public function pembayaranSPPPrintAll($id)
@@ -890,6 +897,15 @@ class TransaksiController extends Controller
 
         $siswa = Siswa::findOrFail($id);
         $profil = Profil::first();
+
+        $sopPts = (int) ($profil->cetak_pts ?? 3);
+        $sopPas = (int) ($profil->cetak_pas ?? 3);
+        $bulanLunas = Spp::bulanLunasBySiswa((int) $siswa->id);
+        $syarat = $periode === '1' ? $sopPts : $sopPas;
+
+        if ($bulanLunas < $syarat) {
+            abort(403, "Cetak kartu tidak diizinkan. Siswa baru membayar {$bulanLunas} bulan SPP, syarat minimal untuk periode ini adalah {$syarat} bulan.");
+        }
 
         $subjudulMap = [
             'uts' => 'UJIAN TENGAH SEMESTER',

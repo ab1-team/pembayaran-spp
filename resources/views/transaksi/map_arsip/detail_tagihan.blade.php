@@ -1,6 +1,12 @@
 @php
     use App\Utils\Tanggal;
     use App\Utils\Angka;
+    $bulanSekarang = (int) date('n');
+    $tahunSekarang = (int) date('Y');
+
+    $sppGabung = $sppLunas->merge($sppBelumLunas)
+        ->sortBy(fn($s) => \Carbon\Carbon::parse($s->tanggal)->timestamp)
+        ->values();
 @endphp
 
 <div class="card m-0" style="border-radius:0">
@@ -16,11 +22,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($sppBelumLunas as $i => $item)
+                    @forelse ($sppGabung as $i => $item)
                         @php
                             $ts = \Carbon\Carbon::parse($item->tanggal);
-                            $bulanSekarang = (int) date('n');
-                            $tahunSekarang = (int) date('Y');
+                            $isLunas = $item->status === 'L';
                             $tahunTsg = (int) $ts->format('Y');
                             $bulanTsg = (int) $ts->format('n');
                             $diffTahun = $tahunTsg - $tahunSekarang;
@@ -39,7 +44,9 @@
                             <td class="text-center">{{ $i + 1 }}</td>
                             <td>{{ Tanggal::namaBulan($item->tanggal) }} {{ $ts->format('Y') }}</td>
                             <td class="text-end">
-                                @if ($totalBulan > 0)
+                                @if ($isLunas)
+                                    {{ Angka::format((int) $item->nominal, 0) }}
+                                @elseif ($totalBulan > 0)
                                     <span class="text-muted">-</span>
                                 @else
                                     {{ Angka::format((int) $item->nominal, 0) }}
@@ -48,7 +55,11 @@
                             <td class="text-nowrap">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                        @if ($totalBulan < 0)
+                                        @if ($isLunas)
+                                            <span class="badge bg-success" title="Tgl Lunas: {{ $item->tgl_lunas ? Tanggal::tglIndo($item->tgl_lunas) : '-' }}">
+                                                Lunas
+                                            </span>
+                                        @elseif ($totalBulan < 0)
                                             <span class="badge bg-danger">Menunggak</span>
                                         @elseif ($totalBulan === 0)
                                             <span class="badge bg-warning text-dark">Belum Dibayar</span>
@@ -56,7 +67,7 @@
                                             <span class="badge bg-secondary">Belum Jatuh Tempo</span>
                                         @endif
                                     </div>
-                                    @if ($totalBulan <= 0)
+                                    @if (!$isLunas && $totalBulan <= 0)
                                         <a href="{{ $bayarUrl }}" class="btn btn-info btn-sm text-white rounded-circle d-inline-flex align-items-center justify-content-center" title="Bayar Sekarang" style="width:28px;height:28px;padding:0;">
                                             <i class="material-icons" style="font-size:16px">payments</i>
                                         </a>
@@ -66,13 +77,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center  fw-bold py-4">Tidak ada tagihan yang belum lunas.
+                            <td colspan="4" class="text-center fw-bold py-4 text-muted">
+                                Tidak ada tagihan SPP untuk siswa ini.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
-                @if ($sppBelumLunas->count())
+                @if ($sppGabung->count())
                     @php
+                        $totalLunas = $sppLunas->sum('nominal');
                         $totalTagihan = $sppBelumLunas->filter(function ($item) {
                             $ts = \Carbon\Carbon::parse($item->tanggal);
                             $bulanSekarang = (int) date('n');
@@ -84,9 +97,12 @@
                     @endphp
                     <tfoot>
                         <tr class="fw-bold">
-                            <td colspan="2" class="text-end">Total</td>
-                            <td class="text-end">{{ Angka::format($totalTagihan, 0) }}</td>
-                            <td></td>
+                            <td colspan="3" class="text-start">Total Lunas</td>
+                            <td class="text-end text-success">{{ Angka::format($totalLunas, 0) }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td colspan="3" class="text-start">Total Tagihan</td>
+                            <td class="text-end text-warning">{{ Angka::format($totalTagihan, 0) }}</td>
                         </tr>
                     </tfoot>
                 @endif

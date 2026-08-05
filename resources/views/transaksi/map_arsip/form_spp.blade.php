@@ -2,6 +2,15 @@
 @endif
 
 <style>
+  .sop-cetakkartu.sop-disabled,
+  .sop-cetakkartu[disabled] {
+    opacity: .45;
+    cursor: not-allowed;
+    pointer-events: auto;
+  }
+  .sop-cetakkartu.sop-disabled:hover {
+    filter: none;
+  }
   .action-section {
     position: relative;
   }
@@ -272,35 +281,54 @@
                             <i class="bi bi-pencil-square"></i>
                             <span>Cetak Kartu Ujian</span>
                         </div>
+                        @php
+                            $bulanLunas   = (int) ($bulan_lunas ?? 0);
+                            $sopPts       = (int) ($sop_pts ?? 3);
+                            $sopPas       = (int) ($sop_pas ?? 3);
+                            $bolehPts     = $bulanLunas >= $sopPts;
+                            $bolehPas     = $bulanLunas >= $sopPas;
+                            $infoPtsShort = "Syarat minimal bayar {$sopPts} bulan SPP. Baru dibayar: {$bulanLunas} bulan.";
+                            $infoPasShort = "Syarat minimal bayar {$sopPas} bulan SPP. Baru dibayar: {$bulanLunas} bulan.";
+                            $infoPtsFull  = "Cetak kartu UTS I & PAS I butuh minimal {$sopPts} bulan SPP lunas. Saat ini baru {$bulanLunas} bulan.";
+                            $infoPasFull  = "Cetak kartu UTS II & PAS II butuh minimal {$sopPas} bulan SPP lunas. Saat ini baru {$bulanLunas} bulan.";
+                        @endphp
                         <div class="row g-2">
                             <div class="col-6">
                                 <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts1" target="_blank"
-                                    class="action-card btn btn-outline-success d-flex align-items-center justify-content-center gap-2"
-                                    @disabled(!$siswa->exists)>
+                                    class="action-card btn btn-outline-success d-flex align-items-center justify-content-center gap-2 sop-cetakkartu {{ $bolehPts ? '' : 'sop-disabled' }}"
+                                    @disabled(!$siswa->exists || !$bolehPts)
+                                    title="{{ $bolehPts ? 'Cetak Kartu UTS I' : $infoPtsShort }}"
+                                    data-sop-msg="{{ $infoPtsFull }}">
                                     <i class="material-symbols-rounded">print</i>
                                     <span>UTS I</span>
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas1" target="_blank"
-                                    class="action-card btn btn-outline-warning d-flex align-items-center justify-content-center gap-2"
-                                    @disabled(!$siswa->exists)>
+                                    class="action-card btn btn-outline-warning d-flex align-items-center justify-content-center gap-2 sop-cetakkartu {{ $bolehPts ? '' : 'sop-disabled' }}"
+                                    @disabled(!$siswa->exists || !$bolehPts)
+                                    title="{{ $bolehPts ? 'Cetak Kartu PAS I' : $infoPtsShort }}"
+                                    data-sop-msg="{{ $infoPtsFull }}">
                                     <i class="material-symbols-rounded">print</i>
                                     <span>PAS I</span>
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/uts2" target="_blank"
-                                    class="action-card btn btn-outline-info d-flex align-items-center justify-content-center gap-2"
-                                    @disabled(!$siswa->exists)>
+                                    class="action-card btn btn-outline-info d-flex align-items-center justify-content-center gap-2 sop-cetakkartu {{ $bolehPas ? '' : 'sop-disabled' }}"
+                                    @disabled(!$siswa->exists || !$bolehPas)
+                                    title="{{ $bolehPas ? 'Cetak Kartu UTS II' : $infoPasShort }}"
+                                    data-sop-msg="{{ $infoPasFull }}">
                                     <i class="material-symbols-rounded">print</i>
                                     <span>UTS II</span>
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a href="/app/transaksi/cetak-kartu-ujian/{{ $siswa->id }}/pas2" target="_blank"
-                                    class="action-card btn btn-outline-danger d-flex align-items-center justify-content-center gap-2"
-                                    @disabled(!$siswa->exists)>
+                                    class="action-card btn btn-outline-danger d-flex align-items-center justify-content-center gap-2 sop-cetakkartu {{ $bolehPas ? '' : 'sop-disabled' }}"
+                                    @disabled(!$siswa->exists || !$bolehPas)
+                                    title="{{ $bolehPas ? 'Cetak Kartu PAS II' : $infoPasShort }}"
+                                    data-sop-msg="{{ $infoPasFull }}">
                                     <i class="material-symbols-rounded">print</i>
                                     <span>PAS II</span>
                                 </a>
@@ -310,8 +338,6 @@
                 @endif
             </div>
         </div>
-    </div>
-</div>
 @if($kode_tunggakan->count())
 <div id="toast-wrapper"
      class="position-fixed bottom-0 end-0 p-3"
@@ -562,4 +588,28 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
 
     setTextareaRows();
     window.addEventListener('resize', setTextareaRows);
+</script>
+<script>
+    document.querySelectorAll('a.sop-cetakkartu.sop-disabled').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+            if (el.hasAttribute('disabled')) {
+                e.preventDefault();
+                return;
+            }
+            if (el.classList.contains('sop-disabled')) {
+                e.preventDefault();
+                const msg = el.getAttribute('data-sop-msg') || 'Syarat pembayaran SPP belum terpenuhi.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Belum Bisa Cetak Kartu',
+                        text: msg,
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    alert(msg);
+                }
+            }
+        });
+    });
 </script>

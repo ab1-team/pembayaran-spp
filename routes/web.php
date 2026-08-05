@@ -108,6 +108,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::put('/pengaturan/lembaga/{id}', [PengaturanController::class, 'lembaga']);
     Route::put('/pengaturan/logo/{id}', [PengaturanController::class, 'logo']);
     Route::put('/pengaturan/jatuh_tempo/{id}', [PengaturanController::class, 'jatuhTempo']);
+    Route::put('/pengaturan/sop-pembayaran/{id}', [PengaturanController::class, 'sopPembayaran']);
     Route::resource('/pengaturan', PengaturanController::class);
 
     Route::get('/siswa/listTahun', [SiswaController::class, 'listTahun']);
@@ -121,6 +122,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::get('/daftar-kelas/listTahun', [DaftarKelasController::class, 'listTahun']);
     Route::get('/daftar-kelas/listKelas', [DaftarKelasController::class, 'listKelas']);
     Route::get('/daftar-kelas/data', [DaftarKelasController::class, 'data']);
+    Route::get('/daftar-kelas/cetak-kartu-batch', [DaftarKelasController::class, 'cetakKartuBatch']);
     Route::get('/daftar-kelas', [DaftarKelasController::class, 'index']);
 
     Route::get('/laporan-keuangan', [LaporanController::class, 'index']);

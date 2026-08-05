@@ -77,7 +77,8 @@
     .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"],
     .sop-wrapper:has(#lembaga:target) .sop-menu a[href="#lembaga"],
     .sop-wrapper:has(#logo:target) .sop-menu a[href="#logo"],
-    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"] {
+    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"],
+    .sop-wrapper:has(#sopPembayaran:target) .sop-menu a[href="#sopPembayaran"] {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         color: #fff;
         border-color: transparent;
@@ -86,14 +87,16 @@
     .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"] .mi,
     .sop-wrapper:has(#lembaga:target) .sop-menu a[href="#lembaga"] .mi,
     .sop-wrapper:has(#logo:target) .sop-menu a[href="#logo"] .mi,
-    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"] .mi {
+    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"] .mi,
+    .sop-wrapper:has(#sopPembayaran:target) .sop-menu a[href="#sopPembayaran"] .mi {
         background: rgba(255, 255, 255, .14);
         color: #fff;
     }
     .sop-setting:not(:has(:target)) .sop-menu a[href="#lembaga"]::after,
     .sop-wrapper:has(#lembaga:target) .sop-menu a[href="#lembaga"]::after,
     .sop-wrapper:has(#logo:target) .sop-menu a[href="#logo"]::after,
-    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"]::after {
+    .sop-wrapper:has(#jatuhTempo:target) .sop-menu a[href="#jatuhTempo"]::after,
+    .sop-wrapper:has(#sopPembayaran:target) .sop-menu a[href="#sopPembayaran"]::after {
         content: "";
         position: absolute;
         right: 14px; top: 50%;
@@ -194,6 +197,10 @@
                         <span class="mi"><i class="fas fa-clock"></i></span>
                         <span>Jatuh Tempo</span>
                     </a>
+                    <a href="#sopPembayaran" class="btn text-start">
+                        <span class="mi"><i class="fas fa-receipt"></i></span>
+                        <span>SOP Pembayaran</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -230,6 +237,17 @@
                     </div>
                 </div>
                 <div class="card-body">@include('pengaturan.view.jatuh_tempo')</div>
+            </div>
+
+            <div class="sop-content card sop-card shadow-sm" id="sopPembayaran">
+                <div class="card-header">
+                    <div class="header-icon"><i class="fas fa-receipt"></i></div>
+                    <div>
+                        <h5>SOP Pembayaran SPP</h5>
+                        <div class="sub">Syarat minimal pembayaran untuk cetak kartu PTS &amp; PAS</div>
+                    </div>
+                </div>
+                <div class="card-body">@include('pengaturan.view.sop_pembayaran')</div>
             </div>
         </div>
     </div>
@@ -279,6 +297,7 @@
     }
     sopSubmit({ btn: '#SimpanLembaga',     form: '#FormLembaga' });
     sopSubmit({ btn: '#SimpanJatuhTempo',  form: '#FormJatuhTempo' });
+    sopSubmit({ btn: '#SimpanSoppembayaran', form: '#FormSoppembayaran' });
 
     $(document).on('click', '#SimpanLogo', function (e) {
         e.preventDefault();
