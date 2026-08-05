@@ -187,7 +187,7 @@
                     <div class="row mt-2">
                         <div class="col-md-12">
                             <div
-                                class="input-group input-group-outline mb-3 {{ old('nominal', $siswa->spp_nominal) ? 'is-filled' : '' }}">
+                                class="input-group input-group-outline mb-3 {{ old('nominal', optional($anggota_kelas)->spp_nominal) ? 'is-filled' : '' }}">
                                 <label class="form-label">Nominal</label>
                                 <input type="text" name="nominal" id="nominal" class="form-control nominal"
                                     readonly>

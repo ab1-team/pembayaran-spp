@@ -606,8 +606,13 @@
             $(this).closest('.input-group').addClass('is-filled');
         });
 
+        var sedangMenyimpan = false;
+
         $(document).on('click', '#simpan', function(e) {
             e.preventDefault();
+            if (sedangMenyimpan) return;
+            sedangMenyimpan = true;
+            $('#simpan').prop('disabled', true).text('Menyimpan...');
 
             // Konversi placeholder "-" / "" jadi nilai aman sebelum submit
             $('#FormSiswa input[type="text"], #FormSiswa textarea').each(function() {
@@ -647,6 +652,8 @@
                     }
                 },
                 error: function(xhr) {
+                    sedangMenyimpan = false;
+                    $('#simpan').prop('disabled', false).text('Simpan data Siswa');
                     if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                         var errors = xhr.responseJSON.errors;
                         var list = Object.keys(errors)

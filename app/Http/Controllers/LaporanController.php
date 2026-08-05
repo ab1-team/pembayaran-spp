@@ -654,7 +654,7 @@ class LaporanController extends Controller
             ->get()
             ->map(function ($row) use ($tglAwal, $tglAkhir, $bulanList) {
 
-                $row->per_bulan = (int) ($row->getSiswa->spp_nominal ?? 0);
+                $row->per_bulan = (int) ($row->spp_nominal ?? 0);
 
                 $sppRows = Spp::where('anggota_kelas', $row->id)
                     ->whereBetween('tanggal', [$tglAwal, $tglAkhir])
@@ -711,7 +711,7 @@ class LaporanController extends Controller
             '4.1.01.02',
             'Laporan Pembayaran Daftar Ulang',
             'laporan-daftar-ulang.pdf',
-            fn($row) => (float) ($row->getSiswa->spp_nominal ?? 0)
+            fn($row) => (float) ($row->spp_nominal ?? 0)
         );
     }
 

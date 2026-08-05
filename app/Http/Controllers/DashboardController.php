@@ -143,10 +143,10 @@ class DashboardController extends Controller
             ->get([
                 'ak.id as ak_id',
                 'ak.id_siswa',
+                'ak.spp_nominal',
                 'siswa.nisn',
                 'siswa.nama',
                 'siswa.kode_kelas',
-                'siswa.spp_nominal',
                 'spp.tanggal',
                 'spp.nominal as spp_nominal_row',
             ]);

@@ -47,7 +47,7 @@
                                     <th width="10%">NISN</th>
                                     <th width="23%">Nama Siswa</th>
                                     <th class="text-end" width="11%">SPP / Bulan</th>
-                                    <th class="text-end" width="13%">Tagihan s.d Periode Ini</th>
+                                    <th class="text-end" width="13%">Kom. Tagihan Bulan Ini</th>
                                     <th class="text-center" width="14%">Aksi</th>
                                 </tr>
                             </thead>
@@ -162,7 +162,7 @@
                         }
                     },
                     {
-                        data: 'target_sampai_bulan_ini',
+                        data: 'tagihan_bulan_ini',
                         searchable: false,
                         width: '13%',
                         className: 'text-end',

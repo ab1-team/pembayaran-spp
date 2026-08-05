@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use App\Http\Requests\SiswaRequest;
 use App\Services\SiswaService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 
 class SiswaController extends Controller
@@ -170,19 +171,20 @@ class SiswaController extends Controller
                 $anggota->update(['status' => 'nonaktif']);
             }
 
+            $nominal = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
+                ->where('angkatan', Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
+                ->value('total_beban') ?? 0;
+
             $anggotaBaru = Anggota_Kelas::create([
                 'id_siswa'       => $idSiswa,
                 'tahun_akademik' => $tahunAkademik,
                 'tingkat'        => $tingkatBaru,
                 'kode_kelas'     => $kodeKelasBaru,
+                'spp_nominal'    => $nominal > 0 ? (string) $nominal : null,
                 'tgl_masuk'      => $tglMasuk->format('Y-m-d'),
                 'tgl_keluar'     => $tglKeluar->format('Y-m-d'),
                 'status'         => 'aktif',
             ]);
-
-            $nominal = Jenis_Biaya::whereHas('get_jenis_pembayaran', fn($q) => $q->where('kode_akun', '4.1.01.01'))
-                ->where('angkatan', Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y'))
-                ->value('total_beban') ?? 0;
 
             $this->service->generateSppBulanan(
                 $anggotaBaru,
@@ -220,7 +222,14 @@ class SiswaController extends Controller
 
         $defaultSpp = (int) ($this->nominalSppDefault() ?? 0);
 
-        $siswa = $this->service->createWithKelasDanSpp($data, $defaultSpp);
+        try {
+            $siswa = $this->service->createWithKelasDanSpp($data, $defaultSpp);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => ['nisn' => [$e->getMessage()]],
+            ], 422);
+        }
 
         return response()->json([
             'success' => true,
@@ -339,7 +348,6 @@ class SiswaController extends Controller
         $data['tgl_masuk'] = $data['tanggal_masuk'] ?? null;
         $data['hp'] = $data['hp'] ?? $data['telepon'] ?? '-';
 
-        $oldSppNominal = (string) ($siswa->spp_nominal ?? '0');
         $newSppNominal = (string) $this->service->normalizeNominal($data['spp_nominal'] ?? 0);
 
         unset($data['kelas'], $data['ruangan'], $data['transportasi'],
@@ -349,22 +357,23 @@ class SiswaController extends Controller
 
         $siswa->update($data);
 
-        // Sync kelas & tingkat ke anggota_kelas aktif
+        // Sync kelas, tingkat & spp_nominal ke anggota_kelas aktif
         $anggota = $siswa->anggotaKelas()->where('status', 'aktif')->orderByDesc('id')->first();
         if ($anggota) {
+            $oldSppNominal = (string) ($anggota->spp_nominal ?? '0');
             $anggota->update([
                 'kode_kelas'     => $kodeKls,
                 'tingkat'        => $tingkat,
                 'tahun_akademik' => $data['tahun_akademik'] ?? $anggota->tahun_akademik,
+                'spp_nominal'    => (int) $newSppNominal > 0 ? (string) $newSppNominal : null,
             ]);
-        }
 
-        if ($newSppNominal !== $oldSppNominal && (int) $newSppNominal > 0) {
-            DB::table('spp as s')
-                ->join('anggota_kelas as ak', 'ak.id', '=', 's.anggota_kelas')
-                ->where('ak.id_siswa', $siswa->id)
-                ->where('s.status', 'B')
-                ->update(['s.nominal' => $newSppNominal]);
+            if ($newSppNominal !== $oldSppNominal && (int) $newSppNominal > 0) {
+                DB::table('spp as s')
+                    ->where('s.anggota_kelas', $anggota->id)
+                    ->where('s.status', 'B')
+                    ->update(['s.nominal' => $newSppNominal]);
+            }
         }
 
         return response()->json([

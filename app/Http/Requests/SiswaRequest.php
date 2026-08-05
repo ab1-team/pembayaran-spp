@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SiswaRequest extends FormRequest
 {
@@ -21,7 +22,7 @@ class SiswaRequest extends FormRequest
 
         $base = [
             // Wajib (inti data siswa) — sisanya boleh "-" / "0" / kosong
-            'nisn'                  => 'required|string|max:20',
+            'nisn'                  => ['required', 'string', 'max:20', Rule::unique('siswa', 'nisn')->ignore($this->route('siswa'))],
             'nama'                  => 'required|string|max:255',
             'jenis_kelamin'         => 'required|in:L,P',
             'tempat_lahir'          => 'required|string|max:100',

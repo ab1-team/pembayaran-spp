@@ -111,6 +111,12 @@ class DaftarKelasController extends Controller
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
+            ->filterColumn('nisn', function ($q, $kw) {
+                $q->where('siswa.nisn', 'like', "%{$kw}%");
+            })
+            ->filterColumn('nama', function ($q, $kw) {
+                $q->where('siswa.nama', 'like', "%{$kw}%");
+            })
             ->addColumn('nisn', function ($row) {
                 return $row->nisn;
             })
@@ -118,7 +124,8 @@ class DaftarKelasController extends Controller
                 return $row->nama;
             })
             ->addColumn('spp_per_bulan', function ($row) {
-                $nominal = (int) ($row->spp_nominal ?? 0);
+                $ak = $row->anggotaKelas->first();
+                $nominal = (int) ($ak->spp_nominal ?? 0);
                 return $nominal;
             })
             ->addColumn('target_sampai_bulan_ini', function ($row) {
@@ -134,6 +141,22 @@ class DaftarKelasController extends Controller
                             : \Carbon\Carbon::parse($s->tanggal);
                         return (int) $ts->format('Y') < $tahunSekarang
                             || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                    })
+                    ->sum('nominal');
+            })
+            ->addColumn('tagihan_bulan_ini', function ($row) {
+                $ak = $row->anggotaKelas->first();
+                if (!$ak) return 0;
+                $bulanSekarang = (int) date('n');
+                $tahunSekarang = (int) date('Y');
+                return $ak->spp
+                    ->filter(function ($s) use ($bulanSekarang, $tahunSekarang) {
+                        if (!$s->tanggal) return false;
+                        $ts = $s->tanggal instanceof \DateTimeInterface
+                            ? $s->tanggal
+                            : \Carbon\Carbon::parse($s->tanggal);
+                        return (int) $ts->format('Y') === $tahunSekarang
+                            && (int) $ts->format('n') === $bulanSekarang;
                     })
                     ->sum('nominal');
             })
@@ -276,7 +299,7 @@ class DaftarKelasController extends Controller
                 $ak = $siswa->anggotaKelas->first();
                 return [
                     'siswa'         => $siswa,
-                    'spp_perbulan'  => (int) ($siswa->spp_nominal ?? 0),
+                    'spp_perbulan'  => (int) ($ak->spp_nominal ?? 0),
                 ];
             })->values()->all();
 

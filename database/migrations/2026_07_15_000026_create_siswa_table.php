@@ -45,7 +45,6 @@ return new class extends Migration
                 $table->string('kode_kelas')->comment('Diterima di kelas ...');
                 $table->string('kode_jurusan')->nullable();
                 $table->string('ruang');
-                $table->string('spp_nominal')->nullable();
                 $table->string('tingkat')->nullable();
                 $table->string('nama_ayah');
                 $table->string('tahun_lahir_ayah');

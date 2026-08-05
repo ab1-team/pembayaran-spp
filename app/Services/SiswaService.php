@@ -6,6 +6,7 @@ use App\Models\Anggota_Kelas;
 use App\Models\Siswa;
 use App\Models\Spp;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SiswaService
 {
@@ -13,18 +14,23 @@ class SiswaService
     {
         [$kodeKelas, $tingkat] = $this->splitKelas($data['kelas']);
 
-        // Bersihkan placeholder dari teks kosong. Untuk field NOT NULL mapping
-        // akan fallback ke '-' lewat $get. Untuk field DB-nullable (no_kps, dll)
-        // null dipakai.
         $data = $this->sanitize($data);
-        $get = fn(string $k, $default = '-') => array_key_exists($k, $data) && $data[$k] !== null && $data[$k] !== ''
-            ? $data[$k]
-            : $default;
+        $tahunAkademik = $this->resolveTahunAkademikNama($data);
+        $nisn = trim((string) ($data['nisn'] ?? ''));
 
-        $nominalInput = $this->normalizeNominal($get('spp_nominal', 0));
-        $nominal = $nominalInput > 0 ? $nominalInput : $defaultSppNominal;
+        return DB::transaction(function () use ($data, $kodeKelas, $tingkat, $tahunAkademik, $nisn, $defaultSppNominal) {
+            if (Siswa::where('nisn', $nisn)->exists()) {
+                throw new \RuntimeException('NISN sudah terdaftar.');
+            }
 
-        $siswa = Siswa::create([
+            $get = fn(string $k, $default = '-') => array_key_exists($k, $data) && $data[$k] !== null && $data[$k] !== ''
+                ? $data[$k]
+                : $default;
+
+            $nominalInput = $this->normalizeNominal($get('spp_nominal', 0));
+            $nominal = $nominalInput > 0 ? $nominalInput : $defaultSppNominal;
+
+            $siswa = Siswa::create([
             'nipd'                  => $get('nipd', '-'),
             'password'              => $get('password'),
             'nisn'                  => $get('nisn'),
@@ -58,7 +64,6 @@ class SiswaService
             'penerima_kps'          => $get('penerima_kps', '-'),
             'no_kps'                => $get('no_kps', '-'),
             'no_kk'                 => $get('no_kk', '-'),
-            'spp_nominal'           => (string) $nominal,
             'tingkat'               => $tingkat,
             'nama_ayah'             => $get('nama_ayah', '-'),
             'tahun_lahir_ayah'      => $get('tahun_lahir_ayah', '-'),
@@ -83,19 +88,22 @@ class SiswaService
             'no_telepon_wali'       => $get('no_telp_wali', '-'),
         ]);
 
-        $anggota = $this->attachKelas($siswa, $kodeKelas, $tingkat, $data);
-        $this->generateSppBulanan($anggota, $nominal, $data);
+            $anggota = $this->attachKelas($siswa, $kodeKelas, $tingkat, $data, $nominal, $tahunAkademik);
+            $this->generateSppBulanan($anggota, $nominal, $data);
 
-        return $siswa;
+            return $siswa;
+        });
     }
 
-    public function attachKelas(Siswa $siswa, string $kodeKelas, string $tingkat, array $data): Anggota_Kelas
+    public function attachKelas(Siswa $siswa, string $kodeKelas, string $tingkat, array $data, int $nominal = 0, ?string $tahunAkademik = null): Anggota_Kelas
     {
-        return Anggota_Kelas::create([
+        return Anggota_Kelas::firstOrCreate([
             'id_siswa'       => $siswa->id,
-            'tahun_akademik' => $this->resolveTahunAkademikNama($data),
-            'tingkat'        => $tingkat,
+            'tahun_akademik' => $tahunAkademik ?? $this->resolveTahunAkademikNama($data),
             'kode_kelas'     => $kodeKelas,
+        ], [
+            'tingkat'        => $tingkat,
+            'spp_nominal'    => $nominal > 0 ? (string) $nominal : null,
             'tgl_masuk'      => $data['tanggal_masuk'],
             'tgl_keluar'     => Carbon::parse($data['tanggal_masuk'])->addYear()->format('Y-m-d'),
             'status'         => 'aktif',
@@ -143,10 +151,11 @@ class SiswaService
         $akhir = $mulai->copy()->addYear()->subDay();
 
         while ($mulai->lte($akhir)) {
-            Spp::create([
-                'kode'          => $mulai->format('ym') . $anggota->id_siswa,
-                'tanggal'       => $mulai->format('Y-m-d'),
+            Spp::firstOrCreate([
                 'anggota_kelas' => $anggota->id,
+                'tanggal'       => $mulai->format('Y-m-d'),
+            ], [
+                'kode'          => $mulai->format('ym') . $anggota->id_siswa,
                 'nominal'       => (string) $nominal,
             ]);
             $mulai->addMonth();

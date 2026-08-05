@@ -867,6 +867,11 @@ class TransaksiController extends Controller
             ?? \App\Models\Tahun_Akademik::where('status', 'aktif')->value('nama_tahun')
             ?? date('Y');
 
+        $anggotaAktif = \App\Models\Anggota_Kelas::where('id_siswa', $siswa->id)
+            ->where('status', 'aktif')
+            ->orderByDesc('id')
+            ->first();
+
         $sppLunas = Transaksi::query()
             ->whereNull('deleted_at')
             ->where('siswa_id', $siswa->id)
@@ -887,7 +892,7 @@ class TransaksiController extends Controller
             'siswa'        => $siswa,
             'profil'       => $profil,
             'tahun_pel'    => $tahun_pel,
-            'spp_perbulan' => $siswa->spp_nominal ?? 0,
+            'spp_perbulan' => $anggotaAktif->spp_nominal ?? 0,
             'sppLunas'     => $sppLunas,
         ];
 

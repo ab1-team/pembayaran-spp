@@ -401,7 +401,7 @@
                                         <label class="form-label">Nominal SPP / Bulan (ribu)</label>
                                         <input type="text" name="spp_nominal" id="spp_nominal"
                                             class="form-control nominal text-end"
-                                            value="{{ old('spp_nominal', isset($siswa->spp_nominal) ? \App\Utils\Angka::format($siswa->spp_nominal, 0) : '0') }}">
+                                            value="{{ old('spp_nominal', isset($siswa->anggotaKelas) ? \App\Utils\Angka::format(optional($siswa->anggotaKelas->where('status','aktif')->first())->spp_nominal ?? 0, 0) : '0') }}">
                                     </div>
                                 </div>
                             </div>

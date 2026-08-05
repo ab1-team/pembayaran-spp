@@ -79,7 +79,7 @@ class SppController extends Controller
 
             $siswa = $anggota_kelas->getSiswa;
             $spp = $anggota_kelas->getSpp;
-            $spp_perbulan = $siswa->spp_nominal;
+            $spp_perbulan = $anggota_kelas->spp_nominal;
             $target_bulan = $spp->sum('nominal');
             $sd_bulan_ini = $spp->where('status', 'L')->sum('nominal');
             $bulan_lunas = Spp::bulanLunasBySiswa((int) $siswa->id);
@@ -105,6 +105,7 @@ class SppController extends Controller
             'view' => view('transaksi.map_arsip.form_spp')
                 ->with([
                     'siswa' => $siswa,
+                    'anggota_kelas' => $anggota_kelas ?? null,
                     'spp' => $spp,
                     'spp_perbulan' => $spp_perbulan,
                     'target_bulan' => $target_bulan,
