@@ -149,16 +149,39 @@ class DaftarKelasController extends Controller
                 if (!$ak) return 0;
                 $bulanSekarang = (int) date('n');
                 $tahunSekarang = (int) date('Y');
-                return $ak->spp
+
+                $totalTagihan = $ak->spp
                     ->filter(function ($s) use ($bulanSekarang, $tahunSekarang) {
                         if (!$s->tanggal) return false;
                         $ts = $s->tanggal instanceof \DateTimeInterface
                             ? $s->tanggal
                             : \Carbon\Carbon::parse($s->tanggal);
-                        return (int) $ts->format('Y') === $tahunSekarang
-                            && (int) $ts->format('n') === $bulanSekarang;
+                        return (int) $ts->format('Y') < $tahunSekarang
+                            || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
                     })
                     ->sum('nominal');
+
+                $totalPembayaran = $ak->spp
+                    ->where('status', 'L')
+                    ->filter(function ($s) use ($bulanSekarang, $tahunSekarang) {
+                        if (!$s->tgl_lunas) {
+                            if (!$s->tanggal) return false;
+                            $ts = $s->tanggal instanceof \DateTimeInterface
+                                ? $s->tanggal
+                                : \Carbon\Carbon::parse($s->tanggal);
+                            return (int) $ts->format('Y') < $tahunSekarang
+                                || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                        }
+                        $ts = $s->tgl_lunas instanceof \DateTimeInterface
+                            ? $s->tgl_lunas
+                            : \Carbon\Carbon::parse($s->tgl_lunas);
+                        return (int) $ts->format('Y') < $tahunSekarang
+                            || ((int) $ts->format('Y') === $tahunSekarang && (int) $ts->format('n') <= $bulanSekarang);
+                    })
+                    ->sum('nominal');
+
+                $sisa = $totalTagihan - $totalPembayaran;
+                return $sisa > 0 ? $sisa : 0;
             })
             ->addColumn('realisasi_sampai_bulan_ini', function ($row) {
                 $ak = $row->anggotaKelas->first();
