@@ -1,5 +1,4 @@
 @php
-    use App\Utils\Tanggal;
     use App\Utils\Angka;
 @endphp
 <!DOCTYPE html>
@@ -125,40 +124,14 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($sppLunas ?? [] as $i => $trx)
-                @php
-                    $spp     = $trx->spp;
-                    $ts      = \Carbon\Carbon::parse($spp->tanggal);
-                    $tglByr  = $trx->tanggal_transaksi
-                        ? \Carbon\Carbon::parse($trx->tanggal_transaksi)->format('d/m/Y')
-                        : '-';
-                    $nominal = (int) ($trx->jumlah ?? $spp->nominal ?? 0);
-                @endphp
-                <tr>
-                    <td class="no">{{ $i + 1 }}</td>
-                    <td class="tgl">{{ Tanggal::namaBulan($spp->tanggal) }} {{ $ts->format('Y') }}</td>
-                    <td>SPP {{ Tanggal::namaBulan($spp->tanggal) }} {{ $ts->format('Y') }} <span class="text-muted small">({{ $tglByr }})</span></td>
-                    <td class="text-end">{{ Angka::format($nominal, 0) }}</td>
-                    <td class="sign text-center">{{ $i + 1 }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4" style="font-style:italic;">
-                        Belum ada pembayaran SPP yang tercatat.
-                    </td>
-                </tr>
-            @endforelse
+            <tr>
+                <td class="no empty-row">&nbsp;</td>
+                <td class="tgl empty-row">&nbsp;</td>
+                <td class="empty-row">&nbsp;</td>
+                <td class="empty-row">&nbsp;</td>
+                <td class="sign empty-row">&nbsp;</td>
+            </tr>
         </tbody>
-        @if (($sppLunas ?? collect())->count())
-            @php $totalBayar = $sppLunas->sum(fn($trx) => (int) ($trx->jumlah ?? $trx->spp->nominal ?? 0)); @endphp
-            <tfoot>
-                <tr class="fw-bold">
-                    <td colspan="3" class="text-start">Total Dibayar</td>
-                    <td class="text-end">{{ Angka::format($totalBayar, 0) }}</td>
-                    <td></td>
-                </tr>
-            </tfoot>
-        @endif
     </table>
 
     <div class="keterangan">

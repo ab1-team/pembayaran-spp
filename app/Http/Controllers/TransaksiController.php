@@ -903,32 +903,11 @@ class TransaksiController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-        $sppLunasQuery = Transaksi::query()
-            ->whereNull('deleted_at')
-            ->where('siswa_id', $siswa->id)
-            ->whereNotNull('kode_spp')
-            ->whereHas('spp', function ($q) use ($anggotaAktif) {
-                $q->where('status', 'L');
-                if ($anggotaAktif) {
-                    $q->where('anggota_kelas', $anggotaAktif->id);
-                }
-            })
-            ->with(['spp']);
-
-        $sppLunas = $sppLunasQuery->get()
-            ->sortBy(function ($trx) {
-                $ts = \Carbon\Carbon::parse($trx->spp->tanggal);
-                $m  = (int) $ts->month;
-                return $m >= 7 ? $m : $m + 12;
-            })
-            ->values();
-
         $data = [
             'siswa'         => $siswa,
             'profil'        => $profil,
             'tahun_pel'     => $tahun_pel,
             'spp_perbulan'  => $anggotaAktif->spp_nominal ?? 0,
-            'sppLunas'      => $sppLunas,
             'anggotaAktif'  => $anggotaAktif,
         ];
 
