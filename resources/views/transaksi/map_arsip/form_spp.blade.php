@@ -48,9 +48,31 @@
   .action-card i {
     font-size: 1rem;
   }
-  .action-card:hover:not(:disabled) {
+.action-card:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .spp-row {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: .5rem;
+    flex-wrap: nowrap;
+  }
+  .spp-row .spp-item {
+    min-width: 0;
+  }
+  .spp-row .spp-label {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: .35rem .5rem;
+    font-size: .8rem;
+  }
+  @media (max-width: 575.98px) {
+    .spp-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
   @media (max-width: 575.98px) {
     .action-card {
@@ -130,45 +152,73 @@
                             <label>Bulan Tagihan</label>
                         </div>
                         @php
-                            $sppItems = $spp->sortBy(function ($item) {
+                            $sppItems = collect($spp)->sortBy(function ($item) {
                                 $m = (int) \Carbon\Carbon::parse($item->tanggal)->month;
                                 return $m >= 7 ? $m : $m + 12;
                             })->values();
+                            $sppGanjil = $sppItems->filter(fn ($i) => (int) \Carbon\Carbon::parse($i->tanggal)->month >= 7)->values();
+                            $sppGenap  = $sppItems->filter(fn ($i) => (int) \Carbon\Carbon::parse($i->tanggal)->month <  7)->values();
                         @endphp
                         <div class="col-md-12 mt-2">
-                            <div class="d-flex flex-wrap gap-0 mt-1" id="sppBulanList">
-                                @foreach ($sppItems as $idx => $item)
-                                    @php
-                                        $bulan = (int) \Carbon\Carbon::parse($item->tanggal)->month;
-                                        $isPaid = $item->status == 'L';
-                                        $prevKode = $idx > 0 ? $sppItems[$idx - 1]->kode : null;
-                                        $prevBulan = $idx > 0 ? (int) \Carbon\Carbon::parse($sppItems[$idx - 1]->tanggal)->month : null;
-                                        $lockReason = $idx > 0
-                                            ? 'Bulan ' . \App\Utils\Tanggal::namaBulan($sppItems[$idx - 1]->tanggal) . ' belum dibayar'
-                                            : '';
-
-                                        if ($isPaid) {
-                                            $btnClass = $bulan > 6 ? 'btn-info' : 'btn-danger';
-                                        } else {
-                                            $btnClass = $bulan > 6 ? 'btn-outline-info' : 'btn-outline-danger';
-                                        }
-                                    @endphp
-
-                                    <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox spp-bln"
-                                        data-kode="{{ $item->kode }}" data-nominal="{{ $item->nominal }}"
-                                        id="tgl_{{ $item->id }}" value="{{ $item->tanggal }}"
-                                        data-spp_ke="{{ $item->spp_ke }}"
-                                        data-bulan="{{ $bulan }}"
-                                        data-prev-kode="{{ $prevKode }}"
-                                        data-lock-reason="{{ $lockReason }}"
-                                        {{ $isPaid ? 'checked disabled' : '' }}>
-
-                                    <label
-                                        class="btn btn-sm rounded-pill flex-fill text-center spp-label {{ $btnClass }}"
-                                        for="tgl_{{ $item->id }}">
-                                        {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
-                                    </label>
-                                @endforeach
+                            <div id="sppBulanList">
+                                <div class="spp-row spp-row-ganjil mt-1">
+                                    @foreach ($sppGanjil as $idx => $item)
+                                        @php
+                                            $bulan = (int) \Carbon\Carbon::parse($item->tanggal)->month;
+                                            $isPaid = $item->status == 'L';
+                                            $globalIdx = $sppItems->search(fn ($x) => $x->kode === $item->kode);
+                                            $prevKode = $globalIdx > 0 ? $sppItems[$globalIdx - 1]->kode : null;
+                                            $lockReason = $globalIdx > 0
+                                                ? 'Bulan ' . \App\Utils\Tanggal::namaBulan($sppItems[$globalIdx - 1]->tanggal) . ' belum dibayar'
+                                                : '';
+                                            $btnClass = $isPaid ? 'btn-info' : 'btn-outline-info';
+                                        @endphp
+                                        <span class="spp-item">
+                                            <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox spp-bln"
+                                                data-kode="{{ $item->kode }}" data-nominal="{{ $item->nominal }}"
+                                                id="tgl_{{ $item->id }}" value="{{ $item->tanggal }}"
+                                                data-spp_ke="{{ $item->spp_ke }}"
+                                                data-bulan="{{ $bulan }}"
+                                                data-prev-kode="{{ $prevKode }}"
+                                                data-lock-reason="{{ $lockReason }}"
+                                                {{ $isPaid ? 'checked disabled' : '' }}>
+                                            <label
+                                                class="btn btn-sm rounded-pill text-center spp-label {{ $btnClass }}"
+                                                for="tgl_{{ $item->id }}">
+                                                {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
+                                            </label>
+                                        </span>
+                                    @endforeach
+                                </div>
+                                <div class="spp-row spp-row-genap mt-2">
+                                    @foreach ($sppGenap as $idx => $item)
+                                        @php
+                                            $bulan = (int) \Carbon\Carbon::parse($item->tanggal)->month;
+                                            $isPaid = $item->status == 'L';
+                                            $globalIdx = $sppItems->search(fn ($x) => $x->kode === $item->kode);
+                                            $prevKode = $globalIdx > 0 ? $sppItems[$globalIdx - 1]->kode : null;
+                                            $lockReason = $globalIdx > 0
+                                                ? 'Bulan ' . \App\Utils\Tanggal::namaBulan($sppItems[$globalIdx - 1]->tanggal) . ' belum dibayar'
+                                                : '';
+                                            $btnClass = $isPaid ? 'btn-danger' : 'btn-outline-danger';
+                                        @endphp
+                                        <span class="spp-item">
+                                            <input type="checkbox" name="bulan_dibayar[]" class="btn-check spp-checkbox spp-bln"
+                                                data-kode="{{ $item->kode }}" data-nominal="{{ $item->nominal }}"
+                                                id="tgl_{{ $item->id }}" value="{{ $item->tanggal }}"
+                                                data-spp_ke="{{ $item->spp_ke }}"
+                                                data-bulan="{{ $bulan }}"
+                                                data-prev-kode="{{ $prevKode }}"
+                                                data-lock-reason="{{ $lockReason }}"
+                                                {{ $isPaid ? 'checked disabled' : '' }}>
+                                            <label
+                                                class="btn btn-sm rounded-pill text-center spp-label {{ $btnClass }}"
+                                                for="tgl_{{ $item->id }}">
+                                                {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
+                                            </label>
+                                        </span>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
 
