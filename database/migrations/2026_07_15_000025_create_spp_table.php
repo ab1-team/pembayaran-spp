@@ -12,7 +12,7 @@ return new class extends Migration
         if (!Schema::hasTable('spp')) {
             Schema::create('spp', function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->string('kode')->nullable();
+                $table->string('kode')->unique();
                 $table->date('tanggal');
                 $table->string('anggota_kelas');
                 $table->string('nominal');
