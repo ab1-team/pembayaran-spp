@@ -708,8 +708,8 @@
 
     <script>
         const icon = document.getElementById('iconSettings');
-        const fixedPlugin = document.querySelector('.fixed-plugin');
-        const fixedPluginButton = document.querySelector('.fixed-plugin-button');
+        const fpPanel = document.querySelector('.fixed-plugin');
+        const fpButton = document.querySelector('.fixed-plugin-button');
         let angle = 0;
         let spinning = true;
         function rotate() {
@@ -719,18 +719,18 @@
             }
             requestAnimationFrame(rotate);
         } rotate();
-        fixedPluginButton.addEventListener('mouseenter', () => spinning = false);
-        fixedPluginButton.addEventListener('mouseleave', () => spinning = true);
-        fixedPluginButton.addEventListener('click', function (e) {
+        fpButton.addEventListener('mouseenter', () => spinning = false);
+        fpButton.addEventListener('mouseleave', () => spinning = true);
+        fpButton.addEventListener('click', function (e) {
             e.stopPropagation();
-            fixedPlugin.classList.toggle('show');
+            fpPanel.classList.toggle('show');
         });
         document.querySelectorAll('.fixed-plugin-close-button').forEach(btn => {
-            btn.addEventListener('click', () => fixedPlugin.classList.remove('show'));
+            btn.addEventListener('click', () => fpPanel.classList.remove('show'));
         });
         document.addEventListener('click', function (e) {
             if (!e.target.closest('.fixed-plugin')) {
-                fixedPlugin.classList.remove('show');
+                fpPanel.classList.remove('show');
             }
         });
     </script>

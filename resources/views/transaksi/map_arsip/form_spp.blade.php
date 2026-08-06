@@ -61,6 +61,11 @@
   .spp-row .spp-item {
     min-width: 0;
   }
+  .spp-check {
+    font-weight: 700;
+    font-size: .95rem;
+    line-height: 1;
+  }
   .spp-row .spp-label {
     width: 100%;
     white-space: nowrap;
@@ -68,6 +73,19 @@
     text-overflow: ellipsis;
     padding: .35rem .5rem;
     font-size: .8rem;
+  }
+  .spp-row .spp-label::before {
+    content: "\2713" !important;
+    font-size: .95rem;
+    line-height: 1;
+    margin-right: .3rem;
+    font-weight: 700;
+    display: none !important;
+    vertical-align: -1px;
+  }
+  .spp-row .btn-check:checked + .spp-label::before,
+  .spp-row .spp-bln:checked + .spp-label::before {
+    display: inline-block !important;
   }
   @media (max-width: 575.98px) {
     .spp-row {
@@ -185,7 +203,7 @@
                                             <label
                                                 class="btn btn-sm rounded-pill text-center spp-label {{ $btnClass }}"
                                                 for="tgl_{{ $item->id }}">
-                                                {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
+                                                @if ($isPaid)<span class="spp-check me-1">&#10003;</span>@endif{{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
                                             </label>
                                         </span>
                                     @endforeach
@@ -214,7 +232,7 @@
                                             <label
                                                 class="btn btn-sm rounded-pill text-center spp-label {{ $btnClass }}"
                                                 for="tgl_{{ $item->id }}">
-                                                {{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
+                                                @if ($isPaid)<span class="spp-check me-1">&#10003;</span>@endif{{ \App\Utils\Tanggal::namaBulan($item->tanggal) }}
                                             </label>
                                         </span>
                                     @endforeach
@@ -594,24 +612,6 @@ document.querySelectorAll('#toast-wrapper .toast').forEach(el => {
 
         $('#nominal').on('input', function() {
             $(this).closest('.input-group').toggleClass('is-filled', $(this).val().trim() !== '');
-        });
-
-        document.querySelectorAll('.btn-check').forEach(input => {
-            const label = document.querySelector(`label[for="${input.id}"]`);
-            if (input.checked && !label.querySelector('.check-icon')) {
-                label.insertAdjacentHTML('afterbegin', '<span class="check-icon me-0">✓</span>');
-            }
-            input.addEventListener('change', function() {
-                if (this.checked) {
-                    if (!label.querySelector('.check-icon')) {
-                        label.insertAdjacentHTML('afterbegin',
-                            '<span class="check-icon me-0">✓</span>');
-                    }
-                } else {
-                    const icon = label.querySelector('.check-icon');
-                    if (icon) icon.remove();
-                }
-            });
         });
 
         const $ta = $('textarea.form-control');
