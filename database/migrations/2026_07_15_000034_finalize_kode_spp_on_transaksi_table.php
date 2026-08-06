@@ -24,9 +24,25 @@ return new class extends Migration
 
             $zeroDate = collect(DB::select("SHOW COLUMNS FROM transaksi WHERE Field = 'tanggal_transaksi'"))->first();
             if ($zeroDate && str_contains($zeroDate->Type, 'date')) {
-                DB::statement("UPDATE transaksi SET tanggal_transaksi = '1970-01-01' WHERE tanggal_transaksi = '0000-00-00'");
+                $sqlMode = collect(DB::select("SELECT @@sql_mode AS mode"))->first()->mode ?? '';
+                $noZeroDate = str_contains($sqlMode, 'NO_ZERO_DATE') || str_contains($sqlMode, 'STRICT_TRANS_TABLES') || str_contains($sqlMode, 'STRICT_ALL_TABLES');
+
+                if (!$noZeroDate) {
+                    $cnt = collect(DB::select("SELECT COUNT(*) AS c FROM transaksi WHERE tanggal_transaksi = '0000-00-00'"))->first()->c;
+                    if ($cnt > 0) {
+                        DB::statement("ALTER TABLE transaksi MODIFY tanggal_transaksi VARCHAR(10) NOT NULL DEFAULT ''");
+                        DB::statement("UPDATE transaksi SET tanggal_transaksi = '1970-01-01' WHERE tanggal_transaksi = '0000-00-00'");
+                        DB::statement("ALTER TABLE transaksi MODIFY tanggal_transaksi DATE NOT NULL");
+                    }
+                }
+
                 if (Schema::hasColumn('transaksi', 'tgl_lunas')) {
-                    DB::statement("UPDATE transaksi SET tgl_lunas = '1970-01-01' WHERE tgl_lunas = '0000-00-00'");
+                    $cntTgl = collect(DB::select("SELECT COUNT(*) AS c FROM transaksi WHERE tgl_lunas = '0000-00-00'"))->first()->c;
+                    if ($cntTgl > 0) {
+                        DB::statement("ALTER TABLE transaksi MODIFY tgl_lunas VARCHAR(10) NULL");
+                        DB::statement("UPDATE transaksi SET tgl_lunas = '1970-01-01' WHERE tgl_lunas = '0000-00-00'");
+                        DB::statement("ALTER TABLE transaksi MODIFY tgl_lunas DATE NULL");
+                    }
                 }
             }
 
