@@ -23,6 +23,7 @@ use App\Http\Controllers\Master\MasterAuthController;
 use App\Http\Controllers\Master\MasterDashboardController;
 use App\Http\Controllers\Master\AdminInvoiceController;
 use App\Http\Controllers\Master\HakAksesController as MasterHakAksesController;
+use App\Http\Controllers\Master\MigrasiSiswaController;
 
 Route::get('/', [AuthController::class, 'index'])->name('login');
 
@@ -59,6 +60,9 @@ Route::group(['middleware' => ['auth:master'], 'prefix' => 'master'], function (
     Route::resource('invoice', AdminInvoiceController::class)
         ->only(['index', 'store', 'destroy'])
         ->names('master.invoice');
+
+    Route::get('/migrasi/siswa', [MigrasiSiswaController::class, 'index'])->name('master.migrasi.siswa');
+    Route::get('/migrasi/siswa/template', [MigrasiSiswaController::class, 'template'])->name('master.migrasi.siswa.template');
 });
 
 Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
