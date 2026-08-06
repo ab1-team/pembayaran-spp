@@ -597,20 +597,39 @@ class TransaksiController extends Controller
                 ], 422);
             }
 
+            $anggotaKelasId = optional($sppOrdered->first())->anggota_kelas;
+            $prevBulanLunas = collect();
+            if ($anggotaKelasId) {
+                $prevBulanLunas = Spp::where('anggota_kelas', $anggotaKelasId)
+                    ->where('status', 'L')
+                    ->whereNotIn('kode', $kodeSpp)
+                    ->get()
+                    ->keyBy(fn ($x) => ((int) Carbon::parse($x->tanggal)->month >= 7
+                        ? (int) Carbon::parse($x->tanggal)->month
+                        : (int) Carbon::parse($x->tanggal)->month + 12));
+            }
+
             foreach ($sppOrdered as $sp) {
                 $m = (int) Carbon::parse($sp->tanggal)->month;
                 $u = $m >= 7 ? $m : $m + 12;
                 if ($u == 7) continue;
                 $prevU = $u - 1;
-                $prevFound = $sppOrdered->first(function ($x) use ($prevU) {
+
+                $prevInPayload = $sppOrdered->first(function ($x) use ($prevU) {
                     $xm = (int) Carbon::parse($x->tanggal)->month;
                     $xu = $xm >= 7 ? $xm : $xm + 12;
                     return $xu === $prevU;
                 });
-                if (!$prevFound || ($prevFound && $prevFound->status !== 'L' && !in_array($prevFound->kode, $kodeSpp))) {
+
+                $prevIsLunas = $prevInPayload
+                    ? ($prevInPayload->status === 'L' || in_array($prevInPayload->kode, $kodeSpp))
+                    : $prevBulanLunas->has($prevU);
+
+                if (!$prevIsLunas) {
+                    $refTanggal = $prevInPayload ? $prevInPayload->tanggal : $sp->tanggal;
                     return response()->json([
                         'success' => false,
-                        'msg' => 'Bulan ' . Tanggal::namaBulan($prevFound ? $prevFound->tanggal : $sp->tanggal)
+                        'msg' => 'Bulan ' . Tanggal::namaBulan($refTanggal)
                             . ' belum dibayar. Selesaikan bulan sebelumnya terlebih dahulu.'
                     ], 422);
                 }
@@ -859,7 +878,7 @@ class TransaksiController extends Controller
         ]);
     }
 
-    public function cetakKartuSpp($id)
+    public function cetakKartuSpp($id, Request $request)
     {
         $siswa = Siswa::with('tahunAkademik')->findOrFail($id);
         $profil = Profil::first();
@@ -867,20 +886,36 @@ class TransaksiController extends Controller
             ?? \App\Models\Tahun_Akademik::where('status', 'aktif')->value('nama_tahun')
             ?? date('Y');
 
-        $anggotaAktif = \App\Models\Anggota_Kelas::where('id_siswa', $siswa->id)
-            ->where('status', 'aktif')
-            ->orderByDesc('id')
-            ->first();
+        $ta    = $request->query('tahun_akademik');
+        $kelas = $request->query('kelas');
+        if ($kelas === '__all__') {
+            $kelas = null;
+        }
 
-        $sppLunas = Transaksi::query()
+        $akQuery = \App\Models\Anggota_Kelas::where('id_siswa', $siswa->id)
+            ->where('status', 'aktif');
+        if ($ta)    $akQuery->where('tahun_akademik', $ta);
+        if ($kelas) $akQuery->where('kode_kelas', $kelas);
+
+        $anggotaAktif = $akQuery->orderByDesc('id')->first()
+            ?? \App\Models\Anggota_Kelas::where('id_siswa', $siswa->id)
+                ->where('status', 'aktif')
+                ->orderByDesc('id')
+                ->first();
+
+        $sppLunasQuery = Transaksi::query()
             ->whereNull('deleted_at')
             ->where('siswa_id', $siswa->id)
             ->whereNotNull('kode_spp')
-            ->whereHas('spp', function ($q) {
+            ->whereHas('spp', function ($q) use ($anggotaAktif) {
                 $q->where('status', 'L');
+                if ($anggotaAktif) {
+                    $q->where('anggota_kelas', $anggotaAktif->id);
+                }
             })
-            ->with(['spp'])
-            ->get()
+            ->with(['spp']);
+
+        $sppLunas = $sppLunasQuery->get()
             ->sortBy(function ($trx) {
                 $ts = \Carbon\Carbon::parse($trx->spp->tanggal);
                 $m  = (int) $ts->month;
@@ -889,11 +924,12 @@ class TransaksiController extends Controller
             ->values();
 
         $data = [
-            'siswa'        => $siswa,
-            'profil'       => $profil,
-            'tahun_pel'    => $tahun_pel,
-            'spp_perbulan' => $anggotaAktif->spp_nominal ?? 0,
-            'sppLunas'     => $sppLunas,
+            'siswa'         => $siswa,
+            'profil'        => $profil,
+            'tahun_pel'     => $tahun_pel,
+            'spp_perbulan'  => $anggotaAktif->spp_nominal ?? 0,
+            'sppLunas'      => $sppLunas,
+            'anggotaAktif'  => $anggotaAktif,
         ];
 
         $logoPath = \App\Models\Profil::logoPath();
@@ -908,7 +944,7 @@ class TransaksiController extends Controller
         return $pdf->stream('kartu-spp-'.$siswa->nama.'.pdf');
     }
 
-    public function cetakKartuUjian($id, $jenis)
+    public function cetakKartuUjian($id, $jenis, Request $request)
     {
         $allowed = ['uts1', 'pas1', 'uts2', 'pas2'];
         if (!in_array($jenis, $allowed, true)) {
@@ -920,9 +956,30 @@ class TransaksiController extends Controller
         $siswa = Siswa::findOrFail($id);
         $profil = Profil::first();
 
+        $ta    = $request->query('tahun_akademik');
+        $kelas = $request->query('kelas');
+        if ($kelas === '__all__') {
+            $kelas = null;
+        }
+
+        $akQuery = \App\Models\Anggota_Kelas::where('id_siswa', $siswa->id)
+            ->where('status', 'aktif');
+        if ($ta)    $akQuery->where('tahun_akademik', $ta);
+        if ($kelas) $akQuery->where('kode_kelas', $kelas);
+
+        $anggotaAktif = $akQuery->orderByDesc('id')->first()
+            ?? \App\Models\Anggota_Kelas::where('id_siswa', $siswa->id)
+                ->where('status', 'aktif')
+                ->orderByDesc('id')
+                ->first();
+
         $sopPts = (int) ($profil->cetak_pts ?? 3);
         $sopPas = (int) ($profil->cetak_pas ?? 3);
-        $bulanLunas = Spp::bulanLunasBySiswa((int) $siswa->id);
+
+        $bulanLunas = $anggotaAktif
+            ? (int) $anggotaAktif->getSpp()->where('status', 'L')->count()
+            : Spp::bulanLunasBySiswa((int) $siswa->id);
+
         $syarat = $periode === '1' ? $sopPts : $sopPas;
 
         if ($bulanLunas < $syarat) {
@@ -945,6 +1002,7 @@ class TransaksiController extends Controller
             'no_peserta'    => $no_peserta,
             'jenis_ujian'   => $subjudulMap[$kat].' '.$periodeRoman,
             'lokasi'        => $lokasi,
+            'anggota_kelas' => $anggotaAktif,
         ];
 
         $logoPath = \App\Models\Profil::logoPath();

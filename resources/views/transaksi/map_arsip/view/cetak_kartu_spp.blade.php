@@ -108,7 +108,7 @@
     <div class="identitas">
         <table>
             <tr><td>Nama Siswa</td><td>: <strong>{{ strtoupper($siswa->nama) }}</strong></td></tr>
-            <tr><td>Kelas</td><td>: {{ $siswa->kode_kelas }}</td></tr>
+            <tr><td>Kelas</td><td>: {{ $anggotaAktif->kode_kelas ?? $siswa->kode_kelas }}</td></tr>
             <tr><td>Ta.Pel</td><td>: {{ $tahun_pel }}</td></tr>
             <tr><td>Nominal</td><td>: {{ Angka::format($spp_perbulan ?? 0, 0) }}</td></tr>
         </table>

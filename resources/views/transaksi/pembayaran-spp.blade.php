@@ -114,7 +114,12 @@
             let prefillNama = urlParams.get('prefill_nama');
             if (prefillId) {
                 $('#pembayaranSPP').val(prefillNama || prefillId);
-                $.get('/app/spp/CariSiswa', { query: prefillNama || prefillId }, function(result) {
+                let prefillQs = { query: prefillNama || prefillId };
+                let prefillTa    = urlParams.get('tahun_akademik');
+                let prefillKelas = urlParams.get('kelas');
+                if (prefillTa)    prefillQs.tahun_akademik = prefillTa;
+                if (prefillKelas && prefillKelas !== '__all__') prefillQs.kelas = prefillKelas;
+                $.get('/app/spp/CariSiswa', prefillQs, function(result) {
                     if (result && result.length) {
                         let found = result.find(r => String(r.id_siswa) === String(prefillId)) || result[0];
                         let inisial = found.package_inisial ? ' - ' + found.package_inisial : '';
@@ -369,27 +374,13 @@
                         $(this).html($(this).data('original-html'));
                     });
 
-                    let detailHtml = '';
-                    if (result.detail_spp && result.detail_spp.length) {
-                        let bulanAwal = result.detail_spp[0].bulan;
-                        let bulanAkhir = result.detail_spp[result.detail_spp.length - 1].bulan;
-                        let rangeBulan = bulanAwal === bulanAkhir
-                            ? bulanAwal
-                            : `${bulanAwal} – ${bulanAkhir}`;
-                        detailHtml = `
-                            <div class="text-start mb-2">
-                                <strong>Periode:</strong> ${rangeBulan}
-                            </div>
-                        `;
-                    }
-                            Swal.fire({
+                    Swal.fire({
                                 icon: 'success',
                                 title: 'Transaksi Berhasil',
                                 html: `
                                     <div class="text-center mb-2">
                                         ${result.keterangan}
                                     </div>
-                                    ${detailHtml}
                                 `,
                                 timer: 2500,
                                 showConfirmButton: false

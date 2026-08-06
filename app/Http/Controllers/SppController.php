@@ -18,30 +18,58 @@ class SppController extends Controller
     public function CariSiswaAktif(Request $request)
     {
         $params = $request->input('query');
+        $ta    = $request->input('tahun_akademik');
+        $kelas = $request->input('kelas');
+        if ($kelas === '__all__') {
+            $kelas = null;
+        }
 
-        $results = Siswa::query()
+        $query = Siswa::query()
             ->Aktif()
             ->where(function ($q) use ($params) {
                 $q->where('nama', 'LIKE', "%{$params}%")
                     ->orWhere('nisn', 'LIKE', "%{$params}%");
             })
+            ->with(['anggotaKelas' => function ($q) use ($ta, $kelas) {
+                $q->where('status', 'aktif');
+                if ($ta)    $q->where('tahun_akademik', $ta);
+                if ($kelas) $q->where('kode_kelas', $kelas);
+                $q->orderByDesc('id');
+            }])
             ->orderBy('nama')
             ->limit(20)
-            ->get(['id', 'nama', 'nisn', 'kode_kelas'])
-            ->map(fn ($s) => [
+            ->get(['id', 'nama', 'nisn', 'kode_kelas']);
+
+        $results = $query->map(function ($s) use ($ta, $kelas) {
+            $ak = $s->anggotaKelas->first();
+            $resolvedKelas = ($ak && $ak->kode_kelas)
+                ? $ak->kode_kelas
+                : (($ta || $kelas) ? null : $s->kode_kelas);
+
+            return [
                 'id_siswa' => $s->id,
                 'nama' => $s->nama,
                 'nisn' => $s->nisn,
-                'kode_kelas' => $s->kode_kelas,
+                'kode_kelas' => $resolvedKelas,
+                'tahun_akademik' => $ak->tahun_akademik ?? null,
                 'package_inisial' => null,
-            ]);
+            ];
+        })
+        ->filter(fn ($r) => $r['kode_kelas'] !== null)
+        ->values();
 
         return response()->json($results);
     }
 
-    public function spp($id)
+    public function spp($id, Request $request)
     {
         $kodePiutangSpp = JenisPembayaran::KODE_PIUTANG_DEFAULT;
+
+        $ta    = $request->input('tahun_akademik');
+        $kelas = $request->input('kelas');
+        if ($kelas === '__all__') {
+            $kelas = null;
+        }
 
         if ((string) $id === '0') {
             $siswa = new Siswa;
@@ -56,12 +84,19 @@ class SppController extends Controller
             $kode_tunggakan = collect();
             $bulan_lunas = 0;
         } else {
-            $anggota_kelas = Anggota_Kelas::where('id_siswa', $id)
+            $akQuery = Anggota_Kelas::where('id_siswa', $id)
                 ->with([
                     'getSiswa',
                     'getSpp',
-                ])->where('status', 'aktif')
-                ->first();
+                ])->where('status', 'aktif');
+
+            if ($ta || $kelas) {
+                if ($ta)    $akQuery->where('tahun_akademik', $ta);
+                if ($kelas) $akQuery->where('kode_kelas', $kelas);
+                $anggota_kelas = $akQuery->orderByDesc('id')->first();
+            } else {
+                $anggota_kelas = $akQuery->orderByDesc('id')->first();
+            }
 
             if (! $anggota_kelas) {
                 return response()->json([
@@ -82,7 +117,7 @@ class SppController extends Controller
             $spp_perbulan = $anggota_kelas->spp_nominal;
             $target_bulan = $spp->sum('nominal');
             $sd_bulan_ini = $spp->where('status', 'L')->sum('nominal');
-            $bulan_lunas = Spp::bulanLunasBySiswa((int) $siswa->id);
+            $bulan_lunas = $spp->where('status', 'L')->count();
             $sumber_dana = Rekening::where('kode_akun', 'like', '1.1.01.%')->get();
             $tahun_angkatan = Tahun_Akademik::where('status', 'aktif')->value('nama_tahun') ?? date('Y');
             $jenis_biaya = JenisPembayaran::orderBy('id')->get();
