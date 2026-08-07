@@ -107,10 +107,14 @@ class DaftarKelasController extends Controller
                 if ($ta)    $q->where('tahun_akademik', $ta);
                 if ($kelas) $q->where('kode_kelas', $kelas);
                 $q->orderByDesc('id');
-            }, 'anggotaKelas.spp']);
+            }, 'anggotaKelas.spp'])
+            ->orderBy('siswa.nama', 'asc');
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
+            ->order(function ($q) {
+                $q->orderBy('siswa.nama', 'asc');
+            })
             ->filterColumn('nisn', function ($q, $kw) {
                 $q->where('siswa.nisn', 'like', "%{$kw}%");
             })
