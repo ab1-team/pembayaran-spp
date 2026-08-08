@@ -28,11 +28,10 @@
         /* satu baris data */
         .row-kartu {
             display: grid;
-            grid-template-columns: 
+            grid-template-columns:
                 40px     /* No */
                 120px    /* Tanggal */
                 200px    /* alokasi */
-                200px    /* Keterangan */
                 120px    /* Nominal */
                 80px;    /* ID */
             align-items: center;
@@ -56,7 +55,6 @@
                     Daftar Ulang
                 @endif
             </div>
-            <div>{{ strtoupper($trx->keterangan) }}</div>
             <div class="right">{{ \App\Utils\Angka::format($trx->getRawOriginal('jumlah'), 0) }}</div>
             <div class="right">{{ $trx->id }}</div>
         </div>
