@@ -7,99 +7,89 @@
     <meta charset="UTF-8">
     <title>Kartu SPP - {{ $siswa->nama }}</title>
     <style>
-        /* Kertas tetap F4 penuh (215 x 330 mm). Konten dibungkus dalam
-           .cetak-area selebar setengah F4 (107.5mm dari tepi kiri),
-           dibatasi garis border-right sebagai panduan potong. Sisi kanan
-           kertas otomatis kosong/tidak tercetak apa-apa. */
-        @page { margin: 10mm 0 10mm 7.5mm; }
+        @page { margin: 20mm 15mm; }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 6px;
+            font-size: 12px;
             margin: 0;
-        }
-
-        .cetak-area {
-            width: 95mm;
-            padding-right: 5mm;
-            border-right: 1px dashed #000;
-            box-sizing: content-box;
         }
 
         .header {
             display: table;
             width: 100%;
-            border-bottom: 1px solid #000;
-            padding-bottom: 3px;
+            padding-bottom: 6px;
         }
         .header .logo,
         .header .info {
             display: table-cell;
             vertical-align: middle;
         }
-        .header .logo { width: 40px; }
-        .header .logo img { width: 35px; height: auto; }
+        .header .logo { width: 65px; }
+        .header .logo img { width: 60px; height: auto; }
         .header .info { text-align: center; }
-        .header .info .l1 { font-weight: bold; font-size: 7px; }
-        .header .info .l2 { font-weight: bold; font-size: 8px; margin: 1px 0; }
-        .header .info .l3 { font-size: 6px; }
-        .header .info .l4 { font-size: 6px; }
+        .header .info .l1 { font-weight: bold; font-size: 10px; }
+        .header .info .l2 { font-weight: bold; font-size: 12px; margin: 2px 0; }
+        .header .info .l3 { font-size: 9px; }
+        .header .info .l4 { font-size: 9px; }
 
         .title {
             text-align: center;
             font-weight: bold;
-            font-size: 8px;
+            font-size: 18px;
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            padding: 3px 0;
-            margin-top: 3px;
-            letter-spacing: 1px;
+            padding: 6px 0;
+            margin-top: 6px;
         }
 
         .identitas {
-            margin-top: 5px;
-            font-size: 6px;
+            margin-top: 10px;
         }
         .identitas table { width: 100%; border: none; }
-        .identitas td { padding: 1px 0; vertical-align: top; }
-        .identitas td:first-child { width: 55px; }
+        .identitas td { padding: 2px 0; vertical-align: top; font-size: 9px; }
+        .identitas td:first-child { width: 20%; }
+        .identitas td:last-child { font-size: 10px; font-weight: bold; }
 
         table.data {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 4px;
+            margin-top: 8px;
         }
         table.data th,
         table.data td {
             border: 1px solid #000;
-            padding: 3px;
+            padding: 5px;
+            font-size: 9px;
         }
         table.data th { text-align: center; font-weight: bold; }
-        table.data td.no { width: 15px; text-align: center; }
-        table.data td.tgl { width: 50px; text-align: center; }
-        table.data td.sign { width: 45px; }
-        table.data td.empty-row { height: 120px; vertical-align: top; }
+        table.data .no { width: 7%; text-align: center; }
+        table.data .tgl { width: 30%; text-align: center; }
+        table.data .jumlah { width: 20%; }
+        table.data .sign { width: 15%; }
+        table.data td.empty-row { height: 240px; vertical-align: top; }
 
         .keterangan {
-            margin-top: 6px;
-            font-size: 6px;
+            margin-top: 12px;
+            font-size: 8px;
         }
-        .keterangan ol { margin: 0; padding-left: 9px; }
+        .keterangan ol { margin: 0; padding-left: 18px; }
 
         .ttd {
-            margin-top: 9px;
+            margin-top: 18px;
             width: 100%;
             border: none;
+            font-size: 9px;
         }
         .ttd td { border: none; vertical-align: top; }
-        .ttd .kanan { width: 110px; text-align: center; padding-left: auto; }
+        .ttd td:first-child { width: 40%; }
+        .ttd .kanan { width: 60%; text-align: center; }
         .ttd .kanan .jabatan { font-weight: bold; }
-        .ttd .kanan .space { height: 35px; }
+        .ttd .kanan .space { height: 50px; }
         .ttd .kanan .nama { font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="cetak-area">
 
     <div class="header">
         <div class="logo">
@@ -128,11 +118,11 @@
     <table class="data">
         <thead>
             <tr>
-                <th>NO</th>
-                <th>TANGGAL</th>
+                <th class="no">NO</th>
+                <th class="tgl">TANGGAL</th>
                 <th>KETERANGAN</th>
-                <th>JUMLAH</th>
-                <th>SIGN</th>
+                <th class="jumlah">JUMLAH</th>
+                <th class="sign">SIGN</th>
             </tr>
         </thead>
         <tbody>
@@ -140,7 +130,7 @@
                 <td class="no empty-row">&nbsp;</td>
                 <td class="tgl empty-row">&nbsp;</td>
                 <td class="empty-row">&nbsp;</td>
-                <td class="empty-row">&nbsp;</td>
+                <td class="jumlah empty-row">&nbsp;</td>
                 <td class="sign empty-row">&nbsp;</td>
             </tr>
         </tbody>
@@ -165,8 +155,6 @@
             </td>
         </tr>
     </table>
-
-    </div>
 
 </body>
 </html>
