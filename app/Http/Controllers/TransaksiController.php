@@ -722,18 +722,26 @@ class TransaksiController extends Controller
     /**
      * Detail PEMBAYARAN SPP
      */
-    public function pembayaranSPPDetail($id)
+    public function pembayaranSPPDetail(Request $request, $id)
     {
+        $tahunAkademik = $request->query('tahun_akademik');
+
         $siswa = Siswa::with([
             'getKelas',
-            'getTransaksi' => function ($q) {
+            'getTransaksi' => function ($q) use ($tahunAkademik) {
                 $q->whereNull('deleted_at')
                     ->orderByDesc('id')
-                    ->with(['spp', 'rekeningDebit', 'rekeningKredit']);
+                    ->with(['spp.anggotaKelas.tahunAkademik', 'rekeningDebit', 'rekeningKredit']);
+
+                if (!empty($tahunAkademik)) {
+                    $q->whereHas('spp.anggotaKelas', function ($x) use ($tahunAkademik) {
+                        $x->where('tahun_akademik', $tahunAkademik);
+                    });
+                }
             }
         ])->findOrFail($id);
 
-        return view('transaksi.map_arsip.detail', compact('siswa'));
+        return view('transaksi.map_arsip.detail', compact('siswa', 'tahunAkademik'));
     }
 
     /**
