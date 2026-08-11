@@ -43,23 +43,24 @@
         <table class="table-data">
             <thead>
                 <tr>
-                    <th style="text-align:center;">No</th>
-                    <th style="text-align:center;">NIPD</th>
-                    <th style="text-align:center;">NISN</th>
-                    <th style="text-align:center;">Nama Siswa</th>
-                    <th style="text-align:center;">Jenis Kelamin</th>
-                    <th style="text-align:center;">Tahun Akademik</th>
+                    <th style="text-align:center; width: 5%;">No</th>
+                    <th style="text-align:center; width: 15%;">NIPD</th>
+                    <th style="text-align:center; width: 15%;">NISN</th>
+                    <th style="text-align:center; width: 35%;">Nama Siswa</th>
+                    <th style="text-align:center; width: 14%;">Jenis Kelamin</th>
+                    <th style="text-align:center; width: 16%;">Tahun Akademik</th>
                 </tr>
             </thead>
-
             <tbody>
                 @foreach ($siswa as $index => $s)
                     <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $s->nipd }}</td>
-                        <td>{{ $s->nisn }}</td>
+                        <td align="center">{{ $index + 1 }}</td>
+                        <td align="center">{{ $s->nipd }}</td>
+                        <td align="center">{{ $s->nisn }}</td>
                         <td>{{ $s->nama }}</td>
-                        <td align="center">{{ $s->jenis_kelamin == 'L' ? 'Laki-laki' : ($s->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}</td>
+                        <td align="center">
+                            {{ $s->jenis_kelamin == 'L' ? 'Laki-laki' : ($s->jenis_kelamin == 'P' ? 'Perempuan' : '-') }}
+                        </td>
                         <td align="center">{{ $s->tahun_akademik ?: '-' }}</td>
                     </tr>
                 @endforeach
