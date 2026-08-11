@@ -72,7 +72,10 @@ class SiswaController extends Controller
                 ->toJson();
         }
 
-        return view('siswa.index', ['title' => 'Data Siswa']);
+        return view('siswa.index', [
+            'title'         => 'Data Siswa',
+            'tahunBerjalan' => Tahun_Akademik::berjalan(),
+        ]);
     }
 
     public function listTahun(Request $request)

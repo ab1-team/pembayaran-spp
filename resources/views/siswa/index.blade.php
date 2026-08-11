@@ -75,7 +75,7 @@
         $(document).ready(function() {
 
             let urlParams = new URLSearchParams(window.location.search);
-            let qs_tahun = urlParams.get('tahun_akademik');
+            let qs_tahun = urlParams.get('tahun_akademik') || @json($tahunBerjalan);
             let qs_kelas = urlParams.get('kelas');
             let tahunLoaded = false;
             let kelasLoaded = false;

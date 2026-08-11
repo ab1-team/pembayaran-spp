@@ -20,4 +20,22 @@ class Tahun_Akademik extends Model
     {
         return $this->hasMany(Anggota_Kelas::class, 'tahun_akademik', 'nama_tahun');
     }
+
+    /**
+     * Tahun akademik yang sedang berjalan (tahun ajaran dimulai bulan Juli).
+     * Jika belum terdaftar, ambil tahun akademik terbaru.
+     */
+    public static function berjalan(): ?string
+    {
+        $now = \Carbon\Carbon::now();
+        $yy  = (int) $now->format('Y');
+        $mm  = (int) $now->format('n');
+
+        $candidate = $mm >= 7
+            ? sprintf('%d/%d', $yy, $yy + 1)
+            : sprintf('%d/%d', $yy - 1, $yy);
+
+        return static::where('nama_tahun', $candidate)->value('nama_tahun')
+            ?? static::orderByDesc('nama_tahun')->value('nama_tahun');
+    }
 }

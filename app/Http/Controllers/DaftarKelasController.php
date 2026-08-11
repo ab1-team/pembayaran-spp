@@ -16,32 +16,10 @@ class DaftarKelasController extends Controller
 {
     public function index()
     {
-        $tahunBerjalan = $this->tahunBerjalan();
-
         return view('daftar-kelas.index', [
             'title'          => 'Daftar Siswa Per-Kelas',
-            'tahunBerjalan'  => $tahunBerjalan,
+            'tahunBerjalan'  => Tahun_Akademik::berjalan(),
         ]);
-    }
-
-    private function tahunBerjalan(): ?string
-    {
-        $now = \Carbon\Carbon::now();
-        $yy  = (int) $now->format('Y');
-        $mm  = (int) $now->format('n');
-
-        if ($mm >= 7) {
-            $candidate = sprintf('%d/%d', $yy, $yy + 1);
-        } else {
-            $candidate = sprintf('%d/%d', $yy - 1, $yy);
-        }
-
-        $found = Tahun_Akademik::where('nama_tahun', $candidate)->value('nama_tahun');
-        if ($found) {
-            return $found;
-        }
-
-        return Tahun_Akademik::orderByDesc('nama_tahun')->value('nama_tahun');
     }
 
     public function listTahun(Request $request)
