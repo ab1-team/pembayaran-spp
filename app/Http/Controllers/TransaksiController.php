@@ -868,13 +868,17 @@ class TransaksiController extends Controller
         $transaksis = Transaksi::with('siswa', 'spp')
             ->whereIn('id', $ids)
             ->get();
-
         if ($transaksis->isEmpty()) {
             abort(404, 'Transaksi tidak ditemukan.');
         }
-
+        $transaksi_siswa = Transaksi::where('siswa_id', $transaksis->first()->siswa_id)
+            ->where('id', '<=', $transaksis->first()->id)
+            ->whereNull('deleted_at')
+            ->get();
+            $jumlahTransaksi = $transaksi_siswa->count() -1;
         return view('transaksi.map_arsip.view.cetakPadaKartu', [
-            'transaksis' => $transaksis
+            'transaksis' => $transaksis,
+            'jumlahTransaksi' => $jumlahTransaksi
         ]);
     }
 
