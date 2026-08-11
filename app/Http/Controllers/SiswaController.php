@@ -282,7 +282,11 @@ class SiswaController extends Controller
     {
         $title = "Detail Siswa";
         $siswa = Siswa::where('id', $siswa->id)->first();
-        $riwayat = Transaksi::with('spp')->where('siswa_id', $siswa->id)->get();
+        $riwayat = Transaksi::with('spp')
+            ->where('siswa_id', $siswa->id)
+            ->orderByDesc('tanggal_transaksi')
+            ->orderByDesc('id')
+            ->get();
 
         return view('siswa.detail', compact('title', 'siswa', 'riwayat'));
     }

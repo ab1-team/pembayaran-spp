@@ -364,21 +364,22 @@
                                         <table class="table table-hover table-sm" id="TBriwayat">
                                             <thead>
                                                 <tr>
-                                                    <th width="15%">Tanggal Transaksi</th>
+                                                    <th width="17%">Tanggal Transaksi</th>
                                                     <th width="15%">Alokasi</th>
-                                                    <th width="60%">Keterangan</th>
+                                                    <th width="58%">Keterangan</th>
                                                     <th width="10%" class="text-end">Nominal</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach ($riwayat as $item)
                                                     <tr>
-                                                        <td width="15%">{{ $item->tanggal_transaksi }}</td>
+                                                        <td width="15%">{{ \Carbon\Carbon::parse($item->tanggal_transaksi)->format('Y-m-d') }}</td>
                                                         <td width="15%">
-                                                           {{ $item->spp ? Tanggal::namabulan($item->spp->tanggal) : 'Daftar Ulang' }}
+                                                            {{ $item->spp ? Tanggal::namabulan($item->spp->tanggal) : 'Daftar Ulang' }}
                                                         </td>
                                                         <td width="60%" class="text-wrap">{{ $item->keterangan }}</td>
-                                                        <td width="10%" class="text-end">{{ \App\Utils\Angka::format($item->jumlah, 2) }}</td>
+                                                        <td width="10%" class="text-end">
+                                                            {{ \App\Utils\Angka::format($item->jumlah, 2) }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -390,23 +391,23 @@
                     </div>
                 </div>
             </div>
-        </div>        
+        </div>
         <div class="col-12">
             <div class="card shadow-sm m-0">
-                <div class="card-body d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center justify-content-between p-2">
+                <div
+                    class="card-body d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center justify-content-between p-2">
                     <div class="w-100 w-md-auto">
                         <a href="{{ route('siswa.index', request()->query()) }}"
-                        class="btn btn-secondary w-100 w-md-auto m-0">
+                            class="btn btn-secondary w-100 w-md-auto m-0">
                             Kembali ke halaman siswa
                         </a>
                     </div>
                     <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
                         <a href="{{ route('siswa.edit', $siswa->id) }}?{{ http_build_query(request()->query()) }}"
-                        class="btn btn-warning w-100 w-md-auto m-0">
+                            class="btn btn-warning w-100 w-md-auto m-0">
                             <span class="fa-solid fa-pen-to-square"></span> Edit Siswa
                         </a>
-                        <button class="btn btn-danger w-100 w-md-auto m-0"
-                                data-id="{{ $siswa->id }}" id="btnDelete">
+                        <button class="btn btn-danger w-100 w-md-auto m-0" data-id="{{ $siswa->id }}" id="btnDelete">
                             <span class="fa-solid fa-ban"></span> Blokir Siswa
                         </button>
                     </div>
@@ -421,10 +422,10 @@
     </form>
 @endsection
 @section('script')
-    <script>   
+    <script>
         let tbRiwayat;
 
-        $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
             if ($(e.target).attr('href') === '#tabRiwayatPembayaran') {
 
                 if (!$.fn.DataTable.isDataTable('#TBriwayat')) {
@@ -436,11 +437,19 @@
                         info: true,
                         autoWidth: false,
                         deferRender: true,
-                        columns: [
-                            { width: '15%' },
-                            { width: '15%' },
-                            { width: '60%' },
-                            { width: '10%', className: 'text-end' }
+                        columns: [{
+                                width: '15%'
+                            },
+                            {
+                                width: '15%'
+                            },
+                            {
+                                width: '60%'
+                            },
+                            {
+                                width: '10%',
+                                className: 'text-end'
+                            }
                         ]
                     });
                 } else {
@@ -525,5 +534,5 @@
             let url = '/app/siswa/riwayatPembayaran/' + id_siswa;
             window.open(url, '_blank');
         })
-        </script>
+    </script>
 @endsection
