@@ -96,6 +96,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'app'], function () {
     Route::delete('/Transaksi/jurnal-umum/{transaksi}', [TransaksiController::class, 'jurnalUmumDestroy'])->name('Transaksi.jurnalUmumDestroy');
 
     
+    
     Route::resource('/jenis-biaya', JenisBiayaController::class);
     Route::get('/jenis-biaya-create-form', [JenisBiayaController::class, 'createForm']);
     Route::get('/jenis-biaya-edit-form/{jenis_biaya}', [JenisBiayaController::class, 'editForm']);
