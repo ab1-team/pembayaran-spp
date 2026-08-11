@@ -339,12 +339,12 @@ class SiswaController extends Controller
 
         [$kodeKls, $tingkat] = $this->service->splitKelas($data['kelas']);
         $data['kode_kelas'] = $kodeKls;
-        $data['ruang'] = $data['ruangan'];
+        $data['ruang'] = ($data['ruangan'] ?? null) ?: $siswa->ruang;
         $data['id_user'] = auth()->id();
-        $data['alat_transportasi'] = $data['transportasi'];
-        $data['no_telepon_ayah'] = $data['no_telp_ayah'];
-        $data['no_telepon_ibu'] = $data['no_telp_ibu'];
-        $data['no_telepon_wali'] = $data['no_telp_wali'];
+        $data['alat_transportasi'] = $data['transportasi'] ?? '-';
+        $data['no_telepon_ayah'] = $data['no_telp_ayah'] ?? '-';
+        $data['no_telepon_ibu'] = $data['no_telp_ibu'] ?? '-';
+        $data['no_telepon_wali'] = $data['no_telp_wali'] ?? '-';
         $data['tgl_masuk'] = $data['tanggal_masuk'] ?? null;
         $data['hp'] = $data['hp'] ?? $data['telepon'] ?? '-';
 
@@ -360,7 +360,7 @@ class SiswaController extends Controller
         // Sync kelas, tingkat & spp_nominal ke anggota_kelas aktif
         $anggota = $siswa->anggotaKelas()->where('status', 'aktif')->orderByDesc('id')->first();
         if ($anggota) {
-            $oldSppNominal = (string) ($anggota->spp_nominal ?? '0');
+            $oldSppNominal = (int) ($anggota->spp_nominal ?? 0);
             $anggota->update([
                 'kode_kelas'     => $kodeKls,
                 'tingkat'        => $tingkat,
