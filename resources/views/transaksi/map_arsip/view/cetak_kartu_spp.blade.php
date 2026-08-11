@@ -7,14 +7,23 @@
     <meta charset="UTF-8">
     <title>Kartu SPP - {{ $siswa->nama }}</title>
     <style>
-        /* Ukuran kertas custom 10.8 x 16.5 cm = separuh F4 (21.5 x 33 cm),
-           jadi semua ukuran di bawah ini diskalakan 0.5x dari desain aslinya */
-        @page { margin: 10mm 7.5mm; }
+        /* Kertas tetap F4 penuh (215 x 330 mm). Konten dibungkus dalam
+           .cetak-area selebar setengah F4 (107.5mm dari tepi kiri),
+           dibatasi garis border-right sebagai panduan potong. Sisi kanan
+           kertas otomatis kosong/tidak tercetak apa-apa. */
+        @page { margin: 10mm 0 10mm 7.5mm; }
 
         body {
             font-family: Arial, sans-serif;
             font-size: 6px;
             margin: 0;
+        }
+
+        .cetak-area {
+            width: 95mm;
+            padding-right: 5mm;
+            border-right: 1px dashed #000;
+            box-sizing: content-box;
         }
 
         .header {
@@ -90,6 +99,7 @@
     </style>
 </head>
 <body>
+    <div class="cetak-area">
 
     <div class="header">
         <div class="logo">
@@ -155,6 +165,8 @@
             </td>
         </tr>
     </table>
+
+    </div>
 
 </body>
 </html>

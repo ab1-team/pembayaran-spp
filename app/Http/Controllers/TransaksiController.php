@@ -918,7 +918,7 @@ class TransaksiController extends Controller
         }
 
         $pdf = Pdf::loadView('transaksi.map_arsip.view.cetak_kartu_spp', $data)
-            ->setPaper([0, 0, 306.14, 467.72]);
+            ->setPaper('A4', 'portrait');
 
         return $pdf->stream('kartu-spp-'.$siswa->nama.'.pdf');
     }
