@@ -39,9 +39,16 @@
 
 <div class="kartu">
     <table class="kartu-table" width="100%" border="0" align="center" cellpadding="5" cellspacing="2">
+        {{-- lompati baris yang sudah pernah dicetak sebelumnya pada kartu fisik --}}
+        @for ($s = 0; $s < $jumlahTransaksi; $s++)
+            <tr>
+                <td colspan="5">&nbsp;</td>
+            </tr>
+        @endfor
+
         @foreach ($transaksis as $i => $trx)
             <tr>
-                <td width="7%" class="center">{{ $i + 1 }}</td>
+                <td width="7%" class="center">{{ $jumlahTransaksi + $i + 1 }}</td>
                 <td width="30%">{{ Tanggal::tglIndo($trx->tanggal) }}</td>
                 <td>
                     @if ($trx->spp)
