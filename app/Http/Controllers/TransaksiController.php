@@ -880,11 +880,14 @@ class TransaksiController extends Controller
 
     public function cetakKartuSpp($id, Request $request)
     {
-        $siswa = Siswa::with('tahunAkademik')->findOrFail($id);
+        $siswa = Siswa::findOrFail($id);
         $profil = Profil::first();
-        $tahun_pel = $siswa->tahunAkademik->nama_tahun
-            ?? \App\Models\Tahun_Akademik::where('status', 'aktif')->value('nama_tahun')
-            ?? date('Y');
+
+        $anggotaKelas = Anggota_Kelas::where('id_siswa', $siswa->id)
+            ->where('status', 'aktif')
+            ->orderByDesc('id')
+            ->first();
+        $tahun_pel = $anggotaKelas ? $anggotaKelas->tahun_akademik : null;
 
         $ta    = $request->query('tahun_akademik');
         $kelas = $request->query('kelas');

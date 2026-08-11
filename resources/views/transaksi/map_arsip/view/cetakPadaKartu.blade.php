@@ -15,8 +15,8 @@
         }
 
         body {
-            font-family: "Courier New", monospace;
-            font-size: 12px;
+            font-family: Arial, sans-serif;
+            font-size: 9px;
         }
 
         /* area kartu */
@@ -25,40 +25,36 @@
             margin-top: 140px; /* atur sesuai posisi kartu fisik */
         }
 
-        /* satu baris data */
-        .row-kartu {
-            display: grid;
-            grid-template-columns:
-                40px     /* No */
-                120px    /* Tanggal */
-                200px    /* alokasi */
-                120px    /* Nominal */
-                80px;    /* ID */
-            align-items: center;
+        table.kartu-table {
+            width: 100%;
         }
-        .right {
-            text-align: right;
+        table.kartu-table td {
+            padding: 5px;
         }
+        .center { text-align: center; }
+        .right { text-align: right; }
     </style>
 </head>
 <body onload="window.print()">
 
 <div class="kartu">
-    @foreach ($transaksis as $i => $trx)
-        <div class="row-kartu">
-            <div>{{ $i + 1 }}</div>
-            <div>{{ Tanggal::tglIndo($trx->tanggal) }}</div>
-            <div>
-                @if ( $trx->spp)
-                    {{ Tanggal::namabulan($trx->spp->tanggal) }}
-                @else
-                    Daftar Ulang
-                @endif
-            </div>
-            <div class="right">{{ \App\Utils\Angka::format($trx->getRawOriginal('jumlah'), 0) }}</div>
-            <div class="right">{{ $trx->id }}</div>
-        </div>
-    @endforeach
+    <table class="kartu-table" width="100%" border="0" align="center" cellpadding="5" cellspacing="2">
+        @foreach ($transaksis as $i => $trx)
+            <tr>
+                <td width="7%" class="center">{{ $i + 1 }}</td>
+                <td width="30%">{{ Tanggal::tglIndo($trx->tanggal) }}</td>
+                <td>
+                    @if ($trx->spp)
+                        {{ Tanggal::namabulan($trx->spp->tanggal) }}
+                    @else
+                        Daftar Ulang
+                    @endif
+                </td>
+                <td width="20%" class="right">{{ \App\Utils\Angka::format($trx->getRawOriginal('jumlah'), 0) }}</td>
+                <td width="15%" class="center">{{ $trx->id }}</td>
+            </tr>
+        @endforeach
+    </table>
 </div>
 
 </body>

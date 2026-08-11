@@ -103,7 +103,12 @@
 	<th width="40%">
 	</th>
 		<th class="style9">
-		  <p align="center">Bendahara<br><br><img src="td_ben.png" width="20%"><br>MASLAKHATUL UMAH</p></th>
+		  <p align="center">Bendahara<br><br>@if (file_exists(public_path('td_ben.png')))
+<img src="td_ben.png" width="20%"><br>
+@else
+<br><br><br><br>
+@endif
+MASLAKHATUL UMAH</p></th>
   </tr>
 	</table>
 
