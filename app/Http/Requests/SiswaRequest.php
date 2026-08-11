@@ -12,6 +12,18 @@ class SiswaRequest extends FormRequest
         return true;
     }
 
+    private function getIgnoredSiswaId()
+    {
+        $siswa = $this->route('siswa');
+        if ($siswa instanceof \App\Models\Siswa) {
+            return $siswa->id;
+        }
+        if (is_numeric($siswa)) {
+            return (int) $siswa;
+        }
+        return null;
+    }
+
     public function rules(): array
     {
         $isUpdate = in_array($this->method(), ['PUT', 'PATCH']);
@@ -22,7 +34,18 @@ class SiswaRequest extends FormRequest
 
         $base = [
             // Wajib (inti data siswa) — sisanya boleh "-" / "0" / kosong
-            'nisn'                  => ['required', 'string', 'max:20', Rule::unique('siswa', 'nisn')->ignore($this->route('siswa'))],
+            'nisn'                  => ['required', 'string', 'max:20', function ($attr, $value, $fail) {
+                $val = trim((string) $value);
+                if ($val === '0' || $val === '') {
+                    return;
+                }
+                $exists = \App\Models\Siswa::where('nisn', $val)
+                    ->where('id', '!=', $this->getIgnoredSiswaId() ?? 0)
+                    ->exists();
+                if ($exists) {
+                    $fail('NISN sudah terdaftar.');
+                }
+            }],
             'nama'                  => 'required|string|max:255',
             'jenis_kelamin'         => 'required|in:L,P',
             'tempat_lahir'          => 'required|string|max:100',
@@ -32,7 +55,7 @@ class SiswaRequest extends FormRequest
             'status_siswa'          => 'required|in:aktif,nonaktif,blokir',
             'tanggal_masuk'         => 'required|date',
             'kelas'                 => 'required|string',
-            'ruangan'               => 'required|string|max:50',
+            'ruangan'               => 'nullable|string|max:50',
             'tahun_akademik'        => 'required|string|max:20',
 
             // Opsional (boleh "-")
@@ -54,7 +77,12 @@ class SiswaRequest extends FormRequest
             'skhun'                 => $optional,
             'penerima_kps'          => $optional,
             'no_kps'                => 'nullable|string|max:50',
-            'spp_nominal'           => 'nullable|string|max:30',
+            'spp_nominal'           => ['required', 'string', 'max:30', function ($attr, $value, $fail) {
+                $num = preg_replace('/[^0-9]/', '', (string) $value);
+                if ($num === '' || (int) $num <= 0) {
+                    $fail('Nominal SPP wajib diisi lebih dari 0.');
+                }
+            }],
 
             // Wali (semua opsional)
             'nama_ayah'             => $optional,
