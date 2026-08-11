@@ -7,83 +7,85 @@
     <meta charset="UTF-8">
     <title>Kartu SPP - {{ $siswa->nama }}</title>
     <style>
-        @page { margin: 20mm 15mm; }
+        /* Ukuran kertas custom 10.8 x 16.5 cm = separuh F4 (21.5 x 33 cm),
+           jadi semua ukuran di bawah ini diskalakan 0.5x dari desain aslinya */
+        @page { margin: 10mm 7.5mm; }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 6px;
             margin: 0;
         }
 
         .header {
             display: table;
             width: 100%;
-            border-bottom: 2px solid #000;
-            padding-bottom: 6px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 3px;
         }
         .header .logo,
         .header .info {
             display: table-cell;
             vertical-align: middle;
         }
-        .header .logo { width: 80px; }
-        .header .logo img { width: 70px; height: auto; }
+        .header .logo { width: 40px; }
+        .header .logo img { width: 35px; height: auto; }
         .header .info { text-align: center; }
-        .header .info .l1 { font-weight: bold; font-size: 13px; }
-        .header .info .l2 { font-weight: bold; font-size: 16px; margin: 2px 0; }
-        .header .info .l3 { font-size: 11px; }
-        .header .info .l4 { font-size: 11px; }
+        .header .info .l1 { font-weight: bold; font-size: 7px; }
+        .header .info .l2 { font-weight: bold; font-size: 8px; margin: 1px 0; }
+        .header .info .l3 { font-size: 6px; }
+        .header .info .l4 { font-size: 6px; }
 
         .title {
             text-align: center;
             font-weight: bold;
-            font-size: 16px;
-            border-top: 2px solid #000;
+            font-size: 8px;
+            border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            padding: 6px 0;
-            margin-top: 6px;
-            letter-spacing: 2px;
+            padding: 3px 0;
+            margin-top: 3px;
+            letter-spacing: 1px;
         }
 
         .identitas {
-            margin-top: 10px;
-            font-size: 12px;
+            margin-top: 5px;
+            font-size: 6px;
         }
         .identitas table { width: 100%; border: none; }
-        .identitas td { padding: 2px 0; vertical-align: top; }
-        .identitas td:first-child { width: 110px; }
+        .identitas td { padding: 1px 0; vertical-align: top; }
+        .identitas td:first-child { width: 55px; }
 
         table.data {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 4px;
         }
         table.data th,
         table.data td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 3px;
         }
         table.data th { text-align: center; font-weight: bold; }
-        table.data td.no { width: 30px; text-align: center; }
-        table.data td.tgl { width: 100px; text-align: center; }
-        table.data td.sign { width: 90px; }
-        table.data td.empty-row { height: 240px; vertical-align: top; }
+        table.data td.no { width: 15px; text-align: center; }
+        table.data td.tgl { width: 50px; text-align: center; }
+        table.data td.sign { width: 45px; }
+        table.data td.empty-row { height: 120px; vertical-align: top; }
 
         .keterangan {
-            margin-top: 12px;
-            font-size: 11px;
+            margin-top: 6px;
+            font-size: 6px;
         }
-        .keterangan ol { margin: 0; padding-left: 18px; }
+        .keterangan ol { margin: 0; padding-left: 9px; }
 
         .ttd {
-            margin-top: 18px;
+            margin-top: 9px;
             width: 100%;
             border: none;
         }
         .ttd td { border: none; vertical-align: top; }
-        .ttd .kanan { width: 220px; text-align: center; padding-left: auto; }
+        .ttd .kanan { width: 110px; text-align: center; padding-left: auto; }
         .ttd .kanan .jabatan { font-weight: bold; }
-        .ttd .kanan .space { height: 70px; }
+        .ttd .kanan .space { height: 35px; }
         .ttd .kanan .nama { font-weight: bold; }
     </style>
 </head>
