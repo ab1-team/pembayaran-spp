@@ -917,11 +917,7 @@ class TransaksiController extends Controller
             $data['logo_type'] = pathinfo($logoPath, PATHINFO_EXTENSION);
         }
 
-        $pdf = Pdf::loadView('transaksi.map_arsip.view.cetak_kartu_spp', $data)
-            ->setPaper('A4', 'portrait');
-
-        return $pdf->stream('kartu-spp-'.$siswa->nama.'.pdf');
-    }
+        return view('transaksi.map_arsip.view.cetak_kartu_spp', $data);}
 
     public function cetakKartuUjian($id, $jenis, Request $request)
     {
