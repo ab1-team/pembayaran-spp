@@ -46,7 +46,7 @@
                 <td colspan="5">&nbsp;</td>
             </tr>
         {{-- lompati baris yang sudah pernah dicetak sebelumnya pada kartu fisik --}}
-        @for ($s = 0; $s < $jumlahTransaksi; $s++)
+        @for ($s = 0; $s < $jumlahTransaksi%12; $s++)
             <tr>
                 <td colspan="5">&nbsp;</td>
             </tr>

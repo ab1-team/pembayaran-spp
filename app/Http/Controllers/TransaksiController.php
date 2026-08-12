@@ -18,6 +18,7 @@ use App\Models\Saldo;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Response;
 use Yajra\DataTables\Facades\DataTables;
 use App\Utils\Keuangan;
@@ -876,17 +877,44 @@ class TransaksiController extends Controller
         $transaksis = Transaksi::with('siswa', 'spp')
             ->whereIn('id', $ids)
             ->get();
+
         if ($transaksis->isEmpty()) {
             abort(404, 'Transaksi tidak ditemukan.');
         }
-        $transaksi_siswa = Transaksi::where('siswa_id', $transaksis->first()->siswa_id)
-            ->where('id', '<=', $transaksis->first()->id)
+
+        $transaksiPertama = $transaksis->first();
+
+        $prefixKodeSpp = substr($transaksiPertama->kode_spp, 0, 4);
+        $tahunKode = (int) substr($prefixKodeSpp, 0, 2); // "21"
+        $bulanKode = (int) substr($prefixKodeSpp, 2, 2); // "07"
+
+        if ($bulanKode >= 7) {
+            $tahunAwal = $tahunKode;
+            $tahunAkhir = $tahunKode + 1;
+        } else {
+            $tahunAwal = $tahunKode - 1;
+            $tahunAkhir = $tahunKode;
+        }
+
+        $prefixValid = [];
+        for ($b = 7; $b <= 12; $b++) {
+            $prefixValid[] = sprintf('%02d%02d', $tahunAwal, $b);
+        }
+        for ($b = 1; $b <= 6; $b++) {
+            $prefixValid[] = sprintf('%02d%02d', $tahunAkhir, $b);
+        }
+
+        $transaksi_siswa = Transaksi::where('siswa_id', $transaksiPertama->siswa_id)
+            ->where('id', '<=', $transaksiPertama->id)
             ->whereNull('deleted_at')
+            ->whereIn(DB::raw('LEFT(kode_spp, 4)'), $prefixValid)
             ->get();
-            $jumlahTransaksi = $transaksi_siswa->count() -1;
+
+        $jumlahTransaksi = $transaksi_siswa->count() - 1;
+
         return view('transaksi.map_arsip.view.cetakPadaKartu', [
             'transaksis' => $transaksis,
-            'jumlahTransaksi' => $jumlahTransaksi
+            'jumlahTransaksi' => $jumlahTransaksi,
         ]);
     }
 
