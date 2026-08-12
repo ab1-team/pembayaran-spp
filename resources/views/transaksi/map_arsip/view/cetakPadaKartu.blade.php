@@ -56,7 +56,7 @@
             <tr>
                 <td width="7%" class="center">{{ $jumlahTransaksi + $i + 1 }}</td>
                 <td width="30%" class="center">{{ Tanggal::tglIndo($trx->tanggal) }}</td>
-                <td>
+                <td style="padding-left:15px;">
                     @if ($trx->spp)
                         {{ Tanggal::namabulan($trx->spp->tanggal) }}
                     @else
