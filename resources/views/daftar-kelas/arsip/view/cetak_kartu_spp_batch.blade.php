@@ -1,6 +1,9 @@
 @php
     use App\Utils\Tanggal;
     use App\Utils\Angka;
+
+    $ttdPath = public_path('assets/logo/ttd.png');
+    $ttdBase64 = file_exists($ttdPath) ? base64_encode(file_get_contents($ttdPath)) : null;
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -152,7 +155,7 @@
         }
 
         .ttd .kanan {
-            width: 220px;
+            width: 250px;
             text-align: center;
             padding-left: auto;
         }
@@ -165,16 +168,20 @@
             height: 10px;
         }
 
+
+        /* TTD */
         .ttd .kanan .ttd-img {
             display: block;
-            margin: 0 auto;
-            width: 120px;
+            margin: 0 auto -30px;
+            width: 110px;
             height: auto;
             max-height: 80px;
         }
 
         .ttd .kanan .nama {
             font-weight: bold;
+            line-height: 1;
+            margin: 0;
         }
 
         .halaman {
@@ -263,7 +270,9 @@
                     <td></td>
                     <td class="kanan">
                         <div class="jabatan">Bendahara</div>
-                        <img src="{{ asset('assets/logo/ttd.png') }}" alt="" class="ttd-img">
+                        @if ($ttdBase64)
+                            <img src="data:image/png;base64,{{ $ttdBase64 }}" alt="" class="ttd-img">
+                        @endif
                         <div class="nama">MASLAKHATUL UMAH</div>
                     </td>
                 </tr>
