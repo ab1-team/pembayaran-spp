@@ -57,15 +57,29 @@
             font-weight: bold;
         }
 
+        .ttd-wrap {
+            position: relative;
+        }
+
+        .ttd-title {
+            position: relative;
+            z-index: 2;
+            margin: 0;
+        }
+
         .ttd-img {
             display: block;
-            margin: 0 auto -30px;
+            position: relative;
+            z-index: -1;
+            margin: -20px auto -30px;
             width: 110px;
             height: auto;
             max-height: 80px;
         }
 
         .ttd-nama {
+            position: relative;
+            z-index: 2;
             font-weight: bold;
             line-height: 1;
             margin: 0;
@@ -165,14 +179,15 @@
             <th width="40%">
             </th>
             <th class="style9">
-                <p align="center">Bendahara
+                <div class="ttd-wrap">
+                    <p align="center" class="ttd-title">Bendahara</p>
                     @if ($ttdBase64)
                         <img src="data:image/png;base64,{{ $ttdBase64 }}" alt="" class="ttd-img">
                     @else
                         <br><br><br><br>
                     @endif
-                <div class="ttd-nama">MASLAKHATUL UMAH</div>
-                </p>
+                    <div class="ttd-nama">MASLAKHATUL UMAH</div>
+                </div>
             </th>
         </tr>
     </table>
