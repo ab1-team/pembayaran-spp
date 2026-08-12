@@ -42,6 +42,30 @@
         .modal-fullscreen {
             z-index: 2000 !important;
         }
+        .modal-fullscreen .modal-dialog {
+            width: 100vw !important;
+            max-width: none !important;
+            height: 100vh !important;
+            margin: 0 !important;
+        }
+        .modal-fullscreen .modal-content {
+            height: 100vh !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .modal-fullscreen .modal-body {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-fullscreen .modal-header,
+        .modal-fullscreen .modal-footer {
+            flex: 0 0 auto !important;
+        }
         .modal-backdrop.show {
             z-index: 1999 !important;
         }
