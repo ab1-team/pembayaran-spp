@@ -39,6 +39,12 @@
 
 <div class="kartu">
     <table class="kartu-table" width="100%" border="0" align="center" cellpadding="5" cellspacing="2">
+            <tr>
+                <td colspan="5">&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="5">&nbsp;</td>
+            </tr>
         {{-- lompati baris yang sudah pernah dicetak sebelumnya pada kartu fisik --}}
         @for ($s = 0; $s < $jumlahTransaksi; $s++)
             <tr>
