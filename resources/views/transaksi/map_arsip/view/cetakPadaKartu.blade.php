@@ -29,7 +29,7 @@
             width: 100%;
         }
         table.kartu-table td {
-            padding: 5px;
+            padding: 3px;
         }
         .center { text-align: center; }
         .right { text-align: right; }
@@ -38,7 +38,7 @@
 <body onload="window.print()">
 
 <div class="kartu">
-    <table class="kartu-table" width="100%" border="0" align="center" cellpadding="5" cellspacing="2">
+    <table class="kartu-table" width="100%" border="0" align="center" >
             <tr>
                 <td colspan="5">&nbsp;</td>
             </tr>
@@ -55,7 +55,7 @@
         @foreach ($transaksis as $i => $trx)
             <tr>
                 <td width="7%" class="center">{{ $jumlahTransaksi + $i + 1 }}</td>
-                <td width="30%">{{ Tanggal::tglIndo($trx->tanggal) }}</td>
+                <td width="30%" class="center">{{ Tanggal::tglIndo($trx->tanggal) }}</td>
                 <td>
                     @if ($trx->spp)
                         {{ Tanggal::namabulan($trx->spp->tanggal) }}
